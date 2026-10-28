@@ -11,8 +11,15 @@ import json
 import math
 import random
 import statistics as st
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+# 重定向/管道输出到文件时，stdout 按系统 locale 编码（中文 Windows = GBK），
+# 遇到 LEVIATÁN 的「Á」这类不在 GBK 里的字符会 UnicodeEncodeError，脚本直接中断。
+# 控制台直出（isatty）不受影响，这里只把重定向走的输出固定成 UTF-8。
+if not sys.stdout.isatty() and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 BASE = Path(r"D:\好玩的项目\valorant-analytics")
 d = json.loads((BASE / "data" / "site_v3.json").read_text(encoding="utf-8"))
@@ -250,7 +257,8 @@ print(f"  r = {r:+.3f}  (n={len(xs)} 队)")
 print()
 print("阵容一致性 S1 -> S2 跨赛段")
 xs, ys = [], []
-for t in TEAMS:
+# TEAMS 是队名列表，per 的键是队伍索引，必须用 enumerate 取索引（同第 118 行）
+for t, _name in enumerate(TEAMS):
     a = per.get((t, "S1"))
     b = per.get((t, "S2"))
     if not a or not b:
@@ -260,7 +268,11 @@ for t in TEAMS:
         continue
     xs.append(va)
     ys.append(vb)
-print(f"  r = {corr(xs, ys):+.3f}  (n={len(xs)} 队，≥40 回合)")
+r = corr(xs, ys)
+if r is None:
+    print(f"  r = n/a  (有效队数 {len(xs)}，不足 4 支或方差为 0)")
+else:
+    print(f"  r = {r:+.3f}  (n={len(xs)} 队，≥40 回合)")
 
 print()
 print("有多少队的「一致性」其实是 3 场以内打出来的？")
