@@ -1,0 +1,733 @@
+{
+  "meta": {
+    "round_rows": 13905,
+    "maps": 655,
+    "events": [
+      "Masters London 2026",
+      "VCT Americas Stage 2",
+      "VCT China Stage 2",
+      "VCT EMEA Stage 2",
+      "VCT Pacific Stage 2"
+    ],
+    "maps_per_event": {
+      "Masters London 2026": 65,
+      "VCT Americas Stage 2": 150,
+      "VCT China Stage 2": 140,
+      "VCT EMEA Stage 2": 146,
+      "VCT Pacific Stage 2": 154
+    },
+    "total_first_bloods": 13905,
+    "overall_fb_to_win_pct": 71.0,
+    "rounds_missing_winner_field": 0
+  },
+  "per_map": {
+    "Abyss": {
+      "rounds": 387,
+      "first_bloods": 387,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 188,
+      "defender_fb": 199,
+      "attacker_fb_pct": 48.6,
+      "fb_to_win_pct": 69.5,
+      "events": [
+        "VCT Americas Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    },
+    "Ascent": {
+      "rounds": 1814,
+      "first_bloods": 1814,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 781,
+      "defender_fb": 1033,
+      "attacker_fb_pct": 43.1,
+      "fb_to_win_pct": 71.3,
+      "events": [
+        "Masters London 2026",
+        "VCT Americas Stage 2",
+        "VCT China Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    },
+    "Breeze": {
+      "rounds": 1480,
+      "first_bloods": 1480,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 685,
+      "defender_fb": 795,
+      "attacker_fb_pct": 46.3,
+      "fb_to_win_pct": 72.5,
+      "events": [
+        "Masters London 2026",
+        "VCT Americas Stage 2",
+        "VCT China Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    },
+    "Fracture": {
+      "rounds": 187,
+      "first_bloods": 187,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 74,
+      "defender_fb": 113,
+      "attacker_fb_pct": 39.6,
+      "fb_to_win_pct": 76.5,
+      "events": [
+        "Masters London 2026"
+      ]
+    },
+    "Haven": {
+      "rounds": 1967,
+      "first_bloods": 1967,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 911,
+      "defender_fb": 1056,
+      "attacker_fb_pct": 46.3,
+      "fb_to_win_pct": 71.0,
+      "events": [
+        "Masters London 2026",
+        "VCT Americas Stage 2",
+        "VCT China Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    },
+    "Lotus": {
+      "rounds": 2120,
+      "first_bloods": 2120,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 987,
+      "defender_fb": 1133,
+      "attacker_fb_pct": 46.6,
+      "fb_to_win_pct": 70.0,
+      "events": [
+        "Masters London 2026",
+        "VCT Americas Stage 2",
+        "VCT China Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    },
+    "Pearl": {
+      "rounds": 150,
+      "first_bloods": 150,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 69,
+      "defender_fb": 81,
+      "attacker_fb_pct": 46.0,
+      "fb_to_win_pct": 64.7,
+      "events": [
+        "Masters London 2026"
+      ]
+    },
+    "Split": {
+      "rounds": 2036,
+      "first_bloods": 2036,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 921,
+      "defender_fb": 1115,
+      "attacker_fb_pct": 45.2,
+      "fb_to_win_pct": 71.8,
+      "events": [
+        "Masters London 2026",
+        "VCT Americas Stage 2",
+        "VCT China Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    },
+    "Summit": {
+      "rounds": 1571,
+      "first_bloods": 1571,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 675,
+      "defender_fb": 896,
+      "attacker_fb_pct": 43.0,
+      "fb_to_win_pct": 69.4,
+      "events": [
+        "VCT Americas Stage 2",
+        "VCT China Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    },
+    "Sunset": {
+      "rounds": 2193,
+      "first_bloods": 2193,
+      "no_first_blood_rounds": 0,
+      "fb_rate_pct": 100.0,
+      "attacker_fb": 964,
+      "defender_fb": 1229,
+      "attacker_fb_pct": 44.0,
+      "fb_to_win_pct": 71.6,
+      "events": [
+        "VCT Americas Stage 2",
+        "VCT China Stage 2",
+        "VCT EMEA Stage 2",
+        "VCT Pacific Stage 2"
+      ]
+    }
+  },
+  "agents": [
+    {
+      "agent": "neon",
+      "first_bloods": 2613,
+      "share_pct": 18.8
+    },
+    {
+      "agent": "omen",
+      "first_bloods": 1448,
+      "share_pct": 10.4
+    },
+    {
+      "agent": "jett",
+      "first_bloods": 1112,
+      "share_pct": 8.0
+    },
+    {
+      "agent": "cypher",
+      "first_bloods": 970,
+      "share_pct": 7.0
+    },
+    {
+      "agent": "phoenix",
+      "first_bloods": 945,
+      "share_pct": 6.8
+    },
+    {
+      "agent": "chamber",
+      "first_bloods": 912,
+      "share_pct": 6.6
+    },
+    {
+      "agent": "raze",
+      "first_bloods": 905,
+      "share_pct": 6.5
+    },
+    {
+      "agent": "viper",
+      "first_bloods": 888,
+      "share_pct": 6.4
+    },
+    {
+      "agent": "sova",
+      "first_bloods": 831,
+      "share_pct": 6.0
+    },
+    {
+      "agent": "waylay",
+      "first_bloods": 693,
+      "share_pct": 5.0
+    },
+    {
+      "agent": "fade",
+      "first_bloods": 557,
+      "share_pct": 4.0
+    },
+    {
+      "agent": "yoru",
+      "first_bloods": 537,
+      "share_pct": 3.9
+    },
+    {
+      "agent": "vyse",
+      "first_bloods": 277,
+      "share_pct": 2.0
+    },
+    {
+      "agent": "sage",
+      "first_bloods": 219,
+      "share_pct": 1.6
+    },
+    {
+      "agent": "skye",
+      "first_bloods": 205,
+      "share_pct": 1.5
+    },
+    {
+      "agent": "astra",
+      "first_bloods": 199,
+      "share_pct": 1.4
+    },
+    {
+      "agent": "harbor",
+      "first_bloods": 176,
+      "share_pct": 1.3
+    },
+    {
+      "agent": "kayo",
+      "first_bloods": 154,
+      "share_pct": 1.1
+    },
+    {
+      "agent": "killjoy",
+      "first_bloods": 64,
+      "share_pct": 0.5
+    },
+    {
+      "agent": "deadlock",
+      "first_bloods": 63,
+      "share_pct": 0.5
+    },
+    {
+      "agent": "brimstone",
+      "first_bloods": 41,
+      "share_pct": 0.3
+    },
+    {
+      "agent": "veto",
+      "first_bloods": 40,
+      "share_pct": 0.3
+    },
+    {
+      "agent": "tejo",
+      "first_bloods": 22,
+      "share_pct": 0.2
+    },
+    {
+      "agent": "breach",
+      "first_bloods": 16,
+      "share_pct": 0.1
+    },
+    {
+      "agent": "iso",
+      "first_bloods": 10,
+      "share_pct": 0.1
+    },
+    {
+      "agent": "gekko",
+      "first_bloods": 7,
+      "share_pct": 0.1
+    },
+    {
+      "agent": "clove",
+      "first_bloods": 1,
+      "share_pct": 0.0
+    }
+  ],
+  "weapons": [
+    {
+      "weapon": "Vandal",
+      "class": "rifle",
+      "first_bloods": 3908,
+      "share_pct": 28.1
+    },
+    {
+      "weapon": "Phantom",
+      "class": "rifle",
+      "first_bloods": 3828,
+      "share_pct": 27.5
+    },
+    {
+      "weapon": "Operator",
+      "class": "sniper",
+      "first_bloods": 1217,
+      "share_pct": 8.8
+    },
+    {
+      "weapon": "Sheriff",
+      "class": "pistol",
+      "first_bloods": 688,
+      "share_pct": 4.9
+    },
+    {
+      "weapon": "Ghost",
+      "class": "pistol",
+      "first_bloods": 667,
+      "share_pct": 4.8
+    },
+    {
+      "weapon": "Outlaw",
+      "class": "sniper",
+      "first_bloods": 399,
+      "share_pct": 2.9
+    },
+    {
+      "weapon": "Guardian",
+      "class": "rifle",
+      "first_bloods": 361,
+      "share_pct": 2.6
+    },
+    {
+      "weapon": "Bulldog",
+      "class": "rifle",
+      "first_bloods": 336,
+      "share_pct": 2.4
+    },
+    {
+      "weapon": "Classic",
+      "class": "pistol",
+      "first_bloods": 331,
+      "share_pct": 2.4
+    },
+    {
+      "weapon": "Bandit",
+      "class": "pistol",
+      "first_bloods": 302,
+      "share_pct": 2.2
+    },
+    {
+      "weapon": "Marshal",
+      "class": "sniper",
+      "first_bloods": 239,
+      "share_pct": 1.7
+    },
+    {
+      "weapon": "Spectre",
+      "class": "smg",
+      "first_bloods": 211,
+      "share_pct": 1.5
+    },
+    {
+      "weapon": "Stinger",
+      "class": "smg",
+      "first_bloods": 192,
+      "share_pct": 1.4
+    },
+    {
+      "weapon": "Headhunter",
+      "class": "ability",
+      "first_bloods": 156,
+      "share_pct": 1.1
+    },
+    {
+      "weapon": "Judge",
+      "class": "shotgun",
+      "first_bloods": 125,
+      "share_pct": 0.9
+    },
+    {
+      "weapon": "Overdrive",
+      "class": "ability",
+      "first_bloods": 124,
+      "share_pct": 0.9
+    },
+    {
+      "weapon": "Odin",
+      "class": "lmg",
+      "first_bloods": 114,
+      "share_pct": 0.8
+    },
+    {
+      "weapon": "Hunter's Fury",
+      "class": "ability",
+      "first_bloods": 111,
+      "share_pct": 0.8
+    },
+    {
+      "weapon": "Tour de Force",
+      "class": "ability",
+      "first_bloods": 111,
+      "share_pct": 0.8
+    },
+    {
+      "weapon": "Showstopper",
+      "class": "ability",
+      "first_bloods": 103,
+      "share_pct": 0.7
+    },
+    {
+      "weapon": "Blade Storm",
+      "class": "ability",
+      "first_bloods": 95,
+      "share_pct": 0.7
+    },
+    {
+      "weapon": "Shorty",
+      "class": "pistol",
+      "first_bloods": 53,
+      "share_pct": 0.4
+    },
+    {
+      "weapon": "Paint Shells",
+      "class": "ability",
+      "first_bloods": 45,
+      "share_pct": 0.3
+    },
+    {
+      "weapon": "Bucky",
+      "class": "shotgun",
+      "first_bloods": 36,
+      "share_pct": 0.3
+    },
+    {
+      "weapon": "Frenzy",
+      "class": "pistol",
+      "first_bloods": 31,
+      "share_pct": 0.2
+    },
+    {
+      "weapon": "Hot Hands",
+      "class": "ability",
+      "first_bloods": 30,
+      "share_pct": 0.2
+    },
+    {
+      "weapon": "Shock Bolt",
+      "class": "ability",
+      "first_bloods": 24,
+      "share_pct": 0.2
+    },
+    {
+      "weapon": "Snake Bite",
+      "class": "ability",
+      "first_bloods": 11,
+      "share_pct": 0.1
+    },
+    {
+      "weapon": "FRAG/ment",
+      "class": "ability",
+      "first_bloods": 9,
+      "share_pct": 0.1
+    },
+    {
+      "weapon": "Unknown",
+      "class": "ability",
+      "first_bloods": 9,
+      "share_pct": 0.1
+    },
+    {
+      "weapon": "Fall",
+      "class": "ability",
+      "first_bloods": 7,
+      "share_pct": 0.1
+    },
+    {
+      "weapon": "Spike",
+      "class": "ability",
+      "first_bloods": 5,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Annihilation",
+      "class": "ability",
+      "first_bloods": 5,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Orbital Strike",
+      "class": "ability",
+      "first_bloods": 3,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Crushed",
+      "class": "ability",
+      "first_bloods": 3,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Armageddon",
+      "class": "ability",
+      "first_bloods": 3,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Razorvine",
+      "class": "ability",
+      "first_bloods": 3,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Ares",
+      "class": "lmg",
+      "first_bloods": 2,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Blaze",
+      "class": "ability",
+      "first_bloods": 2,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Guided Salvo",
+      "class": "ability",
+      "first_bloods": 2,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Trapwire",
+      "class": "ability",
+      "first_bloods": 1,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Mosh Pit",
+      "class": "ability",
+      "first_bloods": 1,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Boom Bot",
+      "class": "ability",
+      "first_bloods": 1,
+      "share_pct": 0.0
+    },
+    {
+      "weapon": "Nanoswarm",
+      "class": "ability",
+      "first_bloods": 1,
+      "share_pct": 0.0
+    }
+  ],
+  "weapon_classes": [
+    {
+      "class": "rifle",
+      "first_bloods": 8433,
+      "share_pct": 60.6
+    },
+    {
+      "class": "pistol",
+      "first_bloods": 2072,
+      "share_pct": 14.9
+    },
+    {
+      "class": "sniper",
+      "first_bloods": 1855,
+      "share_pct": 13.3
+    },
+    {
+      "class": "ability",
+      "first_bloods": 865,
+      "share_pct": 6.2
+    },
+    {
+      "class": "smg",
+      "first_bloods": 403,
+      "share_pct": 2.9
+    },
+    {
+      "class": "shotgun",
+      "first_bloods": 161,
+      "share_pct": 1.2
+    },
+    {
+      "class": "lmg",
+      "first_bloods": 116,
+      "share_pct": 0.8
+    }
+  ],
+  "conversion_by_weapon_class": {
+    "rifle": {
+      "n": 8433,
+      "won": 6151,
+      "rate_pct": 72.9
+    },
+    "pistol": {
+      "n": 2072,
+      "won": 1231,
+      "rate_pct": 59.4
+    },
+    "sniper": {
+      "n": 1855,
+      "won": 1418,
+      "rate_pct": 76.4
+    },
+    "ability": {
+      "n": 865,
+      "won": 568,
+      "rate_pct": 65.7
+    },
+    "smg": {
+      "n": 403,
+      "won": 303,
+      "rate_pct": 75.2
+    },
+    "shotgun": {
+      "n": 161,
+      "won": 122,
+      "rate_pct": 75.8
+    },
+    "lmg": {
+      "n": 116,
+      "won": 86,
+      "rate_pct": 74.1
+    }
+  },
+  "conversion_by_time_bucket": {
+    "0-10s": {
+      "n": 3612,
+      "won": 2592,
+      "rate_pct": 71.8
+    },
+    "11-20s": {
+      "n": 3257,
+      "won": 2313,
+      "rate_pct": 71.0
+    },
+    "46s+": {
+      "n": 2720,
+      "won": 1918,
+      "rate_pct": 70.5
+    },
+    "31-45s": {
+      "n": 2171,
+      "won": 1518,
+      "rate_pct": 69.9
+    },
+    "21-30s": {
+      "n": 2145,
+      "won": 1538,
+      "rate_pct": 71.7
+    }
+  },
+  "conversion_by_side": {
+    "defense": {
+      "n": 7650,
+      "won": 5261,
+      "rate_pct": 68.8
+    },
+    "attack": {
+      "n": 6255,
+      "won": 4618,
+      "rate_pct": 73.8
+    }
+  },
+  "conversion_by_event": {
+    "VCT Pacific Stage 2": {
+      "n": 3302,
+      "won": 2326,
+      "rate_pct": 70.4
+    },
+    "VCT Americas Stage 2": {
+      "n": 3131,
+      "won": 2238,
+      "rate_pct": 71.5
+    },
+    "VCT EMEA Stage 2": {
+      "n": 3113,
+      "won": 2207,
+      "rate_pct": 70.9
+    },
+    "VCT China Stage 2": {
+      "n": 3032,
+      "won": 2161,
+      "rate_pct": 71.3
+    },
+    "Masters London 2026": {
+      "n": 1327,
+      "won": 947,
+      "rate_pct": 71.4
+    }
+  },
+  "distance": {
+    "n": 10858,
+    "median_units": 130.7,
+    "p10": 45.4,
+    "p90": 248.0,
+    "max": 537.7
+  }
+}

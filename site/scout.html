@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>队伍报告 · 无畏契约 2026</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root{
+    --bg:#EAE7E0; --panel:#FFFFFF; --panel2:#F5F2EC; --panel3:#E9E5DC;
+    --line:#DBD5C9; --line2:#C3BDAF;
+    --fg:#1B1A17; --dim:#6B6862; --dim2:#9B968C;
+    --red:#DE3B49; --cyan:#0E7C74; --gold:#A5741C;
+    --green:#157F3B; --amber:#B45309;
+    --sans:'Inter','Microsoft YaHei','PingFang SC','Noto Sans CJK SC',system-ui,sans-serif;
+    --mono:'JetBrains Mono','Cascadia Mono',Consolas,ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:var(--sans); font-size:13px; line-height:1.55; letter-spacing:.004em;
+    background-image:radial-gradient(1100px 520px at 10% -12%, rgba(255,70,85,.06), transparent 60%);
+  }
+  a{color:var(--cyan); text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{
+    padding:16px 26px 13px; border-bottom:1px solid var(--line);
+    display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
+    justify-content:space-between; position:sticky; top:0; z-index:20;
+    background:rgba(255,255,255,.96); backdrop-filter:blur(10px) saturate(1.1);
+  }
+  h1{margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em}
+  h1 span{color:var(--red); font-weight:400}
+  .sub{color:var(--dim2); font-size:11.5px; margin-top:3px}
+  .navbtn{
+    background:transparent; border:1px solid var(--line2); color:var(--dim);
+    padding:6px 12px; border-radius:4px; font-size:11.5px; cursor:pointer;
+    font-family:inherit; transition:.12s;
+  }
+  .navbtn:hover{color:var(--fg); border-color:var(--dim2)}
+
+  main{padding:18px 26px 60px; max-width:1560px; margin:0 auto}
+
+  /* controls */
+  .controls{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; margin-bottom:16px;
+    display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
+  }
+  .ctl{display:flex; flex-direction:column; gap:5px; min-width:0}
+  .ctl label{font-size:10.5px; letter-spacing:1px; color:var(--dim); text-transform:uppercase}
+  select{
+    background:var(--panel2); border:1px solid var(--line); color:var(--fg);
+    padding:8px 10px; border-radius:7px; font-size:13.5px; font-family:inherit;
+    min-width:190px; cursor:pointer;
+  }
+  select:focus{outline:none; border-color:var(--cyan)}
+  .scope{margin-left:auto; text-align:right; font-size:11.5px; color:var(--dim)}
+  .scope b{color:var(--cyan); font-weight:500}
+
+  /* report head */
+  .rhead{
+    display:flex; flex-wrap:wrap; gap:20px; align-items:center;
+    padding:16px 20px; margin-bottom:16px; border-radius:6px;
+    background:#FFFFFF;
+    border:1px solid var(--line);
+  }
+  .teamwrap{display:flex; align-items:center; gap:13px; min-width:0}
+  .rlogo{width:46px; height:46px; object-fit:contain; flex:0 0 auto; box-sizing:border-box;
+         filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))}
+  .rlogo[hidden]{display:none}
+  .rlogo.plt{background:transparent; padding:0}
+  .rlogo.pltl{background:#2A2925; border-radius:10px; padding:6px}
+  .rhead .team{font-size:27px; font-weight:600; letter-spacing:.5px}
+  .ttag{display:inline-block; vertical-align:6px; margin-left:9px; font-size:10px;
+        line-height:16px; padding:0 5px; color:var(--dim);
+        border:1px solid var(--line); border-radius:3px; letter-spacing:.6px}
+  .rhead .meta{font-size:12px; color:var(--dim); margin-top:2px}
+  .badges{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto}
+  .badge{
+    font-size:11px; padding:4px 9px; border-radius:20px;
+    background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+  }
+  .badge.warn{border-color:rgba(251,191,36,.45); color:var(--amber)}
+
+  /* verdict */
+  .verdict{
+    border:1px solid rgba(222,59,73,.22); border-radius:6px;
+    background:#FDF3F4; padding:16px 18px; margin-bottom:16px;
+  }
+  .verdict h2{
+    margin:0 0 12px; font-size:12px; letter-spacing:1.6px; color:var(--red);
+    text-transform:uppercase; font-weight:600;
+  }
+  .vitem{display:grid; grid-template-columns:16px 74px minmax(0,1fr);
+         gap:11px; align-items:baseline; padding:7px 0;
+         border-top:1px solid rgba(27,26,23,.07)}
+  .vitem:first-of-type{border-top:none; padding-top:2px}
+  .vnum{font-family:var(--mono); font-size:10.5px; color:var(--dim2); text-align:right}
+  .vtag{font-size:10.5px; color:var(--dim); border:1px solid var(--line);
+        border-radius:2px; padding:0 5px; white-space:nowrap; justify-self:start}
+  .vbody{display:flex; gap:13px; align-items:baseline; min-width:0; flex-wrap:wrap}
+  .vmain{font-size:13.5px}
+  .vbody{flex:1; min-width:0}
+  .vcmp{font-family:var(--mono); font-size:11px; color:var(--dim2);
+        white-space:nowrap; font-variant-numeric:tabular-nums}
+  .vnone{color:var(--dim); font-size:13px}
+
+  /* grid */
+  .grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
+  .full{grid-column:1 / -1}
+  @media (max-width:1100px){ .grid{grid-template-columns:minmax(0,1fr)} }
+  /* 窄屏：宽表会把 panel 撑破，让面板自己横向滚，别把整页推出去 */
+  @media (max-width:760px){
+    .panel{min-width:0; overflow-x:auto}
+    .vitem{grid-template-columns:14px 70px minmax(0,1fr); gap:9px}
+    .vmain{font-size:13px}
+  }
+
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px 16px}
+  .panel h3{
+    margin:0 0 3px; font-size:13px; letter-spacing:.6px; font-weight:500;
+  }
+  .panel .note{font-size:11px; color:var(--dim); margin-bottom:12px}
+
+  /* kpi */
+  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px}
+  .kpi{background:var(--panel2); border-radius:8px; padding:10px 12px}
+  .kpi b{display:block; font-size:21px; color:var(--cyan); font-weight:500; line-height:1.25}
+  .kpi b.dim2{color:var(--dim)}
+  .kpi i{font-style:normal; font-size:10.5px; color:var(--dim); letter-spacing:.4px}
+  .kpi .cmp{font-size:10px; color:var(--dim); margin-top:2px}
+  .cmp .up{color:var(--green)}
+  .cmp .dn{color:var(--red)}
+
+  /* bars */
+  .bar{margin-bottom:9px}
+  .bar .lab{display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px; gap:10px}
+  .bar .lab span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .bar .lab span:last-child{color:var(--dim); flex:0 0 auto; font-variant-numeric:tabular-nums; font-size:11px; white-space:nowrap}
+  .track{height:7px; background:rgba(27,26,23,.09); border-radius:4px; overflow:hidden}
+  .fill{height:100%; background:var(--red); border-radius:4px}
+  .fill.cyan{background:var(--cyan)}
+  .fill.gold{background:var(--gold)}
+
+  /* comp timeline */
+  .clegend{display:flex; flex-direction:column; gap:4px; margin-bottom:13px}
+  .clegend .ci{display:flex; align-items:baseline; gap:7px; font-size:11.5px; line-height:1.4}
+  .csw{width:9px; height:9px; border-radius:2px; flex:0 0 auto; transform:translateY(-1px)}
+  .cname{flex:1; min-width:0; color:var(--fg)}
+  .cnum{font-family:var(--mono); font-size:10.5px; color:var(--dim); white-space:nowrap;
+        font-variant-numeric:tabular-nums}
+  .tlrow{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .tlrow .k{flex:0 0 150px; font-size:11px; color:var(--dim); white-space:nowrap;
+            overflow:hidden; text-overflow:ellipsis}
+  .tlbar{flex:1; min-width:0; height:16px; display:flex; border-radius:2px; overflow:hidden;
+         background:rgba(27,26,23,.06)}
+  .tlbar.nodata{background:repeating-linear-gradient(45deg,rgba(27,26,23,.05) 0 4px,transparent 4px 8px)}
+  .tlbar i{height:100%; display:block}
+  .tlrow .v{flex:0 0 auto; min-width:84px; text-align:right; font-family:var(--mono);
+            font-size:10.5px; color:var(--dim); font-variant-numeric:tabular-nums}
+  .tlrow .v b{font-weight:500; color:var(--fg)}
+  .tlrow .v.mute b{color:var(--dim2)}
+
+  /* table */
+  table{width:100%; border-collapse:collapse; font-size:12.5px}
+  th{
+    text-align:right; padding:6px 8px; color:var(--dim); font-weight:400;
+    font-size:10.5px; letter-spacing:.5px; border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  th:first-child{text-align:left}
+  td{padding:6px 8px; text-align:right; border-bottom:1px solid rgba(42,53,64,.45);
+     font-variant-numeric:tabular-nums}
+  td:first-child{text-align:left; font-variant-numeric:normal}
+  tbody tr:hover{background:rgba(255,255,255,.03)}
+  .small{font-size:10.5px; color:var(--dim)}
+  .th-in{font-size:10px; color:var(--dim); display:block; font-weight:400}
+
+  /* histogram */
+  .hist{display:flex; align-items:flex-end; gap:6px; height:96px; margin:8px 0 4px}
+  .hbar{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px}
+  .hbar .b{width:100%; background:var(--cyan); border-radius:3px 3px 0 0; min-height:2px}
+  .hbar .t{font-size:9.5px; color:var(--dim)}
+  .hist-x{display:flex; gap:6px}
+  .hist-x div{flex:1; text-align:center; font-size:9.5px; color:var(--dim)}
+
+  .legend{display:flex; gap:14px; font-size:11px; color:var(--dim); margin-top:8px; flex-wrap:wrap}
+  .legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px}
+
+  footer{padding:20px 26px 40px; color:var(--dim); font-size:11px; border-top:1px solid var(--line); margin-top:20px}
+
+  @media print{
+    body{background:#fff; color:#111}
+    header,.controls,.navbtn{display:none}
+    .panel,.rhead,.verdict{background:#fff; border-color:#ccc; break-inside:avoid}
+    .kpi{background:#f4f4f4}
+    .kpi b{color:#0b6b7a}
+    .track{background:#e5e5e5}
+  }
+  /* ---------- design pass v2：与主站同一套视觉语言 ---------- */
+  .eyebrow{
+    font-size:9.5px; font-weight:600; letter-spacing:.18em; color:var(--dim2);
+    text-transform:uppercase; margin-bottom:7px;
+  }
+  /* 数字全部等宽，读数时列不会抖 */
+  .kpi b, .tstat b, td.num, .num, .big, .cmp{
+    font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.015em;
+  }
+  .kpi b{color:var(--fg); font-weight:600; font-size:20px}
+  .kpi{background:#F8F5EF; border:1px solid var(--line); border-radius:5px}
+  .panel{border-radius:6px; border-color:var(--line)}
+  .panel h3{
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; letter-spacing:.01em; color:var(--fg); font-weight:600;
+  }
+  .panel h3::before{
+    content:''; width:3px; height:11px; border-radius:1px; background:var(--red);
+    flex:0 0 auto;
+  }
+  .panel h3 .note{display:inline}
+  .verdict{border-radius:6px; border-color:var(--line)}
+  .note{color:var(--dim2)}
+  .badge{border-radius:4px; border-color:var(--line2); font-size:10.5px}
+  table th{font-size:10px; letter-spacing:.13em; color:var(--dim2)}
+  table td{border-bottom:1px solid rgba(31,45,56,.75)}
+  tbody tr:hover{background:rgba(255,255,255,.028)}
+  .ctl select{
+    background:transparent; border:1px solid var(--line2); border-radius:4px;
+    color:var(--fg); font-size:12px; padding:6px 10px;
+  }
+  .ctl label{font-size:9.5px; letter-spacing:.14em; color:var(--dim2); text-transform:uppercase}
+  .verdict h2{font-size:12px; letter-spacing:.02em}
+  .vitem{border-radius:5px}
+  .toast{position:fixed; left:50%; bottom:28px; transform:translate(-50%, 10px);
+    background:var(--fg); color:#fff; padding:9px 16px; border-radius:6px;
+    font-size:12px; opacity:0; pointer-events:none; z-index:300;
+    transition:opacity .18s, transform .18s}
+  .toast.show{opacity:1; transform:translate(-50%, 0)}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>队伍报告 <span>/</span> 无畏契约 2026</h1>
+    <div class="sub">赛前对手准备 · 基于 vlr.gg 2D 回放的回合级数据</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="navbtn" id="shareBtn">复制链接</button>
+    <button class="navbtn" onclick="window.print()">导出 PDF</button>
+    <button class="navbtn" onclick="location.href='index.html'">← 全局基准</button>
+  </div>
+</header>
+
+<main>
+  <div class="controls">
+    <div class="ctl">
+      <label>目标队伍</label>
+      <select id="teamSel"></select>
+    </div>
+    <div class="ctl">
+      <label>地图</label>
+      <select id="mapSel"></select>
+    </div>
+    <div class="ctl">
+      <label>赛事</label>
+      <select id="evSel"></select>
+    </div>
+    <div class="scope" id="scopeInfo"></div>
+  </div>
+
+  <div class="rhead">
+    <div class="teamwrap">
+      <img class="rlogo" id="teamLogo" alt="" hidden>
+      <div>
+        <div class="team" id="teamName">—</div>
+        <div class="meta" id="teamMeta"></div>
+      </div>
+    </div>
+    <div class="badges" id="teamBadges"></div>
+  </div>
+
+  <div class="verdict">
+    <h2>可利用倾向 · top 3</h2>
+    <div id="verdictBody"></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel full">
+      <h3>核心指标</h3>
+      <div class="note">括号内为与联赛基准的差，仅作方向参考</div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+
+    <div class="panel">
+      <h3 id="compTitle">阵容 · 按赛事</h3>
+      <div class="note" id="compNote"></div>
+      <div id="compLegend" class="clegend"></div>
+      <div id="compList"></div>
+    </div>
+
+    <div class="panel">
+      <h3>经济结构</h3>
+      <div class="note" id="econNote">按本回合实际持有的长枪数分档</div>
+      <div id="econList"></div>
+    </div>
+
+    <div class="panel">
+      <h3>手枪局与第 2 局</h3>
+      <div class="note" id="pistolNote"></div>
+      <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))" id="pistolKpis"></div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--dim)">
+        输掉手枪局后第 2 局的买法
+      </div>
+      <div class="hist" id="r2Hist"></div>
+      <div class="hist-x" id="r2HistX"></div>
+      <div class="note" id="r2Note" style="margin:8px 0 0"></div>
+    </div>
+
+    <div class="panel">
+      <h3>攻防分侧</h3>
+      <div class="note">同一批回合，按自己进攻 / 防守拆开</div>
+      <table>
+        <thead><tr><th>位置</th><th>回合</th><th>胜率</th><th>首杀率</th><th>首杀→胜</th></tr></thead>
+        <tbody id="sideRows"></tbody>
+      </table>
+    </div>
+
+    <div class="panel full">
+      <h3>谁在开火</h3>
+      <div class="note">拿到首杀的球员，以及占比与所用英雄</div>
+      <table>
+        <thead><tr>
+          <th>球员</th><th>首杀</th><th>占队内</th><th>每 10 回合</th>
+          <th>主用英雄</th><th>首杀时该队胜率</th>
+        </tr></thead>
+        <tbody id="playerRows"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>首杀时刻</h3>
+      <div class="note" id="timeNote"></div>
+      <div class="hist" id="timeHist"></div>
+      <div class="hist-x" id="timeHistX"></div>
+    </div>
+
+    <div class="panel">
+      <h3>首杀后能不能赢</h3>
+      <div class="note">只看这个队伍自己拿到首杀的回合</div>
+      <div id="tradeBlock"></div>
+    </div>
+  </div>
+
+  <footer id="footNote"></footer>
+</main>
+
+<script>
+const S = { raw:null, D:null, Z:null, M:null, players:null, base:null };
+const F = { team:0, map:-1, ev:-1 };
+let view = [];
+
+const pct = (a,b) => b ? (100*a/b).toFixed(1) : '—';
+const fmt = n => n.toLocaleString('en-US');
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const median = arr => {
+  if(!arr.length) return null;
+  const s = arr.slice().sort((x,y)=>x-y), m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m-1]+s[m])/2;
+};
+
+/* ---------------------------------------------------------------- */
+/* helpers: flatten a round row for one team                        */
+/* ---------------------------------------------------------------- */
+function sideOf(r, t){
+  const isAtk = (r[2] === t);
+  return {
+    mine:  isAtk ? r[14] : r[15],
+    their: isAtk ? r[15] : r[14],
+    myEcon:  isAtk ? r[16] : r[17],
+    theirEcon: isAtk ? r[17] : r[16],
+    isAtk
+  };
+}
+function myCompOf(r, t){
+  return (r[5] === t) ? r[12] : r[13];
+}
+
+/* pistol rounds + what the team does on round 2 after losing one */
+function pistolStats(rows, t){
+  const pist = rows.filter(r => r[18] === 1 || r[18] === 13);
+  const st = {
+    n: pist.length,
+    won: pist.filter(r => r[4] === t).length,
+    atkN: pist.filter(r => r[2] === t).length,
+    atkWon: pist.filter(r => r[2] === t && r[4] === t).length,
+    defN: pist.filter(r => r[3] === t).length,
+    defWon: pist.filter(r => r[3] === t && r[4] === t).length,
+    r2N: 0, r2Save: 0, r2Spend: []
+  };
+  const byG = new Map();
+  for(const r of rows){
+    if(!byG.has(r[20])) byG.set(r[20], []);
+    byG.get(r[20]).push(r);
+  }
+  for(const rs of byG.values()){
+    const pm = new Map();
+    for(const r of rs) if(r[18] === 1 || r[18] === 13) pm.set(r[18], r);
+    for(const [pno, rno2] of [[1,2],[13,14]]){
+      const p = pm.get(pno);
+      if(!p || p[4] === t) continue;
+      const r2 = rs.find(x => x[18] === rno2);
+      if(!r2) continue;
+      const sp = (r2[2] === t) ? r2[14] : r2[15];
+      if(sp < 0) continue;
+      st.r2N++; st.r2Spend.push(sp);
+      if(sp < 3000) st.r2Save++;
+    }
+  }
+  return st;
+}
+
+/* ---------------------------------------------------------------- */
+/* league baselines                                                 */
+/* ---------------------------------------------------------------- */
+function buildBaselines(){
+  const R = S.raw.rounds;
+  const b = {};
+
+  let n = 0, atkWin = 0, fbConv = 0, fbN = 0, tradedN = 0, tradedWon = 0, untradedN = 0, untradedWon = 0;
+  const econ = { 0:[0,0], 1:[0,0], 2:[0,0] };
+
+  for(const r of R){
+    n++;
+    if(r[4] === r[2]) atkWin++;
+    if(r[5] >= 0){
+      fbN++;
+      if(r[4] === r[5]) fbConv++;
+      if(r[11] === 1){ tradedN++; if(r[4] === r[5]) tradedWon++; }
+      else if(r[11] === 0){ untradedN++; if(r[4] === r[5]) untradedWon++; }
+    }
+    for(const [t, e] of [[r[2], r[16]], [r[3], r[17]]]){
+      if(e < 0) continue;
+      econ[e][0]++;
+      if(r[4] === t) econ[e][1]++;
+    }
+  }
+  b.n = n;
+  b.atkWin = 100*atkWin/n;
+  b.fbConv = 100*fbConv/fbN;
+  b.tradePct = 100*tradedN/fbN;
+  b.tradedWin = 100*tradedWon/tradedN;
+  b.untradedWin = 100*untradedWon/untradedN;
+  b.tradeGap = b.untradedWin - b.tradedWin;
+  b.econShare = {}; b.econWin = {};
+  for(const k of [0,1,2]){
+    b.econWin[k] = 100*econ[k][1]/econ[k][0];
+    b.econShare[k] = 100*econ[k][0]/(econ[0][0]+econ[1][0]+econ[2][0]);
+  }
+
+  // pistol rounds + round-2 buy after losing the pistol
+  const games = new Map();
+  for(const r of R){
+    if(!games.has(r[20])) games.set(r[20], []);
+    games.get(r[20]).push(r);
+  }
+  let pN = 0, pAtkWin = 0, r2N = 0, r2Force = 0, r2Save = 0, r2Sum = 0;
+  for(const rs of games.values()){
+    const pist = new Map();
+    for(const r of rs) if(r[18] === 1 || r[18] === 13) pist.set(r[18], r);
+    for(const r of pist.values()){
+      pN++;
+      if(r[4] === r[2]) pAtkWin++;
+    }
+    for(const [pno, rno2] of [[1,2],[13,14]]){
+      const p = pist.get(pno);
+      if(!p) continue;
+      const r2 = rs.find(x => x[18] === rno2);
+      if(!r2) continue;
+      for(const t of [p[2], p[3]]){
+        if(p[4] === t) continue;
+        const sp = (r2[2] === t) ? r2[14] : r2[15];
+        if(sp < 0) continue;
+        r2N++; r2Sum += sp;
+        if(sp >= 13000) r2Force++;
+        if(sp < 3000) r2Save++;
+      }
+    }
+  }
+  b.pistolN = pN;
+  b.pistolAtkWin = pN ? 100*pAtkWin/pN : null;
+  b.r2N = r2N;
+  b.r2Force = r2N ? 100*r2Force/r2N : null;
+  b.r2Save = r2N ? 100*r2Save/r2N : null;
+  b.r2Avg = r2N ? r2Sum/r2N : null;
+  b.games = games;
+
+  // first-blood concentration per team (top player share)
+  b.conc = new Map();
+  const tmp = new Map();
+  for(const r of R){
+    if(r[5] < 0 || r[19] < 0) continue;
+    if(!tmp.has(r[5])) tmp.set(r[5], new Map());
+    const m = tmp.get(r[5]);
+    m.set(r[19], (m.get(r[19])||0)+1);
+  }
+  let cSum = 0, cN = 0;
+  for(const [t, m] of tmp){
+    const tot = [...m.values()].reduce((a,b)=>a+b,0);
+    const top = Math.max(...m.values());
+    const share = tot ? 100*top/tot : 0;
+    b.conc.set(t, {tot, top, share, pid: [...m.entries()].sort((a,b)=>b[1]-a[1])[0][0]});
+    if(tot >= 80){ cSum += share; cN++; }
+  }
+  b.concAvg = cN ? cSum/cN : null;
+
+  // 联赛首杀中位时刻（倾向面板要拿它当基准）
+  const secAll = [];
+  for(const r of R) if(r[5] >= 0 && r[8] >= 0) secAll.push(r[8]);
+  b.secMed = secAll.length ? median(secAll) : null;
+
+  return b;
+}
+
+/* ---------------------------------------------------------------- */
+/* scope aggregation                                                */
+/* ---------------------------------------------------------------- */
+function aggregate(rows, t){
+  const a = {
+    n:0, won:0, fbFor:0, fbAgainst:0, fbWon:0,
+    traded:0, untraded:0, tradedWon:0, untradedWon:0,
+    atk:{n:0,won:0,fbFor:0,fbWon:0}, def:{n:0,won:0,fbFor:0,fbWon:0},
+    comps:new Map(), compN:0, metaHit:0, metaN:0,
+    econ:{0:[0,0],1:[0,0],2:[0,0]},
+    players:new Map(), agents:new Map(),
+    secs:[], xs:[], ys:[]
+  };
+  for(const r of rows){
+    const s = sideOf(r, t);
+    const won = (r[4] === t);
+    const fbFor = (r[5] === t);
+    const sd = s.isAtk ? a.atk : a.def;
+    a.n++; if(won) a.won++;
+    sd.n++; if(won) sd.won++;
+    if(fbFor){ a.fbFor++; sd.fbFor++; if(won){ a.fbWon++; sd.fbWon++; } }
+    else if(r[5] >= 0) a.fbAgainst++;
+
+    if(fbFor){
+      if(r[11] === 1){ a.traded++; if(won) a.tradedWon++; }
+      else if(r[11] === 0){ a.untraded++; if(won) a.untradedWon++; }
+    }
+
+    const mc = myCompOf(r, t);
+    if(mc >= 0){
+      a.comps.set(mc, (a.comps.get(mc)||0)+1);
+      a.compN++;
+      const top = S.raw.metaTop[String(r[1])];
+      if(top){
+        const set = new Set(top);
+        let hit = 0;
+        for(const ag of S.raw.comps[mc]) if(set.has(ag)) hit++;
+        a.metaHit += hit/5; a.metaN++;
+      }
+    }
+
+    if(s.myEcon >= 0){
+      a.econ[s.myEcon][0]++;
+      if(won) a.econ[s.myEcon][1]++;
+    }
+
+    if(fbFor && r[19] >= 0){
+      let p = a.players.get(r[19]);
+      if(!p){ p = {n:0, won:0, agents:new Map()}; a.players.set(r[19], p); }
+      p.n++; if(won) p.won++;
+      p.agents.set(r[6], (p.agents.get(r[6])||0)+1);
+      a.agents.set(r[6], (a.agents.get(r[6])||0)+1);
+    }
+    if(fbFor && r[8] >= 0) a.secs.push(r[8]);
+  }
+  return a;
+}
+
+/* ---------------------------------------------------------------- */
+/* insight engine                                                   */
+/* ---------------------------------------------------------------- */
+function insights(a, b, t, ps){
+  const out = [];
+  const pp  = d => (d >= 0 ? '+' : '') + d.toFixed(1) + 'pp';
+  const push = (sev, tag, main, cmp, key) =>
+    out.push({sev: Math.abs(sev), tag, main, cmp, key: key || tag});
+
+  const fbRate  = a.n ? 100*a.fbFor/a.n : null;
+  const fbConv  = a.fbFor ? 100*a.fbWon/a.fbFor : null;
+  const tradePct= (a.traded + a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null;
+  const defWin  = a.def.n ? 100*a.def.won/a.def.n : null;
+  const atkWin  = a.atk.n ? 100*a.atk.won/a.atk.n : null;
+  const baseDef = 100 - b.atkWin;
+  const fullWin = a.econ[2][0] ? 100*a.econ[2][1]/a.econ[2][0] : null;
+  const ecoWin  = a.econ[0][0] ? 100*a.econ[0][1]/a.econ[0][0] : null;
+  const conc    = b.conc.get(t);
+  const secMed  = median(a.secs);
+
+  // ---- 每条只留「发生了什么 + 联赛是多少」，不写该怎么打 ----
+  if(fbConv != null){
+    const d = fbConv - b.fbConv;
+    if(Math.abs(d) >= 1.5)
+      push(d*2.2, '首杀转化',
+        `拿了首杀后赢下 ${fbConv.toFixed(1)}% 的回合`,
+        `联赛 ${b.fbConv.toFixed(1)}% · ${pp(d)}`);
+  }
+
+  if(tradePct != null){
+    const d = tradePct - b.tradePct;
+    if(Math.abs(d) >= 3)
+      push(d*1.5, '被补率',
+        `首杀被补掉 ${tradePct.toFixed(1)}%`,
+        `联赛 ${b.tradePct.toFixed(1)}% · ${pp(d)}`);
+  }
+
+  if(defWin != null && Math.abs(defWin - baseDef) >= 5){
+    const d = defWin - baseDef;
+    push(Math.abs(d)*1.5, '防守端',
+      `防守方胜率 ${defWin.toFixed(1)}%`,
+      `联赛 ${baseDef.toFixed(1)}% · ${pp(d)}`);
+  }
+
+  if(atkWin != null && Math.abs(atkWin - b.atkWin) >= 5){
+    const d = atkWin - b.atkWin;
+    push(Math.abs(d)*1.4, '进攻端',
+      `进攻方胜率 ${atkWin.toFixed(1)}%`,
+      `联赛 ${b.atkWin.toFixed(1)}% · ${pp(d)}`);
+  }
+
+  if(conc && conc.tot >= 40 && conc.share > 27){
+    push((conc.share-27)*0.9, '首杀集中',
+      `${S.players[conc.pid].n} 一个人拿了 ${conc.top} 次首杀`,
+      `占队内 ${conc.share.toFixed(0)}% · 联赛均 ${b.concAvg ? b.concAvg.toFixed(0) : '—'}%`,
+      'player:' + conc.pid);
+  }
+
+  if(fullWin != null && Math.abs(fullWin - b.econWin[2]) >= 5){
+    const d = fullWin - b.econWin[2];
+    push(Math.abs(d)*1.2, '全买局',
+      `全买局胜率 ${fullWin.toFixed(1)}%`,
+      `联赛 ${b.econWin[2].toFixed(1)}% · ${pp(d)}`);
+  }
+
+  if(ecoWin != null && Math.abs(ecoWin - b.econWin[0]) >= 7){
+    const d = ecoWin - b.econWin[0];
+    push(Math.abs(d)*1.1, 'eco 局',
+      `eco 局胜率 ${ecoWin.toFixed(1)}%`,
+      `联赛 ${b.econWin[0].toFixed(1)}% · ${pp(d)}`);
+  }
+
+  if(secMed != null && b.secMed != null && Math.abs(secMed - b.secMed) >= 2){
+    const d = secMed - b.secMed;
+    push(Math.abs(d)*1.2, '开局时机',
+      `首杀中位时刻 ${secMed.toFixed(0)} 秒`,
+      `联赛 ${b.secMed.toFixed(0)} 秒 · ${d>=0?'+':''}${d.toFixed(0)} 秒`, 'time');
+  }
+
+  if(fbRate != null && Math.abs(fbRate - 50) >= 3.5){
+    const d = fbRate - 50;
+    push(Math.abs(d)*1.2, '首杀率',
+      `首杀率 ${fbRate.toFixed(1)}%`,
+      `基准 50% · ${pp(d)}`);
+  }
+
+  if(ps && ps.n >= 8){
+    const pw = 100*ps.won/ps.n, d = pw - 50;
+    if(Math.abs(d) >= 14)
+      push(Math.abs(d)*0.55, '手枪局',
+        `手枪局 ${ps.won}/${ps.n}（${pw.toFixed(0)}%）`,
+        `基准 50% · ${pp(d)}`);
+  }
+
+  if(ps && ps.r2N >= 8){
+    const saveRate = 100*ps.r2Save/ps.r2N;
+    const d = saveRate - b.r2Save;
+    if(Math.abs(d) >= 12)
+      push(Math.abs(d)*0.5, '输手枪后',
+        `输掉手枪局后全存 ${saveRate.toFixed(0)}%`,
+        `联赛 ${b.r2Save.toFixed(0)}% · ${pp(d)}`);
+  }
+
+  // 两条常驻描述：不比较，只报事实
+  if(conc && conc.tot >= 30)
+    push(0.9, '开火点',
+      `首杀最多的是 ${S.players[conc.pid].n}`,
+      `${conc.top} 次首杀 · 占队内 ${conc.share.toFixed(0)}%`,
+      'player:' + conc.pid);
+
+  if(a.compN){
+    const topCid = [...a.comps.entries()].sort((x,y)=>y[1]-x[1])[0][0];
+    const names = S.raw.comps[topCid].map(i => agentName(i));
+    const n = a.comps.get(topCid);
+    push(0.8, '默认阵容',
+      names.join(' · '),
+      `${n} 回合 · 占 ${(100*n/a.compN).toFixed(0)}%`);
+  }
+
+  out.sort((x,y) => y.sev - x.sev);
+  const picked = [];
+  const usedKeys = new Set();
+  for(const o of out){
+    if(picked.length >= 3) break;
+    if(usedKeys.has(o.key)) continue;
+    usedKeys.add(o.key);
+    picked.push(o);
+  }
+  return picked;
+}
+
+/* ---------------------------------------------------------------- */
+/* rendering                                                        */
+/* ---------------------------------------------------------------- */
+function renderHead(a, t){
+  const name = S.D.teams[t];
+  const meta = (S.TM && S.TM[t]) || null;
+  document.getElementById('teamName').innerHTML =
+    esc(name) + (meta && meta.tag ? `<span class="ttag">${esc(meta.tag)}</span>` : '');
+  const lg = document.getElementById('teamLogo');
+  if(meta && meta.logo){
+    lg.src = meta.logo; lg.hidden = false;
+    lg.classList.toggle('plt', !!meta.plate);
+    lg.classList.toggle('pltl', !!meta.plateLight);
+  }
+  else { lg.hidden = true; }
+  const evs = new Set(view.map(r => S.D.events[r[0]]));
+  const maps = new Set(view.map(r => S.D.maps[r[1]]));
+  document.getElementById('teamMeta').textContent =
+    `${fmt(a.n)} 回合 · ${maps.size} 张图 · ${evs.size} 个赛事`;
+
+  const badges = [];
+  const geoN = view.filter(r => r[9] >= 0).length;
+  const econN = view.filter(r => r[16] >= 0).length;
+  const geoPct = a.n ? 100*geoN/a.n : 0;
+  const econPct = a.n ? 100*econN/a.n : 0;
+  if(geoPct < 1) badges.push(['无坐标数据', 'warn']);
+  else if(geoPct < 95) badges.push([`坐标覆盖 ${geoPct.toFixed(0)}%`, 'warn']);
+  if(econPct < 1) badges.push(['无经济数据', 'warn']);
+  else if(econPct < 95) badges.push([`经济覆盖 ${econPct.toFixed(0)}%`, 'warn']);
+  if(a.n < 60) badges.push([`样本偏小（${a.n} 回合）`, 'warn']);
+  badges.push([`阵容池 ${S.M.comps} 套`, '']);
+  document.getElementById('teamBadges').innerHTML =
+    badges.map(([txt, cls]) => `<span class="badge ${cls}">${esc(txt)}</span>`).join('');
+}
+
+function renderVerdict(a, b, t, ps){
+  const list = insights(a, b, t, ps);
+  const box = document.getElementById('verdictBody');
+  if(!list.length){
+    box.innerHTML = '<div class="vnone">这个范围里没有明显偏离联赛基准的倾向。换一张图或放宽赛事范围再看。</div>';
+    return;
+  }
+  box.innerHTML = list.map((o, i) => `
+    <div class="vitem">
+      <span class="vnum">${i+1}</span>
+      <span class="vtag">${esc(o.tag)}</span>
+      <span class="vbody"><span class="vmain">${o.main}</span><span class="vcmp">${o.cmp}</span></span>
+    </div>`).join('');
+}
+
+function renderKpis(a, b, t){
+  const items = [
+    ['回合胜率', a.n ? 100*a.won/a.n : null, 50, a.n],
+    ['首杀率', a.n ? 100*a.fbFor/a.n : null, null, a.n],
+    ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor],
+    ['首杀被补率', (a.traded+a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null, b.tradePct, a.traded+a.untraded],
+    ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null, b.concAvg,
+      (b.conc.get(t)||{}).tot],
+    ['Meta Fit', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN]
+  ];
+  document.getElementById('kpis').innerHTML = items.map(([lab, v, base, n]) => {
+    let cmp = '';
+    if(v != null && base != null){
+      const d = v - base;
+      const cls = d >= 0 ? 'up' : 'dn';
+      cmp += `vs 基准 <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
+    }
+    if(n != null) cmp += `${cmp?' · ':''}n=${fmt(n)}`;
+    const small = (n != null && n < 40) ? ' <span style="color:#fbbf24">小样本</span>' : '';
+    return `<div class="kpi"><b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b>
+      <i>${lab}</i><div class="cmp">${cmp}${small}</div></div>`;
+  }).join('');
+}
+
+function agentName(i){ return S.Z.agents[S.D.agents[i]] || S.D.agents[i]; }
+
+/* 阵容时间轴：行 = 赛事（锁定单个赛事时改为地图），条 = 该行里各阵容的份额 */
+const COMP_COLORS = ['#DE3B49','#0E7C74','#A5741C','#4C6A8E','#157F3B','#6D5A8A'];
+const COMP_OTHER  = '#C6C0B3';
+
+function compName(cid){ return S.raw.comps[cid].map(agentName).join(' · '); }
+
+function evShort(i){ return S.Z.events[S.D.events[i]] || S.D.events[i]; }
+
+function renderComps(a, rows, t){
+  const dim = (F.ev >= 0) ? 'map' : 'ev';
+  const keyOf = r => (dim === 'ev') ? r[0] : r[1];
+
+  const groups = new Map();
+  for(const r of rows){
+    const k = keyOf(r);
+    let g = groups.get(k);
+    if(!g){ g = {n:0, won:0, comps:new Map(), compN:0}; groups.set(k, g); }
+    g.n++; if(r[4] === t) g.won++;
+    const mc = myCompOf(r, t);
+    if(mc >= 0){ g.comps.set(mc, (g.comps.get(mc)||0)+1); g.compN++; }
+  }
+  const keys = [...groups.keys()].sort((x,y) =>
+    dim === 'ev' ? x - y : groups.get(y).n - groups.get(x).n);
+
+  const NTOP = COMP_COLORS.length;
+  const top = [...a.comps.entries()].sort((x,y)=>y[1]-x[1]).slice(0, NTOP);
+  const colorOf = new Map(top.map(([cid], i) => [cid, COMP_COLORS[i]]));
+
+  document.getElementById('compTitle').textContent =
+    dim === 'ev' ? '阵容 · 按赛事' : '阵容 · 按地图';
+  document.getElementById('compNote').innerHTML = a.compN
+    ? (dim === 'ev'
+        ? `每行一个赛事，按时间从上到下。色块宽度 = 这套阵容在该赛事里的份额，灰 = 没进前 6 的其余阵容。悬停看阵容与占比。数据只到赛事粒度，没有补丁日期。`
+        : `已锁定单个赛事，改为按地图拆。色块宽度 = 这套阵容在这张图上的份额，灰 = 没进前 6 的其余阵容。`)
+    : '这个范围没有阵容数据（中国赛区不提供）';
+
+  const otherN = a.compN - top.reduce((s, x) => s + x[1], 0);
+  document.getElementById('compLegend').innerHTML = top.map(([cid, n]) => `
+    <div class="ci">
+      <span class="csw" style="background:${colorOf.get(cid)}"></span>
+      <span class="cname">${esc(compName(cid))}</span>
+      <span class="cnum">${pct(n, a.compN)}% · ${n} 回合</span>
+    </div>`).join('') + (otherN > 0 ? `
+    <div class="ci">
+      <span class="csw" style="background:${COMP_OTHER}"></span>
+      <span class="cname" style="color:var(--dim)">其他 ${a.comps.size - top.length} 套</span>
+      <span class="cnum">${pct(otherN, a.compN)}%</span>
+    </div>` : '');
+
+  document.getElementById('compList').innerHTML = keys.map(k => {
+    const g = groups.get(k);
+    const label = dim === 'ev' ? evShort(k) : (S.Z.maps[S.D.maps[k]] || S.D.maps[k]);
+    const wr = g.n ? 100*g.won/g.n : null;
+    const thin = g.n < 20;
+
+    let bar;
+    if(!g.compN){
+      bar = `<div class="tlbar nodata" title="这个${dim==='ev'?'赛事':'地图'}没有阵容数据（中国赛区不提供）"></div>`;
+    }else{
+      const segs = [];
+      let otherN = 0, otherC = 0;
+      for(const [cid, n] of [...g.comps.entries()].sort((x,y)=>y[1]-x[1])){
+        if(colorOf.has(cid)) segs.push([colorOf.get(cid), n, compName(cid)]);
+        else { otherN += n; otherC++; }
+      }
+      if(otherN) segs.push([COMP_OTHER, otherN, `其他 ${otherC} 套`]);
+      bar = `<div class="tlbar">` + segs.map(([c, n, nm]) =>
+        `<i style="width:${100*n/g.compN}%;background:${c}" title="${esc(nm)} · ${pct(n,g.compN)}%"></i>`
+      ).join('') + `</div>`;
+    }
+    return `<div class="tlrow">
+      <div class="k" title="${esc(label)}">${esc(label)}</div>
+      ${bar}
+      <div class="v${thin?' mute':''}"><b>${wr==null?'—':wr.toFixed(1)+'%'}</b> · ${fmt(g.n)}</div>
+    </div>`;
+  }).join('') || '<div class="small">无数据</div>';
+}
+
+function renderEcon(a, b){
+  const names = ['eco（<span class="small">≤1 长枪</span>）','半买（<span class="small">2–3 把</span>）','全买（<span class="small">≥4 把</span>）'];
+  const tot = a.econ[0][0]+a.econ[1][0]+a.econ[2][0];
+  const covered = a.n ? 100*tot/a.n : 0;
+  document.getElementById('econNote').innerHTML = tot
+    ? `按本回合实际持有的长枪数分档 · ${fmt(tot)} 回合有数据` +
+      (covered < 99.5 ? `（<span style="color:#fbbf24">覆盖 ${covered.toFixed(0)}%，其余为中国赛区</span>）` : '')
+    : '<span style="color:#fbbf24">这个范围没有经济数据（中国赛区不提供）</span>';
+  const maxShare = Math.max(...[0,1,2].map(k => tot ? 100*a.econ[k][0]/tot : 0), 1);
+  document.getElementById('econList').innerHTML = [0,1,2].map(k => {
+    const [n, w] = a.econ[k];
+    const share = tot ? 100*n/tot : 0;
+    const wr = n ? 100*w/n : null;
+    const d = wr != null ? wr - b.econWin[k] : null;
+    const thin = n < 20;
+    const wrTxt = wr==null ? '—'
+      : `<span style="${thin?'color:#8fa3b3':''}">${wr.toFixed(1)}%</span>`
+        + (thin ? '<span style="color:#fbbf24"> 小样本</span>'
+                : (d==null?'':` <span style="color:${d>=0?'#4ade80':'#ff4655'}">(${d>=0?'+':''}${d.toFixed(0)})</span>`));
+    return `<div class="bar">
+      <div class="lab">
+        <span>${names[k]}</span>
+        <span>${share.toFixed(0)}% · n=${n} · ${wrTxt}</span>
+      </div>
+      <div class="track"><div class="fill cyan" style="width:${100*share/maxShare}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderPistol(a, b, rows, t){
+  const st = pistolStats(rows, t);
+  const note = document.getElementById('pistolNote');
+  note.textContent = st.n
+    ? `${st.n} 个手枪局（每张图 2 个）· 联赛进攻方拿手枪 50.0%`
+    : '这个范围没有手枪局数据';
+
+  const cell = (lab, v, sub, warn) => `<div class="kpi">
+    <b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b><i>${lab}</i>
+    ${sub?`<div class="cmp">${sub}${warn?' <span style="color:#fbbf24">小样本</span>':''}</div>`:''}</div>`;
+  document.getElementById('pistolKpis').innerHTML = [
+    cell('手枪局胜率', st.n ? 100*st.won/st.n : null, `${st.won}/${st.n}`),
+    cell('进攻手枪', st.atkN ? 100*st.atkWon/st.atkN : null, `${st.atkWon}/${st.atkN}`, st.atkN < 5),
+    cell('防守手枪', st.defN ? 100*st.defWon/st.defN : null, `${st.defWon}/${st.defN}`, st.defN < 5)
+  ].join('');
+
+  const labels = ['全存','半存','半起','硬起','强起'];
+  const edges = [0, 3000, 8000, 13000, 18000, 99999];
+  const bins = labels.map(()=>0);
+  for(const s of st.r2Spend){
+    for(let i=0;i<edges.length-1;i++) if(s>=edges[i] && s<edges[i+1]){ bins[i]++; break; }
+  }
+  const mx = Math.max(...bins, 1);
+  const total = st.r2Spend.length;
+  document.getElementById('r2Hist').innerHTML = total
+    ? bins.map((n,i)=>
+      `<div class="hbar"><div class="t">${Math.round(100*n/total)}%</div>
+       <div class="b" style="height:${Math.max(3, 60*n/mx)}px;${i===3?'background:#ff4655':''}"></div></div>`
+    ).join('')
+    : '<div class="small">无经济数据</div>';
+  document.getElementById('r2HistX').innerHTML = labels.map(l=>`<div>${l}</div>`).join('');
+
+  document.getElementById('r2Note').innerHTML = total
+    ? `样本 <b>${total}</b> 次 · 全存率 <b>${(100*st.r2Save/total).toFixed(0)}%</b>`
+      + `（联赛 ${b.r2Save.toFixed(0)}%）· 均花费 <b>${fmt(Math.round(st.r2Spend.reduce((x,y)=>x+y,0)/total))}</b>`
+    : '';
+}
+
+function renderSides(a){
+  const rows = [
+    ['进攻', a.atk, '#ff4655'],
+    ['防守', a.def, '#22d3ee']
+  ];
+  document.getElementById('sideRows').innerHTML = rows.map(([lab, s, color]) => `
+    <tr>
+      <td><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${color};margin-right:6px"></span>${lab}</td>
+      <td>${s.n}${s.n<30?'<span style="color:#fbbf24">*</span>':''}</td>
+      <td>${s.n?pct(s.won,s.n)+'%':'—'}</td>
+      <td>${s.n?pct(s.fbFor,s.n)+'%':'—'}</td>
+      <td>${s.fbFor?pct(s.fbWon,s.fbFor)+'%':'—'}</td>
+    </tr>`).join('');
+}
+
+function renderPlayers(a){
+  const list = [...a.players.entries()].sort((x,y)=>y[1].n-x[1].n);
+  const tot = list.reduce((s,[,p])=>s+p.n, 0);
+  document.getElementById('playerRows').innerHTML = list.map(([pid, p]) => {
+    const pl = S.players[pid];
+    const ags = [...p.agents.entries()].sort((x,y)=>y[1]-x[1]).slice(0,2)
+      .map(([ag])=>agentName(ag)).join(' / ');
+    return `<tr>
+      <td>${esc(pl.n)}</td>
+      <td>${p.n}</td>
+      <td>${pct(p.n,tot)}%</td>
+      <td>${a.n?(10*p.n/a.n).toFixed(1):'—'}</td>
+      <td class="small">${ags}</td>
+      <td>${pct(p.won,p.n)}%</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" class="small">这个范围没有首杀记录</td></tr>';
+}
+
+function renderTime(a){
+  const secs = a.secs;
+  document.getElementById('timeNote').textContent = secs.length
+    ? `中位 ${median(secs).toFixed(0)} 秒 · ${fmt(secs.length)} 次有记录`
+    : '没有时刻数据';
+  const edges = [0,10,20,30,45,999];
+  const labels = ['0–10s','11–20s','21–30s','31–45s','46s+'];
+  const bins = labels.map(()=>0);
+  for(const s of secs){
+    for(let i=0;i<edges.length-1;i++) if(s>=edges[i] && s<edges[i+1]){ bins[i]++; break; }
+  }
+  const mx = Math.max(...bins, 1);
+  document.getElementById('timeHist').innerHTML = labels.map((l,i)=>
+    `<div class="hbar"><div class="t">${secs.length?Math.round(100*bins[i]/secs.length):0}%</div>
+     <div class="b" style="height:${Math.max(2, 60*bins[i]/mx)}px"></div></div>`
+  ).join('');
+  document.getElementById('timeHistX').innerHTML = labels.map(l=>`<div>${l}</div>`).join('');
+}
+
+function renderTrade(a, b){
+  const tw = a.traded ? 100*a.tradedWon/a.traded : null;
+  const uw = a.untraded ? 100*a.untradedWon/a.untraded : null;
+  const gap = (tw!=null && uw!=null) ? uw-tw : null;
+  const box = document.getElementById('tradeBlock');
+  if(gap == null){ box.innerHTML = '<div class="small">样本不足</div>'; return; }
+  const delta = gap - b.tradeGap;
+  const small = (a.traded < 25 || a.untraded < 25)
+    ? '<div class="legend" style="color:#fbbf24">样本偏小，差值仅供参考</div>' : '';
+  box.innerHTML = `
+    <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="kpi"><b>${tw.toFixed(1)}%</b><i>首杀被补后</i><div class="cmp">n=${a.traded}</div></div>
+      <div class="kpi"><b>${uw.toFixed(1)}%</b><i>首杀没被补</i><div class="cmp">n=${a.untraded}</div></div>
+      <div class="kpi"><b>${gap.toFixed(1)}</b><i>差值 pp</i>
+        <div class="cmp">基准 ${b.tradeGap.toFixed(1)} · <span class="${delta>=0?'up':'dn'}">${delta>=0?'+':''}${delta.toFixed(1)}</span></div></div>
+    </div>
+    <div class="legend">
+      <span>联赛：被补 ${b.tradedWin.toFixed(1)}% vs 没被补 ${b.untradedWin.toFixed(1)}%，差 ${b.tradeGap.toFixed(1)}pp</span>
+    </div>${small}`;
+}
+
+/* ---------------------------------------------------------------- */
+/* wiring                                                           */
+/* ---------------------------------------------------------------- */
+function fillSelects(){
+  const ts = document.getElementById('teamSel');
+  const ranked = S.D.teams.map((name, i) => ({
+    name, i,
+    n: S.raw.rounds.reduce((s,r)=> s + ((r[2]===i||r[3]===i)?1:0), 0)
+  })).sort((a,b)=> b.n - a.n);
+  ts.innerHTML = ranked.map(o => `<option value="${o.i}">${esc(o.name)}</option>`).join('');
+}
+
+/* 分面计数：统计某个维度时，把它自己的筛选排除掉。
+   这样「选了地图 → 赛事选项的回合数跟着变」而不是全变 0。 */
+function facetCounts(except){
+  const ev = new Map(), map = new Map(), agent = new Map();
+  for(const r of S.raw.rounds){
+    if(except !== 'ev'    && F.ev    >= 0 && r[0] !== F.ev) continue;
+    if(except !== 'map'   && F.map   >= 0 && r[1] !== F.map) continue;
+    if(except !== 'agent' && F.agent >= 0 && r[6] !== F.agent) continue;
+    if(except !== 'team'  && F.team  >= 0 && r[2] !== F.team && r[3] !== F.team) continue;
+    ev.set(r[0], (ev.get(r[0])||0)+1);
+    map.set(r[1], (map.get(r[1])||0)+1);
+    agent.set(r[6], (agent.get(r[6])||0)+1);
+  }
+  return {ev, map, agent};
+}
+
+/* 重建「赛事 / 地图」两个下拉。
+   回合数是联动的：选了地图，赛事那边的数就是这个地图里的回合数；反之亦然。 */
+function fillScopeSelects(){
+  if(F.team < 0) return;
+
+  // 先按「队伍 + 地图 + 英雄」算赛事；当前赛事如果被筛成 0 就回落
+  const evC = facetCounts('ev').ev;
+  if(F.ev >= 0 && !evC.get(F.ev)) F.ev = -1;
+
+  // 再按「队伍 + 赛事 + 英雄」算地图
+  const mapC = facetCounts('map').map;
+  if(F.map >= 0 && !mapC.get(F.map)) F.map = -1;
+
+  const evIdx = [...evC.keys()].filter(i => evC.get(i) > 0).sort((a,b) => a - b);
+  const es = document.getElementById('evSel');
+  es.innerHTML = `<option value="-1">全部赛事（${evIdx.length} 个）</option>` +
+    evIdx.map(i => {
+      const name = S.Z.events[S.D.events[i]] || S.D.events[i];
+      return `<option value="${i}">${esc(name)} · ${evC.get(i)} 回合</option>`;
+    }).join('');
+  es.value = String(F.ev);
+
+  const mapIdx = [...mapC.keys()].filter(i => mapC.get(i) > 0)
+    .sort((a,b) => S.D.maps[a].localeCompare(S.D.maps[b]));
+  const ms = document.getElementById('mapSel');
+  ms.innerHTML = `<option value="-1">全部地图（${mapIdx.length} 张）</option>` +
+    mapIdx.map(i => {
+      const name = S.Z.maps[S.D.maps[i]] || S.D.maps[i];
+      return `<option value="${i}">${esc(name)} · ${mapC.get(i)} 回合</option>`;
+    }).join('');
+  ms.value = String(F.map);
+}
+
+/* 筛选条件写进地址栏：报告可以直接发给教练 */
+function syncURL(){
+  const q = new URLSearchParams();
+  q.set('team', S.D.teams[F.team]);
+  if(F.map >= 0) q.set('map', S.D.maps[F.map]);
+  if(F.ev  >= 0) q.set('ev',  S.D.events[F.ev]);
+  history.replaceState(null, '', '?' + q.toString());
+}
+
+function applyURL(){
+  const q = new URLSearchParams(location.search);
+  const put = (key, list, sel, setter) => {
+    const v = q.get(key);
+    if(!v) return;
+    const i = list.indexOf(v);
+    if(i >= 0){ setter(i); document.getElementById(sel).value = String(i); }
+  };
+  put('team', S.D.teams,  'teamSel', i => F.team = i);
+  put('map',  S.D.maps,   'mapSel',  i => F.map  = i);
+  put('ev',   S.D.events, 'evSel',   i => F.ev   = i);
+  return q.toString().length > 0;
+}
+
+function toast(msg){
+  let el = document.getElementById('toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.className = 'toast';
+    el.setAttribute('role', 'status');
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1900);
+}
+
+function recompute(){
+  const t = F.team;
+  view = S.raw.rounds.filter(r => {
+    if(r[2] !== t && r[3] !== t) return false;
+    if(F.map >= 0 && r[1] !== F.map) return false;
+    if(F.ev >= 0 && r[0] !== F.ev) return false;
+    return true;
+  });
+  const a = aggregate(view, t);
+  const b = S.base;
+  const ps = pistolStats(view, t);
+
+  document.getElementById('scopeInfo').innerHTML =
+    `当前范围 <b>${fmt(a.n)}</b> 回合<br>${F.map<0?'全部地图':esc(S.Z.maps[S.D.maps[F.map]])}`;
+
+  renderHead(a, t);
+  renderVerdict(a, b, t, ps);
+  renderKpis(a, b, t);
+  renderComps(a, view, t);
+  renderEcon(a, b);
+  renderPistol(a, b, view, t);  renderSides(a);
+  renderPlayers(a);
+  renderTime(a);
+  renderTrade(a, b);
+  syncURL();
+}
+
+async function boot(){
+  const raw = await (await fetch('data/site_v5.json')).json();
+  S.raw = raw; S.D = raw.dict; S.Z = raw.zh; S.M = raw.meta;
+  S.players = raw.players; S.TM = raw.teamMeta || null;
+  S.base = buildBaselines();
+
+  document.getElementById('footNote').innerHTML =
+    `${raw.meta.rounds.toLocaleString('en-US')} 回合 / ${raw.meta.maps_played} 张地图 / `
+    + `${raw.meta.teams_shown} 支队伍 · 首杀 ${raw.meta.first_bloods.toLocaleString('en-US')} 次 · `
+    + `经济数据覆盖 ${raw.meta.econ_rows.toLocaleString('en-US')} 回合（${(100*raw.meta.econ_rows/raw.meta.first_bloods).toFixed(1)}%）<br>`
+    + `买枪分档按本回合实际持有的长枪数：≤1 把 eco / 2–3 把 半买 / ≥4 把 全买。`
+    + `不用花费是因为留枪会污染它（上回合保下来的 Vandal 记 0 花费）。`
+    + `中国赛区无 2D 回放，因此没有坐标与经济数据。`;
+
+  fillSelects();
+  document.getElementById('teamSel').addEventListener('change', e => {
+    F.team = +e.target.value;
+    fillScopeSelects();     // 换队伍 → 赛事/地图的候选集跟着换
+    recompute();
+  });
+  document.getElementById('mapSel').addEventListener('change', e => {
+    F.map = +e.target.value;
+    fillScopeSelects();     // 赛事那边的回合数要跟着这张图变
+    recompute();
+  });
+  document.getElementById('evSel').addEventListener('change', e => {
+    F.ev = +e.target.value;
+    fillScopeSelects();     // 地图那边要跟着这个赛事收缩
+    recompute();
+  });
+
+  F.team = +document.getElementById('teamSel').value;
+  const fromURL = applyURL();
+  fillScopeSelects();          // 用最终选中的队伍来决定赛事/地图候选
+  document.getElementById('shareBtn').onclick = async () => {
+    try{
+      await navigator.clipboard.writeText(location.href);
+      toast('链接已复制，可以直接发给教练');
+    }catch(e){
+      toast('浏览器不允许自动复制，请从地址栏复制');
+    }
+  };
+  recompute();
+  if(fromURL) toast('已按链接恢复筛选');
+}
+
+boot();
+</script>
+</body>
+</html>

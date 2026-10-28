@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设计参考板 · 为什么这页看着像 AI 做的</title>
+<style>
+  :root{
+    --paper:#FCFBF7; --ink:#1B1A17; --dim:#5F5C55; --dim2:#8E8A80;
+    --rule:#E1DCD0; --rule2:#CFC9BA; --brick:#A23B2E; --gold:#8A6A1F;
+    --sans:"Inter",-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+    --serif:Georgia,"Times New Roman","Songti SC","SimSun",serif;
+    --mono:"JetBrains Mono",Consolas,ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.75; letter-spacing:.004em;
+  }
+  .wrap{max-width:940px; margin:0 auto; padding:0 24px 96px}
+
+  /* 页头 */
+  header{border-bottom:1px solid var(--rule2); padding:64px 0 30px; margin-bottom:34px}
+  .kicker{font-family:var(--mono); font-size:11px; color:var(--dim2); letter-spacing:.04em}
+  h1{
+    font-family:var(--serif); font-weight:400; font-size:42px; line-height:1.22;
+    letter-spacing:-.01em; margin:14px 0 14px;
+  }
+  .lede{font-size:16.5px; color:var(--dim); max-width:660px; margin:0}
+  .meta{font-family:var(--mono); font-size:11px; color:var(--dim2); margin-top:22px;
+        display:flex; gap:18px; flex-wrap:wrap}
+
+  /* 章节 */
+  section{margin:52px 0 0}
+  h2{
+    font-family:var(--serif); font-weight:400; font-size:26px; line-height:1.35;
+    margin:0 0 6px; letter-spacing:-.005em;
+  }
+  h2 .num{font-family:var(--mono); font-size:12px; color:var(--brick); margin-right:10px;
+          vertical-align:3px}
+  .sub{color:var(--dim2); font-size:13px; margin:0 0 22px}
+  h3{font-size:15px; font-weight:600; margin:30px 0 8px}
+  p{margin:0 0 14px}
+  .dim{color:var(--dim)}
+
+  /* 图 */
+  figure{margin:22px 0 26px}
+  figure img{width:100%; display:block; border:1px solid var(--rule2); background:#fff}
+  figcaption{font-family:var(--mono); font-size:11px; color:var(--dim2); margin-top:8px;
+             line-height:1.6}
+  .pair{display:grid; grid-template-columns:1fr; gap:18px}
+  .pair .tag{font-family:var(--mono); font-size:10.5px; color:var(--dim2); margin-bottom:6px}
+
+  /* 引用块：一条结论 */
+  .claim{
+    border-left:3px solid var(--brick); padding:2px 0 2px 18px; margin:26px 0;
+    font-size:16px; color:var(--ink);
+  }
+  .claim b{color:var(--brick)}
+
+  /* 表格 */
+  table{width:100%; border-collapse:collapse; margin:18px 0 8px; font-size:13.5px}
+  th{
+    text-align:left; font-weight:600; font-size:11px; letter-spacing:.06em;
+    color:var(--dim2); padding:0 12px 7px 0; border-bottom:1px solid var(--rule2);
+  }
+  td{padding:11px 12px 11px 0; border-bottom:1px solid var(--rule); vertical-align:top}
+  td:last-child, th:last-child{padding-right:0}
+  td.k{font-weight:600; width:26%}
+  code{font-family:var(--mono); font-size:12px; background:#F1EEE5; padding:1px 5px; border-radius:2px}
+  .no{color:var(--brick)}
+
+  /* 列表 */
+  ul,ol{margin:0 0 16px; padding-left:22px}
+  li{margin:0 0 9px}
+  li b{font-weight:600}
+
+  /* 参考清单 */
+  .refs td.k{width:30%}
+  .refs a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--rule2)}
+  .refs a:hover{border-bottom-color:var(--brick); color:var(--brick)}
+  .refs .u{font-family:var(--mono); font-size:11px; color:var(--dim2); display:block; margin-top:2px}
+
+  /* 小标签 */
+  .pill{display:inline-block; font-family:var(--mono); font-size:10.5px; padding:1px 6px;
+        border:1px solid var(--rule2); color:var(--dim); border-radius:2px; margin-right:4px}
+  .pill.ok{border-color:#B9D3BE; color:#2F6B41}
+  .pill.bad{border-color:#E0BDB6; color:var(--brick)}
+
+  hr{border:0; border-top:1px solid var(--rule); margin:46px 0}
+
+  footer{margin-top:60px; padding-top:22px; border-top:1px solid var(--rule2);
+         font-family:var(--mono); font-size:11px; color:var(--dim2)}
+
+  @media (max-width:700px){
+    h1{font-size:30px}
+    h2{font-size:21px}
+    body{font-size:14px}
+    header{padding-top:36px}
+    .wrap{padding:0 16px 60px}
+    td,th{padding-right:8px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">DESIGN REFERENCES · 2026-10-27</div>
+  <h1>为什么这页看着「像 AI 做的」<br>以及 8 个真正该抄的站</h1>
+  <p class="lede">
+    我抓了 40 个页面（27 个数据产品 + 12 个真实在跑的数据界面 + 2 个数据新闻站），
+    只挑出下面这些。先说结论：问题不在颜色，在<b>结构语法</b>。
+  </p>
+  <div class="meta">
+    <span>抓取方式 Playwright · 1440×900 · 实测 computedStyle</span>
+    <span>截图存于 figures/refs/</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">00</span>一句话结论</h2>
+  <p class="sub">先把这个钉住，后面所有判断都从这来</p>
+
+  <div class="claim">
+    真实的数据产品有三个共同点：<b>卡片很少、颜色很少、表格很紧</b>。<br>
+    AI 生成的设计正好相反：<b>每个区块都是一张同款圆角卡片、颜色到处都是、间距完全均匀</b>。
+  </div>
+
+  <p class="dim">
+    这不是审美偏好，是训练数据的后果。模型学到的是「dashboard = 一堆圆角卡片 + 大数字 + 渐变」，
+    于是不管内容是什么，都会往这个模子上套。你看着眼熟，就是因为你看过的 AI 生成页面全是这个结构。
+  </p>
+</section>
+
+<section>
+  <h2><span class="num">01</span>最该抄的一张：Plausible 的公开看板</h2>
+  <p class="sub">plausible.io/plausible.io —— 真实产品，不是概念稿，任何人都能打开</p>
+
+  <figure>
+    <img src="figures/refs/plausible-tall.png" alt="Plausible 公开看板">
+    <figcaption>
+      1440 宽截图，整页。注意：全页只有 4 个边框，没有一处阴影，没有一张「卡片」是浮起来的。
+    </figcaption>
+  </figure>
+
+  <p>这页和我们要做的事几乎同构：都是「一个时间范围 + 几个比率 + 一张图 + 几张排行表」。它可以逐条对照：</p>
+
+  <h3>① 六个 KPI 共用一条横带，不是六张卡片</h3>
+  <p>
+    六个指标之间只用 <b>1px 竖线</b>分隔，共用外框。如果做成六张独立卡片，
+    视线必须一个个跳，而且六张卡片会把「这是一组同级指标」这个信息打散。
+    我们原来顶部那 4 个数字做对了（也是竖线分隔），但页面中段又退回了卡片。
+  </p>
+
+  <h3>② 一张图占满宽度，只有横向网格线</h3>
+  <p>
+    没有纵网格、没有图例框、没有标题栏。Y 轴标签在框外，X 轴只标 5 个刻度。
+    对比我们的小地图面板：标题、说明、图例、四个小卡全挤在一个框里 —— 信息是够的，但读者要自己找起点。
+  </p>
+
+  <h3>③ 表格只有一行 tab，没有「小标题 + 说明文字 + 内容」三段式</h3>
+  <p>
+    <code>CHANNELS / SOURCES / CAMPAIGNS</code> 一行切换，下面是表。
+    反面教材就是我们原来的每个面板：标题一行、灰色说明一行、内容再一行，重复了六次。
+    这个三段式是模板最明显的指纹。
+  </p>
+
+  <h3>④ 比例用<b>整行背景色块</b>表示，不是数字下面挂一根装饰线</h3>
+  <p>
+    <code>Direct / None 683k</code> 那一行，浅蓝色块从左侧铺满整行高度，长度就是占比。
+    数字压在色块上，不需要额外图例。这比「数字 + 下面一根小横条」省一半视觉噪音，
+    因为色块本身就是行背景，不占新空间。
+  </p>
+
+  <h3>⑤ 全文只有一个强调色</h3>
+  <p>
+    紫色只出现在折线和选中态；绿色/红色只表示涨跌。没有第二个装饰色。
+    我们的页面里红色同时承担了「品牌」「警示」「负向」「选中」四种含义 —— 这就是为什么它显得吵。
+  </p>
+</section>
+
+<section>
+  <h2><span class="num">02</span>另外五张，各解决一个问题</h2>
+  <p class="sub">同类的站很多，这五个各有一个不可替代的点</p>
+
+  <h3>VLR 数据页 —— 解决「表格怎么才能又密又不乱」</h3>
+  <figure>
+    <img src="figures/refs/vlr-stats.png" alt="VLR 选手数据表">
+    <figcaption>vlr.gg/stats · 一张表一个外框；筛选用原生 select + 复选框，不是药丸。</figcaption>
+  </figure>
+  <p>
+    它是我们数据源自己的界面，密度比我们高得多，但读起来不乱。三个手法：
+    <b>（a）</b>整张表一个外框，内部不套任何小卡；
+    <b>（b）</b>表头深底白字，和内容区一刀切开；
+    <b>（c）</b>关键列直接给单元格底色（红/绿深浅表示好坏），不需要读者心算。
+    最后这条是「专业工具感」的主要来源 —— 它承认读者是来比大小的，不是在读文章。
+  </p>
+
+  <h3>Tabler —— 解决「后台该长什么样」</h3>
+  <figure>
+    <img src="figures/refs/tabler.png" alt="Tabler 后台预览">
+    <figcaption>tabler.io/preview · 左侧固定导航 + 内容区，KPI 用「数字 + 迷你折线」而不是大卡片。</figcaption>
+  </figure>
+  <p>
+    开源后台模板里做得最干净的一个。值得学的是：<b>数字旁边放趋势线</b>，而不是把数字放大到 40px。
+    大数字只在「这一个数是全页主角」时才成立，一屏出现六个大数字就等于没有主角。
+  </p>
+
+  <h3>Tableau Public —— 解决「内容与界面的关系」</h3>
+  <figure>
+    <img src="figures/refs/tableau.png" alt="Tableau Public">
+    <figcaption>public.tableau.com/app/discover · 界面几乎隐形，作品缩略图是唯一主角。</figcaption>
+  </figure>
+  <p>
+    它的界面存在感极低：白底、灰字、缩略图撑满。这条对我们有用 ——
+    数据页面不需要「装饰」，需要的是让数据本身占据面积。我们那些 1px 边框和圆角，
+    有相当一部分是在给「空的地方」找事做。
+  </p>
+
+  <h3>Our World in Data —— 解决「标题和留白」</h3>
+  <figure>
+    <img src="figures/refs/owid.png" alt="Our World in Data">
+    <figcaption>ourworldindata.org · 衬线大标题 + 大量留白；图表不加边框，靠留白分组。</figcaption>
+  </figure>
+  <p>
+    衬线标题 + 无边框图表，是这个站最强的两个特征。它敢用留白分组，而不是用框分组。
+    我们现在的六个面板全靠边框划分 —— 如果去掉一半边框、改成靠间距，会立刻「像人做的」。
+  </p>
+
+  <h3>The Pudding —— 解决「刻意的参差」</h3>
+  <figure>
+    <img src="figures/refs/pudding.png" alt="The Pudding">
+    <figcaption>pudding.cool · 每个封面底色都不一样，版式也不完全对齐 —— 这是人做的证据。</figcaption>
+  </figure>
+  <p>
+    这条最反直觉：<b>完全一致的网格反而是机器的证据</b>。
+    人做的页面里，重要的块会更大、更花、位置更靠前；次要的块会安静地退到一边。
+    AI 做出来的页面所有块一样大、一样重、一样圆角 —— 因为没有「什么更重要」这个判断。
+  </p>
+</section>
+
+<section>
+  <h2><span class="num">03</span>「AI 味」的 8 个具体来源</h2>
+  <p class="sub">逐条对我们自己的页面，不是泛泛而谈</p>
+
+  <table>
+    <thead>
+      <tr><th>症状</th><th>为什么一眼假</th><th>真实产品怎么做</th><th>我们</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="k">所有区块同一种圆角卡片</td>
+        <td>六个大小不同、重要性不同的块，外观完全一样，等于没有层级</td>
+        <td>Plausible 一页 4 个框，重要程度靠位置和面积区分</td>
+        <td><span class="pill ok">已改</span>内层卡片全部拆掉</td>
+      </tr>
+      <tr>
+        <td class="k">药丸 chip 做筛选</td>
+        <td>圆角胶囊 + 填充色选中，是 2021 之后所有模板的标配</td>
+        <td>VLR 用原生 select；Plausible 用下划线 tab</td>
+        <td><span class="pill ok">已改</span>改成下划线 tab</td>
+      </tr>
+      <tr>
+        <td class="k">每个卡片都「标题 + 说明 + 内容」</td>
+        <td>同一句话结构重复六次，读起来像填表</td>
+        <td>标题只出现一次，说明进图注或 tooltip</td>
+        <td><span class="pill">部分</span>说明改成了小字注脚</td>
+      </tr>
+      <tr>
+        <td class="k">卡片里套卡片</td>
+        <td>第二层框没有任何功能，纯装饰</td>
+        <td>用发丝线或间距分隔，不加第二个框</td>
+        <td><span class="pill ok">已改</span>四个小卡 → 横线规格表</td>
+      </tr>
+      <tr>
+        <td class="k">满屏强调色</td>
+        <td>红色同时表示品牌、警示、负向、选中，强调失效</td>
+        <td>一个主色 + 正负两色，别的不上色</td>
+        <td><span class="pill ok">已改</span>选中态不再用红填充</td>
+      </tr>
+      <tr>
+        <td class="k">大写字母 + 大字距的英文微标签</td>
+        <td>中文界面里这层「设计感」最廉价，且不提供信息</td>
+        <td>数字页很少用这层装饰</td>
+        <td><span class="pill ok">已删</span>去掉 VCT 2026 SEASON</td>
+      </tr>
+      <tr>
+        <td class="k">间距完全均匀</td>
+        <td>每个 gap 都是 14px，表格和区块一个呼吸节奏</td>
+        <td>表格紧、区块松，靠疏密制造分组</td>
+        <td><span class="pill">部分</span></td>
+      </tr>
+      <tr>
+        <td class="k">为了显高级而加的交互</td>
+        <td>功能已经有了，还加 ⌘K 搜索、数字滚动、逐行入场</td>
+        <td>只在真的省事时才加，其余一律不动</td>
+        <td><span class="pill ok">已删</span>命令面板整个移除</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">04</span>已经改掉的</h2>
+  <p class="sub">同一块屏幕，改前 / 改后</p>
+
+  <div class="pair">
+    <div>
+      <div class="tag">BEFORE · 六个同款圆角卡 + 药丸筛选 + 卡里套卡</div>
+      <figure style="margin-top:0">
+        <img src="figures/refs/before.png" alt="改前">
+      </figure>
+    </div>
+    <div>
+      <div class="tag">AFTER · 补枪效应提为全宽主角、筛选压到 3 行、下划线 tab、数据条改整格底色</div>
+      <figure style="margin-top:0">
+        <img src="figures/refs/after.png" alt="改后">
+      </figure>
+    </div>
+  </div>
+
+  <h3>同一处放大：筛选条</h3>
+  <div class="pair">
+    <div>
+      <div class="tag">BEFORE · 四行药丸，每个选项都是一个圆角胶囊</div>
+      <figure style="margin-top:0"><img src="figures/refs/before_filters.png" alt="改前筛选条"></figure>
+    </div>
+    <div>
+      <div class="tag">AFTER · 下划线 tab，去掉圆角、描边、填充</div>
+      <figure style="margin-top:0"><img src="figures/refs/after_filters.png" alt="改后筛选条"></figure>
+    </div>
+  </div>
+
+  <h3>改后的主角长什么样</h3>
+  <figure style="margin-top:0">
+    <img src="figures/refs/after_trade.png" alt="改后的补枪面板">
+    <figcaption>
+      两条都按 0–100 铺，长度差就是那 18.3 个百分点。改前这里是右栏一个框里套着三个小框，
+      数字之间没有任何视觉比较。
+    </figcaption>
+  </figure>
+
+  <h3>具体做了什么</h3>
+  <ol>
+    <li><b>删掉命令面板。</b>你说得对：筛选项就在头顶，63 支队的规模也不需要搜索。
+        这功能唯一的作用是让页面「看起来高级」，属于典型的为技术力而技术力。</li>
+    <li><b>改名。</b>「球探报告」→「<b>队伍报告</b>」。前者是英文 scouting report 的直译，
+        中文语境里更像球类运动；后者就是教练组实际会说的词。</li>
+    <li><b>确立主角。</b>把补枪效应从右栏的小面板提到<b>全宽第一屏</b>，
+        三个孤立的数字换成两条按 0–100 等比铺开的横条 —— 57.1% 和 75.4% 的长度差
+        就是那 18.3 个百分点本身，不用心算。</li>
+    <li><b>内层卡片全部拆掉。</b>「被补 / 没被补 / 差距」原来是三个小盒子套在一个大盒子里；
+        地图下方四个数改成横线分隔的规格表；赛段三张卡改成左竖线分隔。</li>
+    <li><b>筛选从 6 行压到 3 行。</b>33 个英雄 chip 铺两行纯属噪音，改成下拉；
+        队伍和英雄并到同一行，「指标说明」靠右。高度 231px → 157px。</li>
+    <li><b>筛选项改成下划线 tab。</b>去掉圆角、描边、填充，选中态用 2px 下划线。
+        国际赛事仍然用金色区分，但只是文字颜色。</li>
+    <li><b>数据条改成整格底色。</b>首杀率那一列原来是「数字 + 下面一根小横条」，
+        现在色块从单元格右侧铺开、数字压在色块上 —— 和 Plausible 同一个做法。</li>
+    <li><b>去掉大写字距的 eyebrow。</b>「VALORANT CHAMPIONS TOUR · 2026 SEASON」整行删除，
+        h1 已经说了这是什么。</li>
+    <li><b>「展开全部 N 项」改成右对齐文字链接。</b>原来是从左到右的通栏灰条按钮。</li>
+    <li><b>窄屏筛选折叠。</b>手机上一整块筛选有 532px 高，等于看不见内容；
+        现在收成一行摘要「上海冠军赛 · 全部地图 · 全部队伍 / 展开」，42px。</li>
+    <li><b>顺手修了一个真问题：</b>队伍报告里的赛事下拉原来列出全部 15 个赛事，
+        所以 Paper Rex 也能选「中国第二赛段」。现在按队伍过滤 ——
+        PRX 只剩它真打过的 6 个（太平洋三段 + 圣地亚哥 + 伦敦 + 上海），
+        换队伍时原来选中的赛事不合法就自动回落到「全部赛事」。</li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="num">05</span>还没动的两件事</h2>
+  <p class="sub">这两条我要你点头：都会改变阅读方式，不是纯样式</p>
+
+  <table>
+    <thead><tr><th>问题</th><th>为什么值得改</th><th>代价</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="k">表格没有「整列底色」</td>
+        <td>VLR 的关键列直接按数值深浅上底色，读者不用心算谁高谁低。
+            这是「专业工具」最强的信号，也是目前最缺的一层。</td>
+        <td>要在 JS 里按分位数算颜色，且必须配图例；配色不当会变成误导。</td>
+      </tr>
+      <tr>
+        <td class="k">六个面板仍靠边框分组</td>
+        <td>OWID 靠留白分组。去掉一半边框、把间距拉到 32–40px，会更不像模板。</td>
+        <td>页面会变高；窄屏上留白分组容易失效，得单独处理。</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">06</span>参考站清单</h2>
+  <p class="sub">都能直接打开，不用登录</p>
+
+  <table class="refs">
+    <thead><tr><th>站点</th><th>看什么</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><a href="https://plausible.io/plausible.io">Plausible 公开看板</a>
+        <span class="u">plausible.io/plausible.io</span></td>
+        <td>唯一一个「真实产品 + 同类结构 + 可公开访问」的样本。最值得反复看的一张。</td></tr>
+      <tr><td class="k"><a href="https://www.vlr.gg/stats">VLR 数据页</a>
+        <span class="u">vlr.gg/stats</span></td>
+        <td>高密度表格 + 原生控件 + 整列底色。也是我们的数据源。</td></tr>
+      <tr><td class="k"><a href="https://tabler.io/preview">Tabler 预览</a>
+        <span class="u">tabler.io/preview</span></td>
+        <td>最干净的开源后台。看 KPI 怎么和迷你折线配。</td></tr>
+      <tr><td class="k"><a href="https://public.tableau.com/app/discover">Tableau Public</a>
+        <span class="u">public.tableau.com</span></td>
+        <td>看「界面隐形、内容当主角」是什么感觉。</td></tr>
+      <tr><td class="k"><a href="https://ourworldindata.org/">Our World in Data</a>
+        <span class="u">ourworldindata.org</span></td>
+        <td>衬线标题 + 留白分组 + 无边框图表。</td></tr>
+      <tr><td class="k"><a href="https://pudding.cool/">The Pudding</a>
+        <span class="u">pudding.cool</span></td>
+        <td>看「刻意的参差」长什么样，反模板的最佳样本。</td></tr>
+      <tr><td class="k"><a href="https://tremor.so/">Tremor</a>
+        <span class="u">tremor.so</span></td>
+        <td>图表组件的默认样式，抄它的坐标轴和网格线克制程度。</td></tr>
+      <tr><td class="k"><a href="https://observablehq.com/@d3/gallery">D3 图库</a>
+        <span class="u">observablehq.com/@d3/gallery</span></td>
+        <td>同一个数据有多少种画法。选图之前先来这里看一眼。</td></tr>
+      <tr><td class="k"><a href="https://play.grafana.org/">Grafana Play</a>
+        <span class="u">play.grafana.org</span></td>
+        <td>不用登录就能进的真实监控台。看时间序列的密度处理。</td></tr>
+      <tr><td class="k"><a href="https://www.metabase.com/">Metabase</a>
+        <span class="u">metabase.com</span></td>
+        <td>BI 工具里排版最克制的。看它首页那张「1,228」的看板截图。</td></tr>
+      <tr><td class="k"><a href="https://linear.app/">Linear</a>
+        <span class="u">linear.app</span></td>
+        <td>暗色 + 极简的标杆。看它的留白和字号层级，不是看它的颜色。</td></tr>
+      <tr><td class="k"><a href="https://stripe.com/payments">Stripe</a>
+        <span class="u">stripe.com</span></td>
+        <td>营销页与产品 UI 的衔接方式，值得看它怎么把截图放进页面。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>找更多参考的地方</h3>
+  <p class="dim">
+    上面是「具体看哪一页」。如果你要自己翻，按用途分：
+  </p>
+  <ul>
+    <li><b>真实上线产品截图</b>（最有用）：
+      <a href="https://mobbin.com/">Mobbin</a>、
+      <a href="https://saasframe.io/">SaaSFrame</a>、
+      <a href="https://saasui.design/">SaaSUI</a>、
+      <a href="https://refero.design/">Refero</a>、
+      <a href="https://pageflows.com/">Page Flows</a>
+      —— 这四个能按 dashboard / analytics 筛，比 Dribbble 靠谱得多。</li>
+    <li><b>概念稿与获奖站</b>：<a href="https://www.awwwards.com/">Awwwards</a>、
+      <a href="https://godly.website/">Godly</a>、
+      <a href="https://www.siteinspire.com/">SiteInspire</a>、
+      <a href="https://land-book.com/">Land-book</a>
+      —— 注意这里大多是营销站，别直接照抄到数据页上。</li>
+    <li><b>数据可视化本身</b>：
+      <a href="https://public.tableau.com/app/discover">Tableau Public</a>、
+      <a href="https://observablehq.com/">Observable</a>、
+      <a href="https://www.perceptualedge.com/">Perceptual Edge</a>（Stephen Few 的理论，讲清楚为什么不该用饼图）。</li>
+  </ul>
+</section>
+
+<hr>
+
+<section>
+  <h2><span class="num">07</span>一句话记住</h2>
+  <div class="claim">
+    判断一页是不是 AI 做的，不用看配色，看<b>它敢不敢让某些地方空着、让某些地方更重</b>。<br>
+    全页均匀 = 没有判断 = 机器。
+  </div>
+</section>
+
+<footer>
+  截图由 Playwright 抓取，存于 figures/refs/；抓取脚本 37/38/39_refs_capture*.py 可重跑。<br>
+  被 Cloudflare 挡住的：HLTV、FBref、FanGraphs、Sofascore、Tableau 首页（403）。
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+[
+ {
+  "key": "plausible-tall",
+  "url": "https://plausible.io/plausible.io",
+  "status": 200,
+  "file": "plausible-tall.png",
+  "bytes": 164194,
+  "title": "Plausible Analytics: Live Demo"
+ },
+ {
+  "key": "vlr-stats",
+  "url": "https://www.vlr.gg/stats",
+  "status": 200,
+  "file": "vlr-stats.png",
+  "bytes": 392273,
+  "title": "Valorant Player/Agent Stats | VLR.gg"
+ },
+ {
+  "key": "understat-match",
+  "url": "https://understat.com/match/24603",
+  "status": 404,
+  "file": "understat-match.png",
+  "bytes": 28576,
+  "title": "404 Page Not Found"
+ },
+ {
+  "key": "owid",
+  "url": "https://ourworldindata.org/",
+  "status": 200,
+  "file": "owid.png",
+  "bytes": 256820,
+  "title": "Our World in Data"
+ },
+ {
+  "key": "pudding",
+  "url": "https://pudding.cool/",
+  "status": 200,
+  "file": "pudding.png",
+  "bytes": 284941,
+  "title": "The Pudding"
+ },
+ {
+  "key": "grafana-dash",
+  "url": "https://play.grafana.org/d/000000012/grafana-play-home?orgId=1",
+  "status": 200,
+  "file": "grafana-dash.png",
+  "bytes": 90269,
+  "title": "Not found - Dashboards - Grafana"
+ },
+ {
+  "key": "sofascore",
+  "url": "https://www.sofascore.com/",
+  "status": 200,
+  "file": "sofascore.png",
+  "bytes": 11884,
+  "title": "Sofascore"
+ }
+]
