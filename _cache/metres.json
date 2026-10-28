@@ -1,0 +1,6 @@
+{
+  "metres_per_vlr_unit": 0.13601381011887598,
+  "uu_per_px_x": 16.42718446601942,
+  "uu_per_px_y": 10.775577557755776,
+  "assumption": "1 Unreal unit = 1 cm, cross-checked against run speed"
+}

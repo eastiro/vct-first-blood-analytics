@@ -1,0 +1,179 @@
+[
+ {
+  "key": "hltv",
+  "url": "https://www.hltv.org/",
+  "status": 403,
+  "body": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(49, 49, 49)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "html": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(49, 49, 49)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "header": null,
+  "card": null,
+  "link": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(0, 0, 238)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "title": "Just a moment..."
+ },
+ {
+  "key": "vlr",
+  "url": "https://www.vlr.gg/",
+  "status": 200,
+  "body": {
+   "bg": "rgb(198, 198, 198)",
+   "color": "rgb(51, 51, 51)",
+   "font": "Roboto, sans-serif"
+  },
+  "html": {
+   "bg": "rgb(198, 198, 198)",
+   "color": "rgb(51, 51, 51)",
+   "font": "Roboto, sans-serif"
+  },
+  "header": {
+   "bg": "rgb(54, 54, 54)",
+   "color": "rgb(51, 51, 51)",
+   "font": "Roboto, sans-serif"
+  },
+  "card": null,
+  "link": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(5, 130, 184)",
+   "font": "Roboto, sans-serif"
+  },
+  "title": "Valorant esports coverage | VLR.gg"
+ },
+ {
+  "key": "leetify",
+  "url": "https://leetify.com/",
+  "status": 200,
+  "body": {
+   "bg": "rgb(25, 23, 30)",
+   "color": "rgb(206, 215, 224)",
+   "font": "Poppins, system-ui, ui-sans-serif, Ubuntu, \"Open Sans\", \"Seg"
+  },
+  "html": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(0, 0, 0)",
+   "font": "sans-serif"
+  },
+  "header": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(255, 255, 255)",
+   "font": "Syne, Poppins, system-ui, ui-sans-serif, Ubuntu, \"Open Sans\""
+  },
+  "card": {
+   "bg": "rgb(25, 23, 30)",
+   "color": "rgb(255, 255, 255)",
+   "font": "Poppins, system-ui, ui-sans-serif, Ubuntu, \"Open Sans\", \"Seg"
+  },
+  "link": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(248, 73, 130)",
+   "font": "Syne, Poppins, system-ui, ui-sans-serif, Ubuntu, \"Open Sans\""
+  },
+  "title": "Leetify – CS2 Stats & Accomplishments"
+ },
+ {
+  "key": "ribgg",
+  "url": "https://rib.gg/",
+  "status": 200,
+  "body": {
+   "bg": "rgb(3, 16, 28)",
+   "color": "rgb(221, 228, 236)",
+   "font": "\"Public Sans\", \"Public Sans Fallback\""
+  },
+  "html": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(0, 0, 0)",
+   "font": "\"Public Sans\", \"Public Sans Fallback\""
+  },
+  "header": {
+   "bg": "oklab(0.233807 -0.0131416 -0.0356281 / 0.75)",
+   "color": "rgb(221, 228, 236)",
+   "font": "\"Public Sans\", \"Public Sans Fallback\""
+  },
+  "card": null,
+  "link": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(221, 228, 236)",
+   "font": "\"Public Sans\", \"Public Sans Fallback\""
+  },
+  "title": "RIB.GG | Valorant Stats, Live Scores, Results & VCT Stats"
+ },
+ {
+  "key": "tracker",
+  "url": "https://tracker.gg/valorant",
+  "status": 403,
+  "body": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(49, 49, 49)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "html": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(49, 49, 49)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "header": null,
+  "card": null,
+  "link": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(0, 0, 238)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "title": "Just a moment..."
+ },
+ {
+  "key": "escharts",
+  "url": "https://escharts.com/",
+  "status": 403,
+  "body": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(49, 49, 49)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "html": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(49, 49, 49)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "header": null,
+  "card": null,
+  "link": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(0, 0, 238)",
+   "font": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ro"
+  },
+  "title": "Just a moment..."
+ },
+ {
+  "key": "liquipedia",
+  "url": "https://liquipedia.net/valorant/Main_Page",
+  "status": 403,
+  "body": {
+   "bg": "rgb(245, 245, 245)",
+   "color": "rgb(0, 0, 0)",
+   "font": "-apple-system, BlinkMacSystemFont, \"segoe ui\", sans-serif"
+  },
+  "html": {
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(0, 0, 0)",
+   "font": "\"Times New Roman\""
+  },
+  "header": null,
+  "card": {
+   "bg": "rgb(255, 255, 255)",
+   "color": "rgb(0, 0, 0)",
+   "font": "-apple-system, BlinkMacSystemFont, \"segoe ui\", sans-serif"
+  },
+  "link": null,
+  "title": "Liquipedia"
+ }
+]

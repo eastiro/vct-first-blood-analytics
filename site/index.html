@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>首杀 · 无畏契约 2026 赛事分析</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root{
+    --bg:#EAE7E0; --panel:#FFFFFF; --panel2:#F5F2EC; --line:#DBD5C9;
+    --fg:#1B1A17; --dim:#6B6862; --red:#DE3B49; --cyan:#0E7C74; --gold:#A5741C;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
+    line-height:1.55;
+  }
+  header{
+    padding:20px 26px 16px; border-bottom:1px solid var(--line);
+    display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
+    justify-content:space-between;
+  }
+  h1{margin:0; font-size:23px; letter-spacing:.5px}
+  h1 span{color:var(--red)}
+  .sub{color:var(--dim); font-size:12px; margin-top:4px}
+  .kpis{display:flex; gap:22px; flex-wrap:wrap}
+  .kpi{text-align:right}
+  .kpi b{display:block; font-size:19px; color:var(--cyan); font-weight:600}
+  .kpi i{font-style:normal; font-size:10.5px; color:var(--dim); letter-spacing:.5px}
+
+  main{padding:18px 26px 50px; max-width:1760px; margin:0 auto}
+
+  /* ---------- filters ---------- */
+  .filters{background:var(--panel); border:1px solid var(--line);
+           border-radius:10px; padding:14px 16px; margin-bottom:16px}
+  .frow{display:flex; gap:12px; align-items:flex-start; margin-bottom:9px}
+  .frow:last-child{margin-bottom:0}
+  .flabel{flex:0 0 56px; color:var(--dim); font-size:10.5px; letter-spacing:1px;
+          text-transform:uppercase; padding-top:7px}
+  .chips{display:flex; flex-wrap:wrap; gap:2px 4px; flex:1}
+
+
+  select.teamsel{
+    background:var(--panel2); border:1px solid var(--line); color:var(--fg);
+    padding:7px 12px; border-radius:7px; font-size:12.5px; min-width:260px;
+    font-family:inherit; cursor:pointer; outline:none;
+  }
+  select.teamsel:hover{border-color:var(--red)}
+  .selwrap{display:flex; gap:10px; align-items:center; flex-wrap:wrap; flex:1}
+  /* 四个筛选并成一行工具栏：像工具，不像标签云 */
+  #frowAll{align-items:center; gap:7px; flex-wrap:wrap}
+  #frowAll .flabel{padding-top:0; flex:0 0 auto; letter-spacing:.3px; text-transform:none}
+  .flabel-inline{flex:0 0 auto; margin-left:12px; padding-top:0}
+  #frowAll .selhint{margin-left:2px}
+  #frowAll .glossbtn{margin-left:auto; white-space:nowrap}
+  #eventSelect{max-width:236px}
+  #mapSelect{max-width:186px}
+  #teamSelect{max-width:210px}
+  #agentSelect{max-width:124px}
+  .selhint{color:var(--dim); font-size:11.5px}
+
+  /* inline glossary: an underlined term with a hover/click card */
+  .term{
+    border-bottom:1px dotted var(--dim); cursor:help; position:relative;
+    color:var(--fg);
+  }
+  .term::after{
+    content:"?"; font-size:8.5px; vertical-align:super; color:var(--dim);
+    margin-left:1px;
+  }
+  #tip{
+    position:fixed; z-index:999; max-width:330px; display:none;
+    background:#1F1E1A; border:1px solid #3A3833; border-radius:6px;
+    padding:11px 13px; font-size:11.5px; line-height:1.7; color:#F2F1ED;
+    box-shadow:0 10px 28px rgba(20,18,14,.22); pointer-events:none;
+  }
+  #tip.show{display:block}
+  #tip b{color:#FF7A85; display:block; margin-bottom:4px; font-size:12px}
+  #tip .formula{color:#5FD0C6; font-family:ui-monospace,Consolas,monospace;
+                font-size:10.5px; margin-top:5px; display:block}
+
+  /* glossary drawer */
+  .glossbtn{
+    background:transparent; border:1px solid var(--line); color:var(--dim);
+    padding:5px 12px; border-radius:15px; font-size:11.5px; cursor:pointer;
+    font-family:inherit; transition:.12s;
+  }
+  .glossbtn:hover{border-color:var(--red); color:var(--fg)}
+  #gloss{
+    display:none; margin-top:14px; padding:16px 18px; background:var(--panel2);
+    border-radius:10px; border:1px solid var(--line);
+  }
+  #gloss.show{display:block}
+  #gloss h3{margin:0 0 10px; font-size:12px; color:var(--fg); letter-spacing:.5px}
+  .gitem{margin-bottom:13px; padding-bottom:13px; border-bottom:1px solid var(--line)}
+  .gitem:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0}
+  .gitem b{color:var(--red); font-size:12px}
+  .gitem .en{color:var(--dim); font-size:10.5px; margin-left:6px; font-weight:400}
+  .gitem p{margin:3px 0 0; font-size:11.5px; color:var(--fg); line-height:1.75}
+  .gitem .formula{display:block; color:var(--cyan); margin-top:5px;
+                  font-family:ui-monospace,Consolas,monospace; font-size:10.5px}
+
+  /* ---------- layout ---------- */
+  .grid{display:grid; grid-template-columns:minmax(0,1.28fr) minmax(0,1fr);
+        gap:16px; align-items:start}
+  @media (max-width:1240px){ .grid{grid-template-columns:1fr} }
+
+  .grid > *{min-width:0}
+  .panel{background:var(--panel); border:1px solid var(--line);
+         border-radius:10px; padding:14px}
+  .panel h2{margin:0 0 10px; font-size:11.5px; color:var(--dim);
+            letter-spacing:1px; font-weight:600; text-transform:uppercase}
+  .paneltitle{display:flex; align-items:baseline; gap:9px; margin:0 0 10px}
+  .paneltitle h2{margin:0}
+  .paneltitle .aside{font-size:11px; color:var(--dim)}
+
+  .mapwrap{position:relative; width:100%; aspect-ratio:1/1;
+           background:#EFEDE7; border-radius:8px; overflow:hidden}
+  .mapwrap img{position:absolute; inset:0; width:100%; height:100%}
+  #dots{position:absolute; inset:0; width:100%; height:100%}
+  #emptyState{
+    position:absolute; inset:0; display:none; align-items:center;
+    justify-content:center; text-align:center; padding:28px;
+    background:rgba(247,245,240,.94); color:var(--dim); font-size:12px;
+    line-height:1.85; z-index:3;
+  }
+  #emptyState.show{display:flex}
+  #emptyState b{display:block; color:var(--gold); font-size:13px; margin-bottom:6px}
+
+  /* 「全部地图」模式的替代视图：不画打点（10 张图共用一个网格，叠起来是误导），
+     改成按地图拆开的首杀表，和右侧表格口径一致 */
+  #mapTable{position:absolute; inset:0; display:none; overflow:auto;
+            padding:12px 14px; background:#FBFAF7; z-index:2}
+  #mapTable.show{display:block}
+  /* 「全部地图」时不画点，容器不该再占一个 1:1 的方块 */
+  .mapwrap.agg{aspect-ratio:auto; background:transparent}
+  .mapwrap.agg #mapTable{position:relative; inset:auto; background:transparent;
+                         padding:0; overflow:visible}
+  #mapTable h4{margin:0 0 2px; font-size:12px; letter-spacing:.5px; color:var(--dim); font-weight:400}
+  #mapTable .mtnote{font-size:10.5px; color:var(--dim); margin-bottom:10px; opacity:.8}
+  #mapTable tbody tr:hover{background:rgba(27,26,23,.04)}
+  .legend{display:flex; gap:13px; margin-top:9px; font-size:11px;
+          color:var(--dim); align-items:center; flex-wrap:wrap}
+  .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px}
+  .sq{display:inline-block; width:8px; height:8px; margin-right:5px}
+
+  .stats4{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:12px}
+  .stat{background:var(--panel2); border-radius:7px; padding:9px 11px}
+  .stat h3{margin:0 0 2px; font-size:10.5px; color:var(--dim); font-weight:600}
+  .stat .big{font-size:18px; font-weight:600; line-height:1.22}
+  .stat .big.red{color:var(--red)} .stat .big.cyan{color:var(--cyan)}
+  .stat p{margin:1px 0 0; font-size:10.5px; color:var(--dim)}
+
+  table{width:100%; border-collapse:collapse; font-size:12px}
+  th,td{text-align:right; padding:5px 5px; border-bottom:1px solid var(--line)}
+  th{color:var(--dim); font-weight:500; font-size:10px; letter-spacing:.6px;
+     text-transform:uppercase; position:sticky; top:0; background:var(--panel); z-index:1}
+  th:first-child,td:first-child{text-align:left}
+  tbody tr:hover{background:var(--panel2)}
+  td.num{font-variant-numeric:tabular-nums}
+  /* 样本太小的行淡出：20 回合算出「阵容一致性 100%」没有意义 */
+  tr.thinrow{opacity:.5}
+  tr.thinrow:hover{opacity:.85}
+  .rank{color:var(--dim); font-size:10px; margin-right:5px}
+
+  /* 队伍格：队标 + 官方缩写 + 全名 */
+  .tcell{display:flex; align-items:center; gap:7px; min-width:0}
+  .tlogo{width:17px; height:17px; object-fit:contain; flex:0 0 auto;
+         border-radius:2px; filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+  .tlogo.ph{background:var(--line); opacity:.35}
+  /* 纯黑队标在暗底上会消失，加一块浅色底板 */
+  .tlogo.plt{background:#e9eff5; border-radius:3px}
+  .ttag{flex:0 0 auto; font-size:9px; line-height:15px; padding:0 4px;
+        color:var(--dim); border:1px solid var(--line); border-radius:3px;
+        letter-spacing:.5px; font-variant-numeric:tabular-nums}
+  .tname{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .bar{height:5px; border-radius:3px; display:inline-block; vertical-align:middle}
+
+  .stagetag{display:inline-block; font-size:10px; padding:1px 6px; border-radius:3px;
+            background:rgba(244,208,63,.14); color:var(--gold); margin-left:6px}
+  .note{margin-top:12px; padding:10px 12px; background:var(--panel2);
+        border-left:3px solid var(--gold); border-radius:5px;
+        font-size:11px; color:var(--dim)}
+  .note b{color:var(--fg)}
+
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media (max-width:900px){ .two{grid-template-columns:1fr} }
+
+  footer{padding:18px 26px; border-top:1px solid var(--line); color:var(--dim);
+         font-size:11px}
+  .tblscroll{max-height:340px; overflow:auto}
+  .tblscroll::-webkit-scrollbar{width:6px}
+  .tblscroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px}
+  /* 队伍表可排序：点表头切换，箭头标出当前排序键 */
+  th.sortable{cursor:pointer; user-select:none; white-space:nowrap}
+  th.sortable:hover{color:var(--fg)}
+  th.sortable.sorted-asc::after{content:" ▲"; color:var(--red); font-size:8.5px}
+  th.sortable.sorted-desc::after{content:" ▼"; color:var(--red); font-size:8.5px}
+
+  /* trade comparison strip */
+  /* 主角面板：两条按 0–100% 等比铺开的横条，而不是三个孤立的数字 */
+  .panel.hero{padding:17px 20px 15px; margin-bottom:16px}
+  .hero .paneltitle{margin-bottom:15px}
+  .hero h2{font-size:13px; letter-spacing:.01em}
+  .tbars{display:grid; gap:11px}
+  .tb{display:grid; grid-template-columns:132px minmax(0,1fr) 78px 184px;
+      align-items:center; gap:14px}
+  .tbl{font-size:12px; color:var(--dim)}
+  .trk{height:10px; background:rgba(27,26,23,.095); position:relative; overflow:hidden}
+  .fill{display:block; height:100%; width:0;
+        transition:width .34s cubic-bezier(.2,.7,.3,1)}
+  .fill.bad{background:var(--red)}
+  .fill.good{background:var(--cyan)}
+  .tbn{font-family:var(--mono); font-variant-numeric:tabular-nums;
+       font-size:18px; font-weight:600; text-align:right}
+  .tbs{font-size:10.5px; color:var(--dim2); text-align:right}
+  .tfoot{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+         margin-top:13px; padding-top:11px; border-top:1px solid var(--line)}
+  .tgapv{font-family:var(--mono); font-variant-numeric:tabular-nums;
+         font-size:23px; font-weight:600; color:var(--red)}
+  .tcap{font-size:11.5px; color:var(--dim)}
+  .stack{display:grid; gap:16px; align-content:start}
+  .empty{color:var(--dim); font-size:11.5px; padding:14px 0; text-align:center}
+  .sectitle{display:flex; align-items:baseline; gap:9px; margin:16px 0 9px}
+  .sectitle h2{margin:0; font-size:13px; color:var(--fg); font-weight:600}
+  .sectitle span{font-size:11px; color:var(--dim)}
+  .sectitle h2{white-space:nowrap; flex:0 0 auto}
+  @media (max-width:760px){
+    .sectitle{flex-wrap:wrap; gap:6px}
+    .sectitle h2{white-space:nowrap}
+    .sectitle span{order:3; flex:1 1 100%; line-height:1.6}
+    .scopebtn{margin-left:auto; flex:0 0 auto; white-space:nowrap}
+  }
+  .scopebtn{margin-left:auto; background:var(--panel2); border:1px solid var(--line);
+            color:var(--dim); font-size:10.5px; padding:3px 10px; border-radius:20px;
+            cursor:pointer; font-family:inherit; letter-spacing:.3px}
+  .scopebtn:hover{color:var(--fg); border-color:var(--red)}
+
+  /* expand / collapse control under a leaderboard */
+  /* 展开更多：右对齐的文字链接，不要通栏灰条 */
+  button.more{
+    display:block; width:auto; margin:8px 0 0 auto; padding:2px 0;
+    background:none; border:0; border-radius:0;
+    color:var(--dim); font-size:11px; font-family:inherit; cursor:pointer;
+    text-decoration:underline; text-underline-offset:3px;
+    text-decoration-color:var(--line2); transition:.12s;
+  }
+  button.more:hover{border-color:var(--red); color:var(--fg)}
+  tbody tr.pickable{cursor:pointer}
+  tbody tr.pickable:hover{background:var(--panel2)}
+  tbody tr.picked{background:rgba(255,70,85,.14)}
+  tbody tr.picked td:first-child{color:var(--red); font-weight:600}
+  .pickmark{color:var(--red); font-size:10px; margin-left:5px}
+/* ==================================================================
+   design pass v3 — 浅色（纸白）主题
+   参考：Plausible 公开看板 / VLR 数据表 / 印刷版赛后报告。
+   规则没变：数字等宽、颜色只表达状态、层级靠边框和明度不靠阴影。
+   强调色只留一支品牌红，选中态用墨黑而不是红（红留给数据）。
+   ================================================================== */
+:root{
+  --bg:#EAE7E0; --panel:#FFFFFF; --panel2:#F5F2EC; --panel3:#E9E5DC;
+  --line:#DBD5C9; --line2:#C3BDAF;
+  --fg:#1B1A17; --dim:#6B6862; --dim2:#9B968C;
+  --red:#DE3B49; --cyan:#0E7C74; --gold:#A5741C;
+  --green:#157F3B; --amber:#B45309;
+  --sans:'Inter','Microsoft YaHei','PingFang SC','Noto Sans CJK SC',system-ui,sans-serif;
+  --mono:'JetBrains Mono','Cascadia Mono',Consolas,ui-monospace,monospace;
+}
+
+html{-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
+body{
+  font-family:var(--sans); font-size:13px; line-height:1.5; letter-spacing:.004em;
+  background:var(--bg); color:var(--fg);
+}
+
+/* 所有数字：等宽 + 表格数字，列不会跳动 */
+td.num, th.num, .kpi b, .tval, .stat .big, .tstat b, .num{
+  font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.015em;
+}
+
+/* ---------- 页头 ---------- */
+header{
+  padding:24px 28px 20px; border-bottom:1px solid var(--line);
+  background:#FFFFFF;
+}
+.eyebrow{
+  font-size:9.5px; font-weight:600; letter-spacing:.18em; color:var(--dim2);
+  text-transform:uppercase; margin-bottom:8px;
+}
+h1{font-size:21px; font-weight:600; letter-spacing:-.01em; line-height:1.2; color:var(--fg)}
+h1 span{color:var(--red); font-weight:400; margin:0 1px}
+.sub{font-size:11.5px; color:var(--dim2); margin-top:6px}
+.kpis{gap:0; align-items:stretch}
+.kpi{text-align:right; padding-left:18px; border-left:1px solid var(--line)}
+.kpi:first-child{border-left:0; padding-left:0}
+.kpi b{font-size:20px; color:var(--fg); font-weight:600}
+.kpi i{font-size:10px; letter-spacing:.1em; color:var(--dim2)}
+.kpi.hero b{color:var(--red)}
+.ghostlink{
+  background:#fff; border:1px solid var(--line2); color:var(--dim);
+  padding:7px 13px; border-radius:5px; font-size:11.5px; text-decoration:none;
+  white-space:nowrap; margin-bottom:2px; transition:.12s;
+}
+.ghostlink:hover{color:var(--fg); border-color:var(--dim2)}
+
+/* ---------- 筛选条：吸顶 ---------- */
+.filters{
+  position:sticky; top:0; z-index:30; border-radius:6px; padding:10px 14px;
+  background:rgba(255,255,255,.96); backdrop-filter:blur(10px) saturate(1.1);
+  border:1px solid var(--line); margin-bottom:14px;
+}
+.flabel{font-size:9.5px; letter-spacing:.12em; color:var(--dim2); flex:0 0 52px}
+/* 筛选项 = 下划线 tab。填充式药丸一多，整页立刻变成模板 */
+.chip{
+  background:none; border:0; color:var(--dim);
+  padding:5px 9px 6px; border-radius:0; cursor:pointer; font-size:12px;
+  font-family:inherit; letter-spacing:0;
+  box-shadow:inset 0 -1px 0 transparent; transition:color .12s, background .12s;
+}
+.chip:hover{color:var(--fg); background:rgba(27,26,23,.045)}
+.chip.on{background:none; color:var(--fg); font-weight:600;
+         box-shadow:inset 0 -2px 0 var(--red)}
+.chip.small{font-size:11px; padding:4px 7px 5px}
+.chip.dim{opacity:.4}
+.chip.intl{color:var(--gold)}
+.chip.intl:hover{color:var(--gold); background:rgba(165,116,28,.07)}
+.chip.intl.on{background:none; color:var(--gold); box-shadow:inset 0 -2px 0 var(--gold)}
+.chip.intl.dim{opacity:.4}
+select.teamsel{border-radius:5px; font-size:12px; padding:6px 10px;
+  background:#fff; border:1px solid var(--line2); color:var(--fg)}
+
+#stageCards{max-width:none}
+  /* 地图下方的四个数：横线分隔的规格表，不用卡片 */
+  #mapCards{gap:0; margin-top:14px}
+  #mapCards .stat{border:0; border-top:1px solid var(--line); border-radius:0;
+                  background:none; padding:10px 14px 0 0}
+  /* 赛段面板三张数：左侧竖线分隔 */
+  #stageCards{gap:0}
+  #stageCards .stat{border:0; border-left:1px solid var(--line); border-radius:0;
+                    background:none; padding:0 0 0 16px}
+  #stageCards .stat:first-child{border-left:0; padding-left:0}
+/* 赛段面板：左边三张数、右边解读，避免整行留白 */
+.stagehead{
+  display:grid; grid-template-columns:minmax(0,680px) minmax(0,1fr);
+  gap:18px; margin-bottom:12px; align-items:start;
+}
+@media (max-width:1100px){ .stagehead{grid-template-columns:minmax(0,1fr)} }
+
+/* ---------- 面板 / 分区 ---------- */
+.panel{border-radius:6px; padding:14px 15px; border-color:var(--line); background:var(--panel)}
+.panel h2{letter-spacing:.1em; color:var(--dim2); font-size:10px}
+.paneltitle{gap:10px; margin-bottom:11px}
+.paneltitle h2{font-size:12px; letter-spacing:.01em; color:var(--fg); font-weight:600}
+.sectitle{margin:24px 0 10px; gap:10px}
+.sectitle h2{
+  display:flex; align-items:center; gap:8px;
+  font-size:12.5px; font-weight:600; letter-spacing:.01em; color:var(--fg);
+}
+.sectitle h2::before{
+  content:''; width:3px; height:12px; border-radius:1px;
+  background:var(--red); flex:0 0 auto;
+}
+.scopebtn{
+  border-radius:4px; font-size:10px; letter-spacing:.06em; padding:3px 9px;
+  background:#fff; border:1px solid var(--line2); color:var(--dim);
+}
+.scopebtn:hover{background:var(--panel2); color:var(--fg)}
+
+/* ---------- 表格 ---------- */
+table{font-size:12px}
+th{
+  font-size:10px; letter-spacing:.1em; padding:8px 6px; color:var(--dim2);
+  background:#FBFAF6; border-bottom:1px solid var(--line2);
+}
+td{padding:6px 6px; border-bottom:1px solid rgba(27,26,23,.07)}
+tbody tr:hover{background:#FAF9F5}
+/* 数据条画在单元格背景里（从左侧起），数字压在条上——
+   参考 Plausible 的行内条形：条是底纹，不是第二根装饰线 */
+td.barcell{
+  background-image:linear-gradient(90deg, rgba(222,59,73,.13), rgba(222,59,73,.05));
+  background-repeat:no-repeat;
+  background-position:right center;
+  background-size:var(--w,0%) 100%;
+  padding-right:10px;
+}
+
+/* ---------- 地图 / 说明 ---------- */
+.note{
+  border-radius:4px; border-left:2px solid #D9A441; padding:9px 12px;
+  font-size:11px; line-height:1.65; background:#FCF6E7; color:var(--dim);
+}
+.note b{color:var(--fg)}
+.legend{font-size:10.5px; letter-spacing:.02em; color:var(--dim)}
+.glossbtn{border-radius:4px}
+.tblscroll::-webkit-scrollbar-thumb{background:var(--line2)}
+.stat{border-radius:5px; background:#F8F5EF; border:1px solid var(--line)}
+.stat h3{font-size:10px; letter-spacing:.1em; color:var(--dim2)}
+.stat .big{font-size:19px; font-weight:600; color:var(--fg)}
+.stat .big.red{color:var(--red)}
+.stat .big.cyan{color:var(--cyan)}
+footer{font-size:10.5px; color:var(--dim2); border-top:1px solid var(--line);
+  padding:18px 28px; background:#fff}
+
+/* 浅色下：深色队标不需要底板，反而要照顾浅色队标 */
+.tlogo.plt{background:transparent}
+.tlogo.pltl{background:#2A2925; border-radius:3px; padding:1px}
+
+
+/* ==================================================================
+   交互层：可分享链接 / 排序动画 / 数字滚动
+   参考 Awwwards Developer Award 的六个评分轴：
+   可读性、动效、无障碍、速度、响应式、语义化标记。
+   ================================================================== */
+
+/* ---------- 键盘可达 ---------- */
+.skip{position:absolute; left:-9999px; top:0; z-index:120; background:var(--fg);
+  color:#fff; padding:9px 16px; border-radius:0 0 6px 0; font-size:12px;
+  text-decoration:none}
+.skip:focus{left:0}
+:focus-visible{outline:2px solid var(--red); outline-offset:2px; border-radius:3px}
+.chip:focus-visible{outline-offset:1px}
+kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var(--line2);
+  border-bottom-width:2px; border-radius:3px; padding:2px 5px; color:var(--dim); background:#fff}
+
+/* ---------- toast ---------- */
+.toast{position:fixed; left:50%; bottom:28px; transform:translate(-50%, 10px);
+  background:var(--fg); color:#fff; padding:9px 16px; border-radius:6px; font-size:12px;
+  opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:300}
+.toast.show{opacity:1; transform:translate(-50%, 0)}
+
+/* ---------- 排序时的行位移动画（FLIP） ---------- */
+#teamRows tr.moving{transition:transform .34s cubic-bezier(.2,.7,.3,1)}
+
+/* 首屏分区淡入，只播一次 */
+@media (prefers-reduced-motion: no-preference){
+  .reveal{animation:rise .34s cubic-bezier(.2,.7,.3,1) both}
+  @keyframes rise{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+}
+@media (prefers-reduced-motion: reduce){
+}
+
+@media (max-width:900px){
+  .filters{position:static; backdrop-filter:none}
+}
+/* 窄屏：整块筛选默认收起，只留一行摘要，否则它占掉大半屏 */
+.ftoggle{display:none}
+@media (max-width:760px){
+  .ftoggle{display:flex; align-items:center; gap:10px; width:100%;
+    background:none; border:0; padding:1px 0; font:inherit; color:var(--fg);
+    text-align:left; cursor:pointer}
+  .ftoggle .ftk{font-size:10.5px; letter-spacing:.08em; color:var(--dim2); flex:0 0 auto}
+  .ftoggle .ftv{font-size:12px; flex:1; min-width:0; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; color:var(--dim)}
+  .ftoggle::after{content:'展开'; font-size:11px; color:var(--dim2); flex:0 0 auto}
+  .filters.open .ftoggle::after{content:'收起'}
+  #fbody{display:none}
+  .filters.open #fbody{display:block; margin-top:11px}
+}
+@media (max-width:760px){
+  .tb{grid-template-columns:1fr auto; gap:3px 10px}
+  .tbl{grid-column:1}
+  .tbn{grid-column:2}
+  .trk{grid-column:1 / -1; grid-row:2}
+  .tbs{grid-column:1 / -1; grid-row:3; text-align:left}
+  .tfoot{margin-top:12px}
+  header{padding:18px 16px 14px}
+  main{padding:14px 16px 40px}
+  .filters{padding:10px 11px}
+  .kpi{padding-left:12px}
+  .kpi b{font-size:17px}
+  td, th{padding-left:4px; padding-right:4px}
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">跳到主内容</a>
+
+<header>
+  <div>
+    <h1>首杀 <span>/</span> 无畏契约 2026</h1>
+    <div class="sub" id="sub">加载中…</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:flex-end">
+    <div class="kpis" id="kpis" aria-live="polite"></div>
+    <button class="ghostlink" id="shareBtn" title="复制当前筛选的链接">复制链接</button>
+    <a href="scout.html" class="ghostlink">队伍报告 →</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <div class="filters" id="filters">
+    <button class="ftoggle" id="ftoggle" aria-expanded="false" aria-controls="fbody">
+      <span class="ftk">筛选</span><span class="ftv" id="ftoggleText"></span>
+    </button>
+    <div class="fbody" id="fbody">
+    <div class="frow" id="frowAll" style="margin-bottom:0">
+      <div class="flabel">赛事</div>
+      <select class="teamsel" id="eventSelect"></select>
+      <div class="flabel flabel-inline">地图</div>
+      <select class="teamsel" id="mapSelect"></select>
+      <div class="flabel flabel-inline">队伍</div>
+      <select class="teamsel" id="teamSelect"></select>
+      <div class="flabel flabel-inline">英雄</div>
+      <select class="teamsel" id="agentSelect"></select>
+      <span class="selhint" id="teamHint"></span>
+      <button class="glossbtn" id="glossBtn">指标说明</button>
+    </div>
+    </div>
+    <div id="gloss"></div>
+  </div>
+
+  <!-- 主角：补枪效应。全宽、第一眼就看到，因为它解释的方差最大 -->
+  <div class="panel hero" id="tradePanel">
+    <div class="paneltitle">
+      <h2>首杀之后，队友有没有补上那一枪</h2>
+      <span class="aside" id="tradeNote"></span>
+    </div>
+    <div class="tbars">
+      <div class="tb">
+        <span class="tbl">首杀后被补掉 <span class="term" data-key="trade">?</span></span>
+        <span class="trk"><i class="fill bad" id="tradedBar"></i></span>
+        <span class="tbn" id="tradedVal">—</span>
+        <span class="tbs" id="tradedSub">—</span>
+      </div>
+      <div class="tb">
+        <span class="tbl">首杀没有被补</span>
+        <span class="trk"><i class="fill good" id="untradedBar"></i></span>
+        <span class="tbn" id="untradedVal">—</span>
+        <span class="tbs" id="untradedSub">—</span>
+      </div>
+    </div>
+    <div class="tfoot">
+      <span class="tgapv" id="tradeGap">—</span>
+      <span class="tcap">个百分点 · 同一个回合里，只差一次补枪</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- left: map + stats -->
+    <div class="panel">
+      <div class="paneltitle">
+        <h2 id="mapPanelTitle">首杀位置分布</h2>
+        <span class="aside" id="mapMeta"></span>
+      </div>
+      <div class="mapwrap">
+        <img id="mapImg" alt="minimap">
+        <canvas id="dots" width="1024" height="1024"></canvas>
+        <div id="mapTable"></div>
+        <div id="emptyState"></div>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background:#DE3B49"></i>进攻方首杀</span>
+        <span><i class="sq" style="background:#0E7C74"></i>防守方首杀</span>
+      </div>
+      <div class="stats4" id="mapCards"></div>
+      <div class="note" id="geoNote"></div>
+    </div>
+
+    <!-- right -->
+    <div class="stack">
+        <div class="panel" id="agentPanel">
+          <div class="paneltitle">
+            <h2 id="agentPanelTitle">谁在拿首杀 · 英雄</h2>
+            <span class="aside" id="agentPanelNote"></span>
+          </div>
+          <table>
+            <thead><tr><th>英雄</th><th>首杀</th><th style="width:34%">占比</th></tr></thead>
+            <tbody id="agentRows"></tbody>
+          </table>
+          <button class="more" id="agentMore" hidden></button>
+        </div>
+
+        <div class="panel">
+          <div class="paneltitle">
+            <h2>用什么拿的首杀</h2>
+            <span class="aside" id="weaponNote">前 5 名</span>
+          </div>
+          <table>
+            <thead><tr><th>武器 / 技能</th><th>首杀</th><th style="width:34%">占比</th></tr></thead>
+            <tbody id="weaponRows"></tbody>
+          </table>
+          <button class="more" id="weaponMore" hidden></button>
+        </div>
+    </div>
+  </div>
+
+  <div class="sectitle">
+    <h2>各赛事对比 · 固定基准</h2><span id="eventCompareNote"></span>
+  </div>
+  <div class="panel reveal">
+        <table>
+          <thead><tr>
+            <th>赛事</th><th>回合</th><th>攻方占比</th>
+            <th>首杀→胜</th><th>被补枪率</th><th>未补→胜</th><th>中位时刻</th>
+          </tr></thead>
+        <tbody id="eventRows"></tbody>
+      </table>
+  </div>
+
+  <div class="sectitle"><h2>队伍对比</h2><span id="teamCompareNote"></span>
+        <button class="scopebtn" id="teamScopeBtn" title="切换：只看当前筛选 / 整季全样本">本赛事</button></div>
+      <div class="panel reveal" style="animation-delay:.06s">
+        <div class="tblscroll">
+          <table>
+            <thead><tr>
+            <th class="sortable" data-sort="name">队伍</th>
+            <th class="sortable" data-sort="n">回合</th>
+            <th class="gloss sortable" data-key="fbrate" data-sort="fbRate">首杀率</th>
+            <th class="gloss sortable" data-key="fbconv" data-sort="convFb">首杀→胜</th>
+            <th class="gloss sortable" data-key="recovery" data-sort="convNo">丢首杀→胜</th>
+            <th class="gloss sortable" data-key="gone" data-sort="fbSurvive">首杀未被补</th>
+            <th class="gloss sortable" data-key="metafit" data-sort="metaFit">Meta Fit</th>
+            <th class="gloss sortable" data-key="snipe" data-sort="snipe">狙击首杀</th>
+          </tr></thead>
+          <tbody id="teamRows"></tbody>
+          </table>
+        </div>
+        <div id="teamLegend"></div>
+        <div class="note" id="teamReliability"></div>
+  </div>
+
+  <div class="sectitle"><h2>第一赛段 → 第二赛段：谁真的变了</h2><span id="stageNote"></span></div>
+  <div class="panel reveal" style="animation-delay:.12s">
+    <div class="stagehead">
+      <div class="stats4" id="stageCards"
+           style="grid-template-columns:repeat(3,minmax(0,1fr));margin:0"></div>
+      <div class="note" id="stageLead" style="margin:0; line-height:1.75"></div>
+    </div>
+    <div class="tblscroll" style="max-height:430px">
+      <table>
+        <thead><tr>
+          <th>队伍</th>
+          <th class="num">S1 回合</th><th class="num">S1 首杀率</th>
+          <th class="num">S2 回合</th><th class="num">S2 首杀率</th>
+          <th class="num">原始变化</th><th class="num">扣掉回归后</th>
+        </tr></thead>
+        <tbody id="stageRows"></tbody>
+      </table>
+    </div>
+    <div class="note" id="stageFoot"></div>
+  </div>
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<footer id="foot"></footer>
+<div id="tip"></div>
+
+<script>
+/* ================================================================== */
+/* glossary — every jargon term gets a plain-language explanation     */
+/* ================================================================== */
+const GLOSSARY = [
+  {
+    key: 'trade',
+    zh: '首杀被补枪 / 没有被补',
+    en: 'Traded / Untraded First Blood',
+    text: '看首杀之后队友有没有立刻报仇。首杀者在击杀后 5 秒内被死者的队友反杀，'
+        + '这个首杀就叫「被补掉」。被补掉等于 1 换 1，人数优势消失。'
+        + '数据显示这两种情况差 18.7 个百分点，是全部数据里影响最大的一个变量。',
+    formula: '被补 = 首杀者被死者队友在 ≤5 秒内击杀',
+  },
+  {
+    key: 'metafit',
+    zh: 'Meta Fit',
+    en: 'Meta Fit / 版本契合度',
+    text: '衡量一支队伍「跟不跟版本」。先找出每张图上全球选取率最高的 7 个英雄，'
+        + '称为「版本英雄（Meta Agents）」。再看某队的一套阵容里，有几个是版本英雄。'
+        + '90% 表示这套阵容 5 个里有 4.5 个是版本英雄，非常跟版本；'
+        + '60% 表示只有 3 个跟版本，属于自己玩自己的。',
+    formula: 'Meta Fit = 阵容中的版本英雄数 ÷ 5',
+  },
+  {
+    key: 'snipe',
+    zh: '狙击首杀占比',
+    en: 'AWP First Bloods',
+    text: '这队拿到的首杀里，有多少是用狙击枪（Operator / Outlaw / Marshal）打出来的。'
+        + '它是全部候选指标里最稳定的一列：同队回合随机拆两半重算 r≈0.91，'
+        + '跨赛段（第一赛段 → 第二赛段）r≈0.81 —— 也就是说它几乎不受版本和运气影响，'
+        + '是一支队伍真正的打法指纹。对教练的含义很直接：'
+        + '占比高的队依赖狙击手架点，烟掉狙击位就能压低他们的开局质量。',
+    formula: '狙击首杀占比 = 狙击枪首杀数 ÷ 本队首杀总数',
+  },
+  {
+    key: 'fbconv',
+    zh: '首杀→回合胜率',
+    en: 'First Blood Conversion',
+    text: '拿到首杀的队伍，最后赢下这一回合的比例。全样本基准是 71%。'
+        + '任何「某队首杀转化好」的说法，都必须拿 71% 当基准，而不是拿 50%。',
+    formula: '首杀→胜 = 首杀方赢下的回合 ÷ 有首杀的回合',
+  },
+  {
+    key: 'fbrate',
+    zh: '首杀率',
+    en: 'First Blood Rate',
+    text: '这支队伍拿到首杀的回合占它总回合的比例。反映打法风格（激进还是保守），'
+        + '不反映强弱。',
+  },
+  {
+    key: 'recovery',
+    zh: '丢首杀→胜率',
+    en: 'Recovery Rate',
+    text: '丢掉首杀之后，还能把这回合翻回来的比例。'
+        + '这是比首杀率更能区分强弱的指标。',
+  },
+  {
+    key: 'gone',
+    zh: '首杀未被补',
+    en: 'Untraded FB%',
+    text: '这支队伍拿到首杀后，有多少比例没被对手补掉。'
+        + '越高说明队伍越会「打完就撤 / 有队友掩护」，而不是干完就走被人换掉。',
+  },
+  {
+    key: 'geom',
+    zh: '为什么中国赛区没有坐标',
+    en: 'Missing Geometry',
+    text: 'vlr.gg 上 VCT 中国赛区（第一 / 第二赛段）没有提供 2D 回放数据，'
+        + '比赛页面直接写着 “No 2D replay available for this match”。'
+        + '这不是我们抓错了——同样在上海办的全球冠军赛 2026 就有完整回放，'
+        + '本站已收录。所以中国赛区仍然有击杀、英雄、武器、时间、补枪、'
+        + '转化率数据，只缺「位置坐标」，因此不出现在地图打点上。',
+  },
+  {
+    key: 'events',
+    zh: '收录了哪些赛事',
+    en: 'Coverage',
+    text: '共 6 个赛事：上海全球冠军赛 2026（2026-09-24 ~ 10-19）、'
+        + '伦敦大师赛 2026（06-06 ~ 06-22），以及美洲 / EMEA / 中国 / 太平洋'
+        + '四个赛区的第二赛段常规赛 + 季后赛（7–9 月）。',
+  },
+];
+
+const GLOSS_MAP = Object.fromEntries(GLOSSARY.map(g => [g.key, g]));
+
+function initGlossary(){
+  const box = document.getElementById('gloss');
+  box.innerHTML = '<h3>指标说明</h3>' + GLOSSARY.map(g => `
+    <div class="gitem">
+      <b>${g.zh}</b><span class="en">${g.en}</span>
+      <p>${g.text}${g.formula ? `<span class="formula">${g.formula}</span>` : ''}</p>
+    </div>`).join('');
+
+  const btn = document.getElementById('glossBtn');
+  btn.onclick = ()=>{
+    box.classList.toggle('show');
+    btn.textContent = box.classList.contains('show')
+      ? '收起说明' : '这些指标是什么意思？';
+  };
+
+  // hover cards for the inline .term spans and glossary table headers
+  const tip = document.getElementById('tip');
+  const TIP_SEL = '.term, th.gloss';
+  document.addEventListener('mouseover', ev=>{
+    const el = ev.target.closest(TIP_SEL);
+    if(!el) return;
+    const g = GLOSS_MAP[el.dataset.key];
+    if(!g) return;
+    tip.innerHTML = `<b>${g.zh}</b>${g.text}`
+      + (g.formula ? `<span class="formula">${g.formula}</span>` : '');
+    tip.classList.add('show');
+    const r = el.getBoundingClientRect();
+    const w = 340;
+    let left = r.left;
+    if(left + w > window.innerWidth - 12) left = window.innerWidth - w - 12;
+    tip.style.left = Math.max(12, left) + 'px';
+    tip.style.top = (r.bottom + 8) + 'px';
+  });
+  document.addEventListener('mouseout', ev=>{
+    if(ev.target.closest(TIP_SEL)) tip.classList.remove('show');
+  });
+  // NOTE: deliberately no scroll-to-hide listener. Playwright/edge scrolling
+  // an element into view fires a scroll event and would blank the tooltip
+  // immediately; the mouseout handler above already covers real mouse-aways.
+}
+
+/* a glossary-linked label */
+function term(key, label){
+  return `<span class="term" data-key="${key}">${label}</span>`;
+}
+
+/* ================================================================== */
+/* state                                                               */
+/* ================================================================== */
+const S = { raw:null, D:null, Z:null, M:null, eventStats:null };
+
+/* 赛事是必选项（不再是「全部赛事」），默认落在最新的全球冠军赛。
+   地图默认「全部」，这样队伍表里的队数才和下拉框里的队数对得上。 */
+const F = { ev:0, map:-1, team:-1, agent:-1 };
+let view = [];            // filtered round rows
+let teamSort = { key:'n', dir:-1 };   // 队伍表排序状态
+let lastAgg = null;                   // 最近一次聚合结果，排序时复用
+let teamSeason = false;               // 队伍表默认跟着赛事走；整季是可选视角
+
+/* agent -> per-map first-blood counts, built once (used when an agent is
+   pinned, so the "谁在拿首杀" panel can show WHERE that agent gets them) */
+let agentMapCounts = null;
+
+/* ================================================================== */
+/* helpers                                                             */
+/* ================================================================== */
+function pct(a,b){ return b ? (100*a/b).toFixed(1) : '—'; }
+/* 队伍格：队标 / 官方缩写 / 全名。数据里的 teamMeta 缺失时优雅降级。 */
+function teamCell(t, opts){
+  opts = opts || {};
+  const m = (S.TM && S.TM[t]) || {};
+  const logo = m.logo
+    ? `<img class="tlogo${m.plate ? ' plt' : ''}${m.plateLight ? ' pltl' : ''}" src="${m.logo}" alt="" loading="lazy">`
+    : `<span class="tlogo ph"></span>`;
+  const tag = m.tag ? `<span class="ttag">${esc(m.tag)}</span>` : '';
+  const name = opts.noName ? '' : `<span class="tname">${esc(S.D.teams[t])}</span>`;
+  return `<div class="tcell">${logo}${tag}${name}</div>`;
+}
+
+function esc(x){ return String(x).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmt(n){ return n.toLocaleString('en-US'); }
+function fmtSec(s){
+  if(s == null || s < 0) return '—';
+  return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+}
+function median(arr){
+  const s = arr.slice().sort((x,y)=>x-y);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m-1]+s[m])/2;
+}
+
+/* ================================================================== */
+/* boot                                                                */
+/* ================================================================== */
+
+/* ================================================================== */
+/* 交互层：可分享链接 / 排序动画 / 数字滚动                              */
+/* ================================================================== */
+const prefersReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- toast ---------- */
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById('toast');
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove('show'), 1900);
+}
+
+/* ---------- URL 状态：筛选条件写进地址栏，链接可分享 ---------- */
+function syncURL(){
+  if(!S.D) return;
+  const q = new URLSearchParams();
+  if(F.ev    >= 0) q.set('ev',    S.D.events[F.ev]);
+  if(F.map   >= 0) q.set('map',   S.D.maps[F.map]);
+  if(F.team  >= 0) q.set('team',  S.D.teams[F.team]);
+  if(F.agent >= 0) q.set('agent', S.D.agents[F.agent]);
+  const qs = q.toString();
+  history.replaceState(null, '', qs ? '?' + qs : location.pathname);
+}
+
+function readURL(){
+  const q = new URLSearchParams(location.search);
+  const at = (k, arr) => {
+    const v = q.get(k);
+    return v ? arr.indexOf(v) : -1;
+  };
+  const ev = at('ev', S.D.events);      if(ev >= 0) F.ev = ev;
+  const mp = at('map', S.D.maps);       if(mp >= 0) F.map = mp;
+  const tm = at('team', S.D.teams);     if(tm >= 0) F.team = tm;
+  const ag = at('agent', S.D.agents);   if(ag >= 0) F.agent = ag;
+  return q.toString().length > 0;
+}
+
+function initShare(){
+  const btn = document.getElementById('shareBtn');
+  if(!btn) return;
+  btn.onclick = async () => {
+    try{
+      await navigator.clipboard.writeText(location.href);
+      toast('链接已复制，可以直接发给别人');
+    }catch(e){
+      toast('浏览器不允许自动复制，请从地址栏复制');
+    }
+  };
+}
+
+/* ---------- KPI 数字滚动：只在数值真变时播 ---------- */
+const kpiPrev = [];
+function countUp(el, i){
+  const txt = (el.textContent || '').trim();
+  const m = txt.match(/^(-?[\d,]+(?:\.\d+)?)(.*)$/);
+  if(!m || prefersReduced()) return;
+  const target = parseFloat(m[1].replace(/,/g, ''));
+  const suffix = m[2] || '';
+  const dec = (m[1].split('.')[1] || '').length;
+  const from = kpiPrev[i];
+  kpiPrev[i] = target;
+  // 首屏（from 为空）不播：innerHTML 里已经是最终值，播了反而闪
+  if(from == null || from === target) return;
+  const t0 = performance.now(), dur = 420;
+  const tick = now => {
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    const v = from + (target - from) * e;
+    el.textContent = (dec ? v.toFixed(dec) : Math.round(v).toLocaleString('en-US')) + suffix;
+    if(p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+
+async function boot(){
+  const j = await (await fetch('data/site_v3.json')).json();
+  S.raw = j; S.D = j.dict; S.Z = j.zh; S.M = j.meta;
+  S.comps = j.comps; S.metaTop = j.metaTop; S.TM = j.teamMeta || null;
+
+  document.getElementById('sub').textContent =
+    `${S.D.events.length} 个赛事 · ${S.D.maps.length} 张地图 · ${S.M.teams_shown} 支队伍`
+    + ` · ${fmt(S.M.rounds)} 回合 · 数据源 vlr.gg 2D 回放`;
+
+  // 赛事间对比表是固定基准，不随上面的筛选变化，所以先算好
+  S.eventStats = buildEventStats();
+
+  // 默认落到全赛季最后一个赛事（上海冠军赛）
+  const ci = S.D.events.indexOf('Champions Shanghai 2026');
+  F.ev = ci >= 0 ? ci : 0;
+  const fromURL = readURL();     // 地址栏里有筛选条件就覆盖默认值
+
+  buildStageStats();
+  buildAgentMapCounts();
+  buildEventSelect();
+  buildMapSelect();
+  buildTeamSelect();
+  buildAgentSelect();
+  initGlossary();
+  initTeamSort();
+  const esel = document.getElementById('eventSelect');
+  if(esel) esel.onchange = e => { F.ev = +e.target.value; rebuild(); };
+  const msel = document.getElementById('mapSelect');
+  if(msel) msel.onchange = e => { F.map = +e.target.value; rebuild(); };
+  const asel = document.getElementById('agentSelect');
+  if(asel) asel.onchange = e => { F.agent = +e.target.value; rebuild(); };
+
+  const ft = document.getElementById('ftoggle');
+  if(ft) ft.onclick = () => {
+    const box = document.getElementById('filters');
+    const open = box.classList.toggle('open');
+    ft.setAttribute('aria-expanded', String(open));
+  };
+  initShare();
+  rebuild();
+  if(fromURL) toast('已按链接恢复筛选条件');
+}
+
+/* 点表头排序：同键切换升降序，换键默认降序 */
+function initTeamSort(){
+  const btn = document.getElementById('teamScopeBtn');
+  if(btn){
+    btn.onclick = ()=>{
+      teamSeason = !teamSeason;
+      btn.textContent = teamSeason ? '整季' : '本赛事';
+      if(lastAgg) renderTeams(lastAgg);
+    };
+  }
+  for(const th of document.querySelectorAll('th.sortable')){
+    th.onclick = ()=>{
+      const k = th.dataset.sort;
+      if(teamSort.key === k) teamSort.dir = -teamSort.dir;
+      else { teamSort.key = k; teamSort.dir = -1; }
+      if(lastAgg) renderTeams(lastAgg);
+    };
+  }
+}
+
+/* 六个赛事全样本的首杀统计，用作「赛事之间没有差异」的参照 */
+function buildEventStats(){
+  const out = new Map();
+  for(const r of S.raw.rounds){
+    let e = out.get(r[0]);
+    if(!e){ e = {n:0,won:0,atk:0,def:0,secs:[],
+                 traded:0,untraded:0,untradedWon:0}; out.set(r[0], e); }
+    const fbWon = (r[4] === r[5]);
+    e.n++;
+    if(fbWon) e.won++;
+    if(r[5] === r[2]) e.atk++; else e.def++;
+    if(r[8] >= 0) e.secs.push(r[8]);
+    if(r[11] === 1) e.traded++;
+    else if(r[11] === 0){ e.untraded++; if(fbWon) e.untradedWon++; }
+  }
+  return [...out.entries()].sort((a,b)=> a[0] - b[0]);
+}
+
+/* Precompute: agentIndex -> Map(mapIndex -> count) across the whole dataset.
+   Only used to answer "这个英雄在哪些图拿首杀" when an agent is pinned. */
+function buildAgentMapCounts(){
+  agentMapCounts = new Map();
+  for(const r of S.raw.rounds){
+    let m = agentMapCounts.get(r[6]);
+    if(!m){ m = new Map(); agentMapCounts.set(r[6], m); }
+    m.set(r[1], (m.get(r[1])||0)+1);
+  }
+}
+
+/* ================================================================== */
+/* chips                                                               */
+/* ================================================================== */
+function makeChip(label, active, onClick, cls){
+  const c = document.createElement('div');
+  c.className = 'chip' + (active ? ' on' : '') + (cls ? ' '+cls : '');
+  c.textContent = label;
+  c.onclick = onClick;
+  return c;
+}
+
+/* 赛事是必选项，用下拉：15 个赛事摊成标签会变成一片 tag 云 */
+function buildEventSelect(){
+  const sel = document.getElementById('eventSelect');
+  sel.innerHTML = S.D.events.map((e,i)=>{
+    const hasGeo = (S.M.per_event?.[e]?.has_geometry) !== false;
+    return `<option value="${i}">${esc(S.Z.events[e] || e)}${hasGeo ? '' : '（无坐标）'}</option>`;
+  }).join('');
+  sel.value = String(F.ev);
+}
+
+/* 地图只列当前赛事真的打过的那几张 —— 没进图的图池就不该出现在选项里。
+   每次 rebuild 重建，因为换赛事会换图池。 */
+function mapsInScope(){
+  const seen = new Set();
+  for(const r of S.raw.rounds){
+    if(r[0] === F.ev) seen.add(r[1]);
+  }
+  return [...seen].sort((a,b)=> S.D.maps[a].localeCompare(S.D.maps[b]));
+}
+
+function buildMapSelect(){
+  const sel = document.getElementById('mapSelect');
+  const list = mapsInScope();
+  if(F.map >= 0 && !list.includes(F.map)) F.map = -1;   // 换赛事后旧地图失效
+  sel.innerHTML = `<option value="-1">全部地图（${list.length} 张）</option>` +
+    list.map(m => `<option value="${m}">${esc(S.Z.maps[S.D.maps[m]] || S.D.maps[m])}</option>`).join('');
+  sel.value = String(F.map);
+}
+
+/* agents actually present in the current event/team scope, most first-bloods
+   first. Keeps the chip row short: an agent nobody picks has nothing to show. */
+function agentsInScope(){
+  const counts = new Map();
+  for(const r of S.raw.rounds){
+    if(r[0] !== F.ev) continue;
+    if(F.team >= 0 && r[2] !== F.team && r[3] !== F.team) continue;
+    counts.set(r[6], (counts.get(r[6])||0)+1);
+  }
+  return [...counts.entries()]
+    .filter(([k,n]) => n >= 10)
+    .sort((a,b)=> b[1]-a[1])
+    .map(([k]) => k);
+}
+
+/* 英雄也改成下拉：33 个 chip 铺两行只是噪音，下拉更省地方。
+   只列当前范围里真的出现过的英雄，换赛事/地图会跟着缩。 */
+function buildAgentSelect(){
+  const sel = document.getElementById('agentSelect');
+  if(!sel) return;
+  const list = agentsInScope();
+  // if the pinned agent fell out of scope, release it
+  if(F.agent >= 0 && !list.includes(F.agent)) F.agent = -1;
+  sel.innerHTML = '<option value="-1">全部英雄</option>' +
+    list.map(a => `<option value="${a}">${esc(S.Z.agents[S.D.agents[a]] || S.D.agents[a])}</option>`).join('');
+  sel.value = String(F.agent);
+}
+
+/* 下拉自带选中态，不再需要同步 chip 的 on 类 */
+
+/* ------------------------------------------------------------------ */
+/* team <select> — options depend on the selected event                */
+/* ------------------------------------------------------------------ */
+function teamsForCurrentEvent(){
+  const counts = new Map();     // teamIndex -> rounds within the event scope
+  for(const r of S.raw.rounds){
+    if(r[0] !== F.ev) continue;
+    for(const t of new Set([r[2], r[3]])){
+      if(t < 0) continue;
+      counts.set(t, (counts.get(t)||0)+1);
+    }
+  }
+  return [...counts.entries()]
+    .filter(([t,n]) => n >= 20)
+    .sort((a,b)=> b[1]-a[1]);
+}
+
+function buildTeamSelect(){
+  const sel = document.getElementById('teamSelect');
+  const list = teamsForCurrentEvent();
+  const prev = F.team;
+
+  sel.innerHTML = '';
+  const all = document.createElement('option');
+  all.value = '-1';
+  all.textContent = `全部队伍（${list.length} 支）`;
+  sel.appendChild(all);
+
+  // group by event when showing everything
+  for(const [t, n] of list){
+    const o = document.createElement('option');
+    o.value = String(t);
+    o.textContent = `${S.D.teams[t]}  ·  ${n} 回合`;
+    sel.appendChild(o);
+  }
+
+  // keep the previous pick if it still exists in this scope
+  const stillThere = list.some(([t]) => t === prev);
+  if(stillThere){
+    sel.value = String(prev);
+  }else{
+    F.team = -1;
+    sel.value = '-1';
+  }
+
+  sel.onchange = ()=>{
+    F.team = Number(sel.value);
+    rebuild();
+  };
+
+  document.getElementById('teamHint').textContent =
+    `仅显示 ${S.Z.eventsShort[S.D.events[F.ev]]} 参赛的 ${list.length} 支队伍`;
+}
+
+/* ================================================================== */
+/* filter + aggregate                                                  */
+/* ================================================================== */
+function rebuild(){
+  buildEventSelect();  // 赛事是必选项，选中态由下拉自己维护
+  buildMapSelect();    // 换赛事会换图池，旧地图自动回落「全部地图」
+  buildTeamSelect();   // 队伍不在当前赛事就回落「全部队伍」
+  buildAgentSelect();  // 英雄不在当前范围就回落「全部英雄」
+  recompute();
+}
+
+/* the map with the most rounds inside the current event filter */
+function busiestMapInScope(){
+  const counts = new Map();
+  for(const r of S.raw.rounds){
+    if(r[0] !== F.ev) continue;
+    counts.set(r[1], (counts.get(r[1])||0)+1);
+  }
+  let best = -1, bestN = -1;
+  for(const [m, n] of counts){ if(n > bestN){ bestN = n; best = m; } }
+  return best;
+}
+
+function recompute(){
+  const rows = S.raw.rounds;
+  view = [];
+  for(let i=0;i<rows.length;i++){
+    const r = rows[i];
+    if(r[0] !== F.ev)    continue;
+    if(F.map   >= 0 && r[1] !== F.map)   continue;
+    if(F.team  >= 0 && r[2] !== F.team && r[3] !== F.team) continue;
+    if(F.agent >= 0 && r[6] !== F.agent) continue;
+    view.push(r);
+  }
+  renderAll();
+  updateFilterSummary();
+  syncURL();
+}
+
+/* 窄屏收起筛选时，这一行就是唯一的上下文 */
+function updateFilterSummary(){
+  const el = document.getElementById('ftoggleText');
+  if(!el) return;
+  el.textContent = [
+    S.Z.eventsShort[S.D.events[F.ev]] || S.D.events[F.ev],
+    F.map < 0 ? '全部地图' : (S.Z.maps[S.D.maps[F.map]] || S.D.maps[F.map]),
+    F.team < 0 ? '全部队伍' : S.D.teams[F.team],
+  ].join(' · ');
+}
+
+function agg(rows){
+  rows = rows || view;
+  const a = {
+    n: rows.length, won:0, atk:0, def:0, geo:0, secs:[],
+    traded:0, tradedWon:0, untraded:0, untradedWon:0,
+    agents:new Map(), causes:new Map(), byEvent:new Map(), byTeam:new Map(),
+  };
+  for(const r of rows){
+    const [ev, mp, atkT, defT, winT, killT, ag, ca, sec, x, y, tr, compA, compB, snipe] = r;
+    const fbWon = (winT === killT);
+    if(fbWon) a.won++;
+    const isAtk = (killT === atkT);
+    if(isAtk) a.atk++; else a.def++;
+    if(sec >= 0) a.secs.push(sec);
+    if(x >= 0) a.geo++;
+
+    // ---- trade state is the strongest single split in the data ----
+    if(tr === 1){ a.traded++; if(fbWon) a.tradedWon++; }
+    else if(tr === 0){ a.untraded++; if(fbWon) a.untradedWon++; }
+
+    a.agents.set(ag, (a.agents.get(ag)||0)+1);
+    a.causes.set(ca, (a.causes.get(ca)||0)+1);
+
+    let e = a.byEvent.get(ev);
+    if(!e){ e = {n:0,won:0,atk:0,def:0,secs:[],
+                 traded:0,tradedWon:0,untraded:0,untradedWon:0};
+            a.byEvent.set(ev,e); }
+    e.n++; if(fbWon) e.won++; if(isAtk) e.atk++; else e.def++;
+    if(sec>=0) e.secs.push(sec);
+    if(tr === 1){ e.traded++; if(fbWon) e.tradedWon++; }
+    else if(tr === 0){ e.untraded++; if(fbWon) e.untradedWon++; }
+
+    for(const t of new Set([atkT, defT])){
+      if(t < 0) continue;
+      let tm = a.byTeam.get(t);
+      if(!tm){ tm = {n:0,fbFor:0,fbAgainst:0,wonWithFb:0,wonWithoutFb:0,
+                     fbTraded:0,fbUntraded:0,fbUntradedWon:0,
+                     fdUntraded:0,comps:new Map(),compsN:0,metaFitSum:0,metaFitN:0,
+                     snipeFor:0, snipeN:0};
+               a.byTeam.set(t, tm); }
+      tm.n++;
+      if(killT === t){ tm.fbFor++; if(fbWon) tm.wonWithFb++;
+                       if(snipe === 1) tm.snipeFor++;
+                       if(snipe >= 0) tm.snipeN++;
+                       if(tr === 1) tm.fbTraded++;
+                       else if(tr === 0){ tm.fbUntraded++; if(fbWon) tm.fbUntradedWon++; } }
+      else { tm.fbAgainst++; if(winT === t) tm.wonWithoutFb++;
+             if(tr === 0) tm.fdUntraded++; }
+
+      // ---- comp identity + meta fit for this team's side ----
+      const myComp = (killT === t) ? compA : compB;
+      if(myComp >= 0){
+        tm.comps.set(myComp, (tm.comps.get(myComp)||0)+1);
+        tm.compsN++;
+        const top = S.metaTop[String(mp)];
+        if(top){
+          const set = S.comps[myComp];
+          let hit = 0;
+          for(const a2 of set) if(top.includes(a2)) hit++;
+          tm.metaFitSum += hit/5;
+          tm.metaFitN++;
+        }
+      }
+    }
+  }
+  a.medianSec = a.secs.length ? median(a.secs) : null;
+  return a;
+}
+
+/* ================================================================== */
+/* render                                                              */
+/* ================================================================== */
+/* ================================================================== */
+/* stage comparison — 第一赛段 vs 第二赛段                              */
+/* ================================================================== */
+const REGION_ZH = {Americas:'美洲', China:'中国', EMEA:'EMEA', Pacific:'太平洋', ALL:'全部赛区'};
+
+/* 一次算好：region -> {S1: Map(team -> stats), S2: ...}，同时留一份 ALL */
+function buildStageStats(){
+  const out = {};
+  const bump = (region, stg, t, winT, killT, snipe)=>{
+    let reg = out[region];
+    if(!reg){ reg = out[region] = {S1:new Map(), S2:new Map()}; }
+    const m = reg[stg];
+    let d = m.get(t);
+    if(!d){ d = {n:0, fb:0, fbw:0, ag:0, agw:0, snipe:0}; m.set(t, d); }
+    d.n++;
+    if(killT === t){ d.fb++; if(winT === t) d.fbw++; if(snipe === 1) d.snipe++; }
+    else if(killT >= 0){ d.ag++; if(winT === t) d.agw++; }
+  };
+  for(const r of S.raw.rounds){
+    const ev = S.D.events[r[0]];
+    const m = ev.match(/VCT (\w+) Stage ([12])/);
+    if(!m) continue;
+    const region = m[1], stg = 'S' + m[2];
+    const winT = r[4], killT = r[5], snipe = r[14];
+    for(const t of new Set([r[2], r[3]])){
+      if(t < 0) continue;
+      bump(region, stg, t, winT, killT, snipe);
+      bump('ALL', stg, t, winT, killT, snipe);
+    }
+  }
+  S.stage = out;
+}
+
+function pearson(xs, ys){
+  const n = xs.length;
+  if(n < 4) return null;
+  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+  let num = 0, dx = 0, dy = 0;
+  for(let i=0;i<n;i++){
+    num += (xs[i]-mx)*(ys[i]-my);
+    dx += (xs[i]-mx)**2;
+    dy += (ys[i]-my)**2;
+  }
+  return (dx && dy) ? num/Math.sqrt(dx*dy) : null;
+}
+
+function renderStage(){
+  const tb = document.getElementById('stageRows');
+  const cardBox = document.getElementById('stageCards');
+  const lead = document.getElementById('stageLead');
+  const foot = document.getElementById('stageFoot');
+
+  const ev = S.D.events[F.ev] || '';
+  const mm = ev.match(/VCT (\w+) Stage [12]/);
+  const region = mm ? mm[1] : 'ALL';
+  const reg = S.stage && S.stage[region];
+
+  document.getElementById('stageNote').textContent = mm
+    ? `（${REGION_ZH[region] || region}赛区，跟随上方赛事）`
+    : '（国际赛事 → 全部赛区合并；想在单个赛区比较请选赛区赛段）';
+
+  if(!reg || !reg.S1 || !reg.S2){
+    tb.innerHTML = '<tr><td colspan="7" class="empty">没有赛段数据</td></tr>';
+    cardBox.innerHTML = ''; lead.textContent = ''; foot.textContent = '';
+    return;
+  }
+
+  const list = [];
+  for(const [t, s1] of reg.S1){
+    const s2 = reg.S2.get(t);
+    if(!s1 || !s2 || s1.n < 150 || s2.n < 150) continue;
+    const p1 = 100*s1.fb/s1.n, p2 = 100*s2.fb/s2.n;
+    const se = Math.sqrt(p1*(100-p1)/s1.n + p2*(100-p2)/s2.n);
+    list.push({t, n1:s1.n, n2:s2.n, p1, p2, d:p2-p1, se,
+               sig: Math.abs(p2-p1) > 1.96*se});
+  }
+  if(list.length < 6){
+    tb.innerHTML = '<tr><td colspan="7" class="empty">两支赛段都有 ≥150 回合的队伍不够，没法比较</td></tr>';
+    cardBox.innerHTML = ''; lead.textContent = ''; foot.textContent = '';
+    return;
+  }
+
+  const rs = pearson(list.map(x=>x.p1), list.map(x=>x.p2));
+  // 回归斜率：Δ 对 (S1 - 50) 回归。纯噪声 ≈ -1，完全稳定 ≈ 0。
+  const mx = list.reduce((a,x)=>a+(x.p1-50),0)/list.length;
+  const my = list.reduce((a,x)=>a+x.d,0)/list.length;
+  let num = 0, den = 0;
+  for(const x of list){
+    num += (x.p1-50-mx) * (x.d-my);
+    den += (x.p1-50-mx)**2;
+  }
+  const slope = den ? num/den : null;
+  const sd = Math.sqrt(list.reduce((a,x)=>a+(x.d-my)**2,0)/list.length);
+
+  // 扣掉回归均值：Δ 对 (S1-50) 的回归斜率就是「回归项」本身
+  // （首杀率全局恒为 50%，所以 50 是自然的中心）
+  for(const x of list){
+    x.exp = (slope || 0) * (x.p1 - 50);
+    x.resid = x.d - x.exp;
+    x.sig = Math.abs(x.resid) > 1.96 * x.se;   // 变化是否超出「回归 + 抽样」能解释的范围
+  }
+  list.sort((a,b)=> b.resid - a.resid);
+
+  const sigN = list.filter(x=>x.sig).length;
+  // 前 5 名的跨赛段保留率 —— 比相关系数更好懂
+  const byS1 = [...list].sort((a,b)=> b.p1 - a.p1);
+  const byS2 = [...list].sort((a,b)=> b.p2 - a.p2);
+  const k = 5;
+  const keep = byS1.slice(0,k).filter(x => byS2.slice(0,k).some(y => y.t === x.t)).length;
+  const randExp = k*k/list.length;
+
+  // 「变化」的方差分解：回归项 + 残差项
+  const varD = list.reduce((a,x)=>a+x.d*x.d,0)/list.length - my*my;
+  const mRes = list.reduce((a,x)=>a+x.resid,0)/list.length;
+  const varR = list.reduce((a,x)=>a+(x.resid-mRes)**2,0)/list.length;
+  const share = varD > 0 ? Math.max(0, Math.min(100, 100*(1 - varR/varD))) : 0;
+  const up = list.slice(0, 3);
+  const dn = list.slice(-3).reverse();
+  const top1 = [...list].sort((a,b)=>b.p1-a.p1)[0];
+  const top2 = [...list].sort((a,b)=>b.p2-a.p2)[0];
+
+  cardBox.innerHTML = [
+    ['跨赛段相关 r', rs==null?'—':(rs>=0?'+':'')+rs.toFixed(2),
+     rs==null?'':(rs>0.5?'排序可迁移':rs>0.3?'弱':'几乎不可迁移'), ''],
+    ['回归斜率', slope==null?'—':(slope>=0?'+':'')+slope.toFixed(2),
+     '−1 = 全是回归均值', 'red'],
+    ['统计上站得住的变化', `${sigN} / ${list.length}`,
+     '超出回归+抽样能解释的范围', ''],
+  ].map(([k,v,sub,cls])=>
+    `<div class="stat"><h3>${k}</h3>
+      <div class="big ${cls}">${v}</div><p>${sub}</p></div>`).join('');
+
+  const nm = t => esc(S.D.teams[t]);
+  const fmtT = (x, sign) => `<b>${nm(x.t)}</b> ${sign ? '+' : ''}${x.resid.toFixed(1)}`;
+  lead.innerHTML =
+    `<b>${REGION_ZH[region] || region}</b> · ${list.length} 支队两个赛段各 ≥150 回合<br>`
+    + `· 首杀率 S1 → S2 相关 <b>${rs==null?'—':(rs>=0?'+':'')+rs.toFixed(2)}</b>，`
+    + `回归斜率 <b>${slope==null?'—':slope.toFixed(2)}</b>（−1 = 全是回归均值）——`
+    + `有 <b>${share.toFixed(0)}%</b> 的「变化」方差能被「S1 偏高就会回落」解释掉<br>`
+    + `· S1 首杀率前 ${k} 名里，到 S2 只剩 <b>${keep} 支</b>还在前 ${k}（随机也会中 ${randExp.toFixed(1)} 支）<br>`
+    + `· 扣掉回归项后真的变了：升 ${up.map(x=>fmtT(x,true)).join('、')}；`
+    + `降 ${dn.map(x=>fmtT(x,false)).join('、')}`;
+
+  tb.innerHTML = list.map(x=>{
+    const col = x.d >= 0 ? '#157F3B' : '#DE3B49';
+    return `<tr>
+      <td>${teamCell(x.t)}${x.sig ? '<span class="stagetag">显著</span>' : ''}</td>
+      <td class="num">${fmt(x.n1)}</td>
+      <td class="num">${x.p1.toFixed(1)}%</td>
+      <td class="num">${fmt(x.n2)}</td>
+      <td class="num">${x.p2.toFixed(1)}%</td>
+      <td class="num" style="color:${col}">${x.d>=0?'+':''}${x.d.toFixed(1)}</td>
+      <td class="num" style="color:${x.resid>=0?'#157F3B':'#DE3B49'}">${x.resid>=0?'+':''}${x.resid.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
+
+  // 首杀转化率的跨赛段相关（用同一批队算，避免写死结论）
+  const cv1 = [], cv2 = [];
+  for(const x of list){
+    const a = reg.S1.get(x.t), b = reg.S2.get(x.t);
+    if(!a || !b || a.fb < 120 || b.fb < 120) continue;
+    cv1.push(100*a.fbw/a.fb);
+    cv2.push(100*b.fbw/b.fb);
+  }
+  const rConv = pearson(cv1, cv2);
+
+  // 每个赛段自己的首杀转化率第一名（只在有足够首杀时算）
+  const convTop = stg => {
+    let best = null;
+    for(const [t, d] of reg[stg]){
+      if(d.fb < 120) continue;
+      const v = 100*d.fbw/d.fb;
+      if(!best || v > best.v) best = {t, v};
+    }
+    return best;
+  };
+  const c1 = convTop('S1'), c2 = convTop('S2');
+
+  foot.innerHTML =
+    `S1 首杀率最高：<b>${nm(top1.t)}</b> ${top1.p1.toFixed(1)}%；`
+    + `S2 最高：<b>${nm(top2.t)}</b> ${top2.p2.toFixed(1)}%。`
+    + (c1 && c2
+        ? ` 首杀转化率第一名：S1 <b>${nm(c1.t)}</b> ${c1.v.toFixed(1)}%（n≥120 次首杀），`
+          + `S2 <b>${nm(c2.t)}</b> ${c2.v.toFixed(1)}%。`
+        : '')
+    + ` 原始变化的标准差 ${sd.toFixed(1)}pp，扣掉回归项后只剩 ${Math.sqrt(varR).toFixed(1)}pp。`
+    + ` 「显著」= 扣掉回归项后的残差超过 1.96×标准误（两个赛段各自的抽样误差都算进去）。`
+    + ` 首杀转化率跨赛段相关只有 ${rConv==null?'—':(rConv>=0?'+':'')+rConv.toFixed(2)}`
+    + `（${cv1.length} 队），基本不可迁移，所以本表只比首杀率。`;
+}
+
+function renderAll(){
+  const a = agg();
+  lastAgg = a;
+
+  document.getElementById('kpis').innerHTML = [
+    ['筛选回合', fmt(a.n)],
+    ['首杀→回合胜率', pct(a.won, a.n)+'%'],
+    ['首杀被补枪率', pct(a.traded, a.n)+'%'],
+    ['中位时刻', fmtSec(a.medianSec)],
+  ].map(([k,v],i)=>`<div class="kpi${i===1?' hero':''}"><b>${v}</b><i>${k}</i></div>`).join('');
+  [...document.querySelectorAll('#kpis .kpi b')].forEach((el,i)=> countUp(el,i));
+
+  renderTrade(a);
+  renderMap(a);
+  renderAgents(a);
+  renderCauses(a);
+  renderEvents(a);
+  renderTeams(a);
+  renderStage();
+
+  document.getElementById('foot').textContent =
+    `数据抓取自 vlr.gg 的 2D 回放（${S.D.events.length} 个赛事、${fmt(S.M.rounds)} 回合）。`
+    + ` 中国赛区无 2D 回放，地图打点不含该赛区，但其余统计包含它。`
+    + ` 「补枪」定义为首杀发生后 ${S.M.trade_window_sec} 秒内，死者的队友击杀首杀者。`;
+}
+
+/* ---------------------- trade headline ----------------------------- */
+function renderTrade(a){
+  const tv = a.traded ? 100*a.tradedWon/a.traded : null;
+  const uv = a.untraded ? 100*a.untradedWon/a.untraded : null;
+
+  document.getElementById('tradedVal').textContent = tv==null?'—':tv.toFixed(1)+'%';
+  document.getElementById('untradedVal').textContent = uv==null?'—':uv.toFixed(1)+'%';
+  // 单位交给旁边的「个百分点」，这里只留数字，避免出现 "18.3 pp 个百分点"
+  document.getElementById('tradeGap').textContent =
+    (tv==null||uv==null)?'—':(uv-tv).toFixed(1);
+
+  document.getElementById('tradedSub').textContent =
+    `n = ${fmt(a.traded)} · 占首杀 ${pct(a.traded, a.n)}%`;
+  document.getElementById('untradedSub').textContent =
+    `n = ${fmt(a.untraded)} · 占首杀 ${pct(a.untraded, a.n)}%`;
+  document.getElementById('tradeNote').textContent =
+    `窗口 ${S.M.trade_window_sec} 秒`;
+
+  // 两条都按 0–100 的同一把尺子铺，长度差就是 18 个百分点本身
+  const bar = (id, v) => {
+    const el = document.getElementById(id);
+    if(el) el.style.width = v == null ? '0%'
+      : Math.max(0, Math.min(100, v)).toFixed(1) + '%';
+  };
+  bar('tradedBar', tv);
+  bar('untradedBar', uv);
+}
+
+/* ---------------------------- map ---------------------------------- */
+function renderMap(a){
+  const aggregate = F.map < 0;
+  const img = document.getElementById('mapImg');
+  const canvas = document.getElementById('dots');
+  const mt = document.getElementById('mapTable');
+  const title = document.getElementById('mapPanelTitle');
+
+  if(aggregate){
+    img.style.visibility = 'hidden';
+    canvas.style.visibility = 'hidden';
+    mt.classList.add('show');
+    document.querySelector('.mapwrap').classList.add('agg');
+    title.textContent = '首杀 · 按地图拆开';
+    document.querySelector('.legend').style.display = 'none';
+  }else{
+    const key = S.D.maps[F.map];
+    img.style.visibility = 'visible';
+    canvas.style.visibility = 'visible';
+    mt.classList.remove('show');
+    document.querySelector('.mapwrap').classList.remove('agg');
+    document.querySelector('.legend').style.display = '';
+    img.src = 'maps/light/' + key.toLowerCase().replace(/ /g,'') + '.png';
+    title.textContent = `首杀位置分布 · ${S.Z.maps[key]}`;
+  }
+
+  const pts = [];
+  if(!aggregate){
+    for(const r of view){
+      if(r[9] < 0 || r[1] !== F.map) continue;
+      pts.push([r[9], r[10], r[5] === r[2] ? 1 : 0]);
+    }
+  }
+  drawDots(pts, aggregate);
+  if(aggregate) renderMapTable();
+
+  const geoOfView = view.reduce((s,r)=> s + (r[9] >= 0 ? 1 : 0), 0);
+  document.getElementById('mapMeta').textContent = aggregate
+    ? `${S.Z.eventsShort[S.D.events[F.ev]]} · ${fmt(mapsInScope().length)} 张图 · ${fmt(a.n)} 回合`
+    : `${fmt(a.n)} 回合 · 本图 ${fmt(pts.length)} 次`;
+
+  const es = document.getElementById('emptyState');
+  const showEmpty = !aggregate && pts.length === 0;
+  es.classList.toggle('show', showEmpty);
+  if(showEmpty){
+    const cn = (S.M.per_event?.[S.D.events[F.ev]]?.has_geometry === false);
+    es.innerHTML = cn
+      ? `<div><b>中国赛区没有坐标数据</b>
+         vlr.gg 上该赛区没有 2D 回放，无法绘制位置。<br>
+         但这一筛选下的 ${fmt(a.n)} 个回合仍然计入<br>
+         右侧的英雄、武器与转化率统计。</div>`
+      : `<div><b>这个组合没有可绘制的位置</b>
+         当前筛选在这张图上没有首杀。<br>
+         试试把「地图」切回「全部地图」，或换个队伍 / 英雄。</div>`;
+  }
+
+  const conv = a.n ? 100*a.won/a.n : null;
+  document.getElementById('mapCards').innerHTML = `
+    <div class="stat">
+      <h3>首杀后赢下回合</h3>
+      <div class="big red">${conv==null?'—':conv.toFixed(1)+'%'}</div>
+      <p>全样本基准 ${S.M.fb_to_win_pct.toFixed(1)}%</p>
+    </div>
+    <div class="stat">
+      <h3>首杀来自进攻方</h3>
+      <div class="big cyan">${pct(a.atk, a.n)}%</div>
+      <p>进攻 ${fmt(a.atk)} · 防守 ${fmt(a.def)}</p>
+    </div>
+    <div class="stat">
+      <h3>首杀中位时刻</h3>
+      <div class="big">${fmtSec(a.medianSec)}</div>
+      <p>回合开局到首次击杀</p>
+    </div>
+    <div class="stat">
+      <h3>坐标覆盖</h3>
+      <div class="big">${pct(geoOfView, a.n)}%</div>
+      <p>${fmt(geoOfView)} / ${fmt(a.n)} 回合</p>
+    </div>`;
+
+  document.getElementById('geoNote').innerHTML =
+    `<b>数据说明。</b>${S.M.geometry_note}`;
+}
+
+/* 「全部地图」时不画点（10 张图共用一个网格，叠起来没有意义），
+   改成按地图拆开的首杀表；点任意一行跳到那张图的打点。 */
+function renderMapTable(){
+  const by = new Map();
+  for(const r of view){
+    let m = by.get(r[1]);
+    if(!m){ m = {n:0,won:0,tr:0,ut:0,secs:[]}; by.set(r[1], m); }
+    const fbWon = (r[4] === r[5]);
+    m.n++;
+    if(fbWon) m.won++;
+    if(r[11] === 1) m.tr++;
+    else if(r[11] === 0) m.ut++;
+    if(r[8] >= 0) m.secs.push(r[8]);
+  }
+  const rows = [...by.entries()].sort((x,y)=> y[1].n - x[1].n);
+
+  document.getElementById('mapTable').innerHTML = `
+    <h4>这个赛事里每张图的首杀</h4>
+    <div class="mtnote">点任意一行，跳到那张图的打点</div>
+    <table>
+      <thead><tr>
+        <th>地图</th><th>回合</th><th>首杀→胜</th><th>被补率</th><th>中位时刻</th>
+      </tr></thead>
+      <tbody>${rows.map(([mp, m])=>{
+        const conv = 100*m.won/m.n;
+        const trPct = (m.tr+m.ut) ? 100*m.tr/(m.tr+m.ut) : null;
+        return `<tr class="mtr" data-m="${mp}">
+          <td>${S.Z.maps[S.D.maps[mp]]}</td>
+          <td class="num">${fmt(m.n)}</td>
+          <td class="num">${conv.toFixed(1)}%</td>
+          <td class="num">${trPct==null?'—':trPct.toFixed(1)+'%'}</td>
+          <td class="num">${m.secs.length?fmtSec(median(m.secs)):'—'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+
+  for(const tr of document.querySelectorAll('#mapTable .mtr')){
+    tr.style.cursor = 'pointer';
+    tr.onclick = ()=>{ F.map = Number(tr.dataset.m); rebuild(); };
+  }
+}
+
+function drawDots(pts, aggregate){
+  const ctx = document.getElementById('dots').getContext('2d');
+  ctx.clearRect(0,0,1024,1024);
+  if(!pts || !pts.length) return;
+
+  const off = document.createElement('canvas');
+  off.width = 256; off.height = 256;
+  const oc = off.getContext('2d');
+  const K = 256/1024;
+  const radius = pts.length > 4000 ? 4 : 6;
+  for(const p of pts){
+    const g = oc.createRadialGradient(p[0]*K, p[1]*K, 0, p[0]*K, p[1]*K, radius);
+    g.addColorStop(0, 'rgba(255,70,85,.16)');
+    g.addColorStop(1, 'rgba(255,70,85,0)');
+    oc.fillStyle = g;
+    oc.beginPath(); oc.arc(p[0]*K, p[1]*K, radius, 0, Math.PI*2); oc.fill();
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.filter = `blur(${radius}px)`;
+  ctx.globalAlpha = 0.55;
+  ctx.drawImage(off, 0, 0, 1024, 1024);
+  ctx.restore();
+  ctx.filter = 'none';
+
+  if(aggregate) return;   // no per-point markers across different layouts
+
+  const R = pts.length > 6000 ? 1.6 : pts.length > 2000 ? 2.2 : 2.8;
+  for(const p of pts){
+    ctx.beginPath();
+    if(p[2] === 1){
+      ctx.arc(p[0], p[1], R, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(222,59,73,.82)';
+    }else{
+      ctx.rect(p[0]-R*0.85, p[1]-R*0.85, R*1.7, R*1.7);
+      ctx.fillStyle = 'rgba(14,124,116,.82)';
+    }
+    ctx.fill();
+  }
+}
+
+/* ================================================================== */
+/* leaderboard rows: top N with an expand toggle                       */
+/* ================================================================== */
+let expanded = { agents:false, weapons:false };
+
+const TOP_N = 5;
+
+/* Build `<tr>` markup for one leaderboard entry.
+   Empty rows collapse the list by keeping a zero-height row. */
+function rowHTML(label, n, max, total, color, opts){
+  opts = opts || {};
+  const clickable = opts.pickable ? ' pickable' : '';
+  const picked = opts.picked ? ' picked' : '';
+  const mark = opts.picked ? '<span class="pickmark">已选</span>' : '';
+  return `<tr class="${clickable}${picked}"${opts.data||''}>
+    <td><span class="rank">${opts.rank}</span>${label}${mark}</td>
+    <td class="num">${fmt(n)}</td>
+    <td><span class="bar" style="width:${max?100*n/max:0}%;background:${color}"></span>
+        <span style="color:var(--dim);font-size:10px"> ${pct(n,total)}%</span></td>
+  </tr>`;
+}
+
+/* Render a list, honouring the expansion state. */
+function renderList(tbodyId, moreId, noteId, list, cfg){
+  const tb = document.getElementById(tbodyId);
+  const more = document.getElementById(moreId);
+  const isOpen = expanded[cfg.key];
+  const total = list.reduce((s,[,n])=>s+n, 0);
+
+  if(!list.length){
+    tb.innerHTML = `<tr><td colspan="3" class="empty">当前筛选下没有数据</td></tr>`;
+    more.hidden = true;
+    if(noteId) document.getElementById(noteId).textContent = cfg.emptyNote || '';
+    return;
+  }
+
+  const shown = isOpen ? list : list.slice(0, TOP_N);
+  const max = list[0][1];
+
+  tb.innerHTML = shown.map(([k,n],i)=>
+    rowHTML(cfg.label(k), n, max, total, cfg.color, {
+      rank: i+1,
+      pickable: !!cfg.onPick,
+      picked: cfg.onPick ? cfg.isPicked(k) : false,
+      data: cfg.onPick ? ` data-k="${k}"` : '',
+    })
+  ).join('');
+
+  if(cfg.onPick){
+    tb.querySelectorAll('tr.pickable').forEach(tr=>{
+      tr.onclick = ()=> cfg.onPick(Number(tr.dataset.k));
+    });
+  }
+
+  // the expand control only exists when there is more to show
+  if(list.length > TOP_N){
+    more.hidden = false;
+    more.textContent = isOpen
+      ? `收起（只显示前 ${TOP_N} 名）`
+      : `展开全部 ${list.length} 项`;
+    more.onclick = ()=>{ expanded[cfg.key] = !isOpen; recompute(); };
+  }else{
+    more.hidden = true;
+  }
+
+  if(noteId){
+    document.getElementById(noteId).textContent = cfg.note
+      ? cfg.note(isOpen ? list.length : Math.min(TOP_N, list.length), list.length)
+      : '';
+  }
+}
+
+/* -------------------------- agents --------------------------------- */
+function renderAgents(a){
+  const title = document.getElementById('agentPanelTitle');
+  const note = document.getElementById('agentPanelNote');
+
+  // Agent pinned -> show WHERE that agent gets its first bloods.
+  // Deliberately IGNORES the map filter, otherwise this panel collapses to a
+  // single row the moment a map is chosen, which defeats its purpose.
+  if(F.agent >= 0){
+    title.textContent = '这个英雄在哪拿首杀';
+    const perMap = new Map();
+    for(const r of S.raw.rounds){
+      if(F.ev   >= 0 && r[0] !== F.ev) continue;
+      if(F.team >= 0 && r[2] !== F.team && r[3] !== F.team) continue;
+      if(r[6] !== F.agent) continue;
+      perMap.set(r[1], (perMap.get(r[1])||0)+1);
+    }
+    const list = [...perMap.entries()].sort((x,y)=> y[1]-x[1]);
+    const sum = list.reduce((s,[,n])=>s+n, 0);
+    note.textContent = `${S.Z.agents[S.D.agents[F.agent]]} · 共 ${fmt(sum)} 次首杀`;
+
+    const tb = document.getElementById('agentRows');
+    const more = document.getElementById('agentMore');
+    more.hidden = true;
+
+    if(!list.length){
+      tb.innerHTML = `<tr><td colspan="3" class="empty">当前筛选下没有数据</td></tr>`;
+      return;
+    }
+    const max = list[0][1];
+    tb.innerHTML = list.map(([mp,n],i)=>
+      rowHTML(S.Z.maps[S.D.maps[mp]] + (F.map===mp?' ←':''),
+              n, max, sum, 'var(--red)',
+              {rank:i+1, picked:false})).join('');
+    return;
+  }
+
+  title.textContent = '谁在拿首杀 · 英雄';
+  const list = [...a.agents.entries()].sort((x,y)=> y[1]-x[1]);
+  renderList('agentRows', 'agentMore', 'agentPanelNote', list, {
+    key: 'agents',
+    color: 'var(--red)',
+    emptyNote: '',
+    label: k => S.Z.agents[S.D.agents[k]] ?? S.D.agents[k],
+    // clicking an agent pins it
+    onPick: k => { F.agent = (F.agent === k ? -1 : k); rebuild(); },
+    isPicked: k => F.agent === k,
+    note: (shown, total) => `点击任意英雄查看其首杀位置 · 共 ${total} 个有记录`,
+  });
+}
+
+/* -------------------------- weapons -------------------------------- */
+function renderCauses(a){
+  const list = [...a.causes.entries()].sort((x,y)=> y[1]-x[1]);
+  renderList('weaponRows', 'weaponMore', 'weaponNote', list, {
+    key: 'weapons',
+    color: 'var(--cyan)',
+    emptyNote: '',
+    label: k => S.Z.causes[S.D.causes[k]] ?? S.D.causes[k],
+    note: (shown, total) => shown < total ? `前 ${shown} 名 / 共 ${total} 种` : `共 ${total} 种`,
+  });
+}
+
+function renderEvents(a){
+  const tb = document.getElementById('eventRows');
+  const show = S.eventStats || [];
+  if(!show.length){
+    tb.innerHTML = `<tr><td colspan="7" class="empty">没有数据</td></tr>`;
+    return;
+  }
+  const cur = F.ev;
+  tb.innerHTML = show.map(([ev,e])=>{
+    const tradedPct = (e.traded + e.untraded) ? 100*e.traded/(e.traded+e.untraded) : null;
+    const untradedWin = e.untraded ? 100*e.untradedWon/e.untraded : null;
+    const on = ev === cur ? ' style="background:rgba(255,70,85,.07)"' : '';
+    return `<tr${on}>
+      <td>${S.Z.eventsShort[S.D.events[ev]] ?? S.D.events[ev]}${ev===cur?' ·当前':''}</td>
+      <td class="num">${fmt(e.n)}</td>
+      <td class="num">${pct(e.atk, e.n)}%</td>
+      <td class="num">${pct(e.won, e.n)}%</td>
+      <td class="num">${tradedPct==null?'—':tradedPct.toFixed(1)+'%'}</td>
+      <td class="num">${untradedWin==null?'—':untradedWin.toFixed(1)+'%'}</td>
+      <td class="num">${e.secs.length?fmtSec(median(e.secs)):'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('eventCompareNote').textContent =
+    '（' + S.D.events.length + ' 个赛事全样本，不随上方筛选变化）';
+}
+
+function renderTeams(a){
+  const tb = document.getElementById('teamRows');
+  const src = teamSeason ? agg(S.raw.rounds) : a;
+  // 整季榜门槛 200 回合：信度分析用的就是这个口径，再低榜首全是小样本运气
+  const minN = teamSeason ? 200 : 20;
+  const thinN = teamSeason ? 400 : 40;
+  let list = [...src.byTeam.entries()].filter(([t,d]) => d.n >= minN);
+
+  if(F.team >= 0){
+    list = list.filter(([t]) => t === F.team);
+  }
+
+  // 可排序：每个键给一个取值函数，点表头切换升降序
+  const SORT = {
+    name:      ([t])   => S.D.teams[t],
+    n:         ([, d]) => d.n,
+    fbRate:    ([, d]) => d.n ? d.fbFor / d.n : -1,
+    convFb:    ([, d]) => d.fbFor ? d.wonWithFb / d.fbFor : -1,
+    convNo:    ([, d]) => d.fbAgainst ? d.wonWithoutFb / d.fbAgainst : -1,
+    fbSurvive: ([, d]) => d.fbFor ? d.fbUntraded / d.fbFor : -1,
+    metaFit:   ([, d]) => d.metaFitN ? d.metaFitSum / d.metaFitN : -1,
+    snipe:     ([, d]) => d.snipeN >= 20 ? d.snipeFor / d.snipeN : -1,
+  };
+  const get = SORT[teamSort.key] || SORT.n;
+  list.sort((x, y)=>{
+    const p = get(x), q = get(y);
+    if(typeof p === 'string') return p.localeCompare(q) * teamSort.dir;
+    return (p - q) * teamSort.dir;
+  });
+  list = list.slice(0, 100);
+
+  for(const th of document.querySelectorAll('th.sortable')){
+    th.classList.toggle('sorted-desc', th.dataset.sort === teamSort.key && teamSort.dir === -1);
+    th.classList.toggle('sorted-asc',  th.dataset.sort === teamSort.key && teamSort.dir === 1);
+  }
+
+  if(!list.length){
+    tb.innerHTML = `<tr><td colspan="8" class="empty">当前筛选下没有队伍数据</td></tr>`;
+  document.getElementById('teamCompareNote').textContent = '';
+    return;
+  }
+
+  // 两列底色：首杀率用顺序色阶（高≠更好），首杀→胜用发散色阶（以联赛为中心）
+  const fbVals = list.map(([,d]) => d.n ? 100*d.fbFor/d.n : null).filter(v => v != null);
+  const fbMin = fbVals.length ? Math.min(...fbVals) : 0;
+  const fbMax = fbVals.length ? Math.max(...fbVals) : 1;
+  const heat = v => {
+    if(v == null || fbMax <= fbMin) return '';
+    const t = Math.max(0, Math.min(1, (v - fbMin) / (fbMax - fbMin)));
+    return `background:rgba(42,38,32,${(0.02 + 0.11*t).toFixed(3)})`;
+  };
+
+  const baseConv = S.base ? S.base.fbConv : 71;
+  const convVals = list.map(([,d]) => d.fbFor ? 100*d.wonWithFb/d.fbFor : null).filter(v => v != null);
+  const maxDev = Math.max(0.5, ...convVals.map(v => Math.abs(v - baseConv)));
+  const diverge = v => {
+    if(v == null) return '';
+    const d = v - baseConv;
+    const a = 0.05 + 0.27 * Math.min(1, Math.abs(d) / maxDev);
+    return d >= 0 ? `background:rgba(14,124,116,${a.toFixed(3)})`
+                  : `background:rgba(222,59,73,${a.toFixed(3)})`;
+  };
+
+  // FLIP：先记住每行现在的屏幕位置，重排后把行「拉回」旧位置再过渡回来
+  const flipFrom = new Map();
+  if(!prefersReduced()){
+    for(const tr of tb.children){
+      const k = tr.dataset && tr.dataset.t;
+      if(k != null) flipFrom.set(k, tr.getBoundingClientRect().top);
+    }
+  }
+
+  tb.innerHTML = list.map(([t,d])=>{
+    const fbRate = d.n ? 100*d.fbFor/d.n : 0;
+    const convFb = d.fbFor ? 100*d.wonWithFb/d.fbFor : null;
+    const convNo = d.fbAgainst ? 100*d.wonWithoutFb/d.fbAgainst : null;
+    // how often this team's first bloods survive untraded
+    const fbSurvive = d.fbFor ? 100*d.fbUntraded/d.fbFor : null;
+    const metaFit = d.metaFitN ? 100*d.metaFitSum/d.metaFitN : null;
+    // 本队首杀里有多少是狙击打出来的
+    // 只统计「武器已知」的首杀；中国赛区没有 loadout，显示 — 而不是 0%
+    const snipePct = d.snipeN >= 20 ? 100*d.snipeFor/d.snipeN : null;
+    return `<tr class="${d.n < thinN ? 'thinrow' : ''}" data-t="${t}">
+      <td>${teamCell(t)}</td>
+      <td class="num">${fmt(d.n)}</td>
+      <td class="num" style="${heat(fbRate)}">${fbRate.toFixed(1)}%</td>
+      <td class="num" style="${diverge(convFb)}">${convFb==null?'—':convFb.toFixed(1)+'%'}</td>
+      <td class="num">${convNo==null?'—':convNo.toFixed(1)+'%'}</td>
+      <td class="num">${fbSurvive==null?'—':fbSurvive.toFixed(1)+'%'}</td>
+      <td class="num">${metaFit==null?'—':metaFit.toFixed(0)+'%'}</td>
+      <td class="num">${snipePct==null?'—':snipePct.toFixed(1)+'%'}</td>
+    </tr>`;
+  }).join('');
+
+  if(flipFrom.size){
+    for(const tr of tb.children){
+      const k = tr.dataset && tr.dataset.t;
+      if(k == null) continue;
+      const before = flipFrom.get(k);
+      if(before == null) continue;
+      const after = tr.getBoundingClientRect().top;
+      const dy = before - after;
+      if(Math.abs(dy) < 1) continue;
+      tr.style.transform = 'translateY(' + dy + 'px)';
+      tr.classList.add('moving');
+      requestAnimationFrame(() => {
+        tr.style.transform = '';
+        setTimeout(() => {
+          tr.classList.remove('moving');
+          tr.style.transform = '';
+        }, 380);
+      });
+    }
+  }
+
+  const scopeLabel = teamSeason
+    ? `整季 ${S.D.events.length} 个赛事`
+    : `${S.Z.eventsShort[S.D.events[F.ev]]} · `
+      + (F.map < 0 ? '全部地图' : S.Z.maps[S.D.maps[F.map]])
+      + (F.agent >= 0 ? ' · ' + S.Z.agents[S.D.agents[F.agent]] : '');
+  document.getElementById('teamCompareNote').textContent =
+    F.team >= 0
+      ? `（只看这一支 · ${scopeLabel}）`
+      : `（${scopeLabel} · 显示 ${list.length} 支（≥${minN} 回合）；淡化 = 不足 ${thinN} 回合，比例别当真；中国赛区没有回放明细，Meta Fit 与狙击首杀为 —）`;
+
+  const lg = document.getElementById('teamLegend');
+  if(lg){
+    lg.innerHTML = '底色 · <b>首杀率</b>按本列深浅（深 = 更高，不代表更好）　'
+      + '<b>首杀→胜</b>以联赛 '
+      + (S.base ? S.base.fbConv.toFixed(1) : '71.0') + '% 为中心：'
+      + '<span style="color:#0E7C74">绿</span> 高 / '
+      + '<span style="color:#DE3B49">红</span> 低';
+  }
+
+  document.getElementById('teamReliability').innerHTML =
+    '<b>这些列能排到什么程度：</b> '
+    + '<b>狙击首杀</b>最稳（换赛段 r≈0.81，但它是打法指纹，不是强弱）；'
+    + '其余按换赛段相关排：<b>丢首杀→胜</b> 0.27、<b>首杀率</b> 0.16、<b>首杀→胜</b> −0.12；'
+    + '首杀率和狙击首杀可以排序，转化那两列只看点估计，别当真名次。'
+    + ' 页面最底下的「第一赛段 → 第二赛段」面板有完整检验。';
+}
+
+boot();
+</script>
+</body>
+</html>
