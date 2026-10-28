@@ -71,7 +71,8 @@ def main():
         check("team row has 8 columns", all(len(r) == 8 for r in rows),
               f"(widths {[len(r) for r in rows]})")
 
-        # paper rex should show a low meta fit
+        # PRX 整季 Meta Fit ≈ 74.9%（离线口径，n=2,396 回合）。旧文档写的「PRX Meta Fit 低」
+        # 是 15,715 回合那版数据的结论，样本翻倍后已不成立，所以不能再按 55–75 的宽区间放行。
         prx = pg.evaluate("""() => {
           const i = S.D.teams.indexOf('Paper Rex');
           F.team = i; rebuild();
@@ -92,7 +93,8 @@ def main():
               const d = a.byTeam.get(t);
               return d && d.metaFitN ? (100*d.metaFitSum/d.metaFitN).toFixed(1) : null;
             }""")
-            check("PRX meta fit is low (~67%, season)", 55 <= float(metafit) <= 75, metafit)
+            check("PRX season meta fit matches offline (74.9%)",
+                  74.5 <= float(metafit) <= 75.3, metafit)
 
         check("no js errors", not errs, str(errs))
         b.close()

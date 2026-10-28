@@ -5,8 +5,15 @@ import json
 import math
 import random
 import statistics as st
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+
+# 重定向/管道输出到文件时，stdout 按系统 locale 编码（中文 Windows = GBK），
+# 遇到 LEVIATÁN 的「Á」这类不在 GBK 里的字符会 UnicodeEncodeError，脚本直接中断。
+# 控制台直出（isatty）不受影响，这里只把重定向走的输出固定成 UTF-8。
+if not sys.stdout.isatty() and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 BASE = Path(r"D:\好玩的项目\valorant-analytics")
 rows = [json.loads(l) for l in (BASE / "data" / "rounds_all.jsonl").open(encoding="utf-8")]
