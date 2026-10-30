@@ -33,8 +33,6 @@ def main() -> None:
           const g = id => (document.getElementById(id)||{}).textContent;
           return {
             sub: g('sub'),
-            kpis: g('kpis'),
-            traded: g('tradedVal'), untraded: g('untradedVal'), gap: g('tradeGap'),
             mapMeta: g('mapMeta'),
             agentRows: document.querySelectorAll('#agentRows tr').length,
             teamRows: document.querySelectorAll('#teamRows tr').length,

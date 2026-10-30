@@ -13,12 +13,11 @@ FIG = Path(r"D:\好玩的项目\valorant-analytics\figures")
 
 
 def snap(pg, label: str) -> None:
-    kpi = " ".join(pg.inner_text("#kpis").split())
+    # 顶部 KPI 条已删除（用户要求），改用地图面板的 meta 作快照标识
     meta = pg.inner_text("#mapMeta")
     first_agent = pg.inner_text("#agentRows").split("\n")[0] if pg.inner_text("#agentRows") else "-"
     first_team = pg.inner_text("#teamRows").split("\n")[0] if pg.inner_text("#teamRows") else "-"
     print(f"\n[{label}]")
-    print(f"  kpi   : {kpi}")
     print(f"  map   : {meta}")
     print(f"  agent1: {first_agent}")
     print(f"  team1 : {first_team}")
