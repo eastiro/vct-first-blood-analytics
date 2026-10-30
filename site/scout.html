@@ -40,6 +40,16 @@
   }
   .navbtn:hover{color:var(--fg); border-color:var(--dim2)}
 
+  /* 顶部三个页签，与总览页一致 */
+  .tabs{display:flex; gap:2px; align-items:flex-end}
+  .tab{
+    display:inline-block; padding:7px 14px 8px; font-size:12.5px;
+    color:var(--dim); text-decoration:none; border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  .tab:hover{color:var(--fg)}
+  .tab.on{color:var(--fg); border-bottom-color:var(--red); font-weight:600}
+
   main{padding:18px 26px 60px; max-width:1560px; margin:0 auto}
 
   /* controls */
@@ -284,11 +294,11 @@
     <h1>队伍报告 <span>/</span> 无畏契约 2026</h1>
     <div class="sub">赛前对手准备 · 基于 vlr.gg 2D 回放的回合级数据</div>
   </div>
-  <div style="display:flex;gap:8px">
-    <button class="navbtn" id="shareBtn">复制链接</button>
-    <button class="navbtn" onclick="window.print()">导出 PDF</button>
-    <button class="navbtn" onclick="location.href='index.html'">← 全局基准</button>
-  </div>
+  <nav class="tabs" role="tablist">
+    <a class="tab" href="index.html" role="tab" aria-selected="false">总览</a>
+    <a class="tab on" href="scout.html" role="tab" aria-selected="true">队伍简报</a>
+    <a class="tab" href="index.html#duelSection" role="tab" aria-selected="false">选手对比</a>
+  </nav>
 </header>
 
 <main>
@@ -304,6 +314,10 @@
     <div class="ctl">
       <label>赛事</label>
       <select id="evSel"></select>
+    </div>
+    <div style="display:flex;gap:8px;margin-left:auto">
+      <button class="navbtn" id="shareBtn">复制链接</button>
+      <button class="navbtn" onclick="window.print()">导出 PDF</button>
     </div>
     <div class="scope" id="scopeInfo"></div>
   </div>
