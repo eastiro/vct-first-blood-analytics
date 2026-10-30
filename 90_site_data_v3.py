@@ -134,14 +134,21 @@ SNIPE_GUNS = {"operator", "outlaw", "marshal"}
 
 
 def killer_weapon(r, fk):
-    """首杀者这一回合拿的枪（从 loadouts 里按玩家名对）。"""
+    """首杀者这一回合拿的枪。
+
+    优先从 loadouts 里按玩家名对（那里是「本回合实际持有的武器」）；
+    但中国赛区没有 loadouts，所以回落到击杀事件自带的 cause 字段 ——
+    那一条记录的是「这次击杀用的是什么」，同样是武器名，
+    且中国赛区有 36 种取值（含 Operator / Outlaw / Marshal），足够判断狙击首杀。
+    """
     name = fk.get("killer")
-    if not name:
-        return ""
-    for ld in r.get("loadouts") or []:
-        if ld.get("name") == name:
-            return (ld.get("weapon") or "").strip().lower()
-    return ""
+    if name:
+        for ld in r.get("loadouts") or []:
+            if ld.get("name") == name:
+                wp = (ld.get("weapon") or "").strip().lower()
+                if wp:
+                    return wp
+    return (fk.get("cause") or "").strip().lower()
 
 
 def team_meta(teams: list[str]) -> list[dict]:
