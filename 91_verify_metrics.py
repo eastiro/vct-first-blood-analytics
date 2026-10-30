@@ -63,9 +63,27 @@ def main():
         ev_rows = pg.evaluate("""() => [...document.querySelectorAll('#eventRows tr')].length""")
         check("event table keeps all 15 events", ev_rows == 15, f"({ev_rows} rows)")
 
-        # team table now carries metafit + consistency
+        # 表头备注只保留「显示几支 / 淡化阈值」，多解释已按用户要求删掉
         hdr = pg.inner_text("#teamCompareNote")
-        check("team table explains the China gap", "中国赛区" in hdr, hdr[:40])
+        check("team table note states scope and count",
+              "显示" in hdr and "回合" in hdr, hdr[:40])
+
+        # 中国赛区的狙击首杀以前是 -1（只从 loadouts 取武器），现在回落到
+        # 击杀事件的 cause 字段，覆盖应当完整。
+        snipe_cov = pg.evaluate("""() => {
+          const out = {};
+          for(const r of S.raw.rounds){
+            const ev = S.D.events[r[0]];
+            if(!out[ev]) out[ev] = [0,0];
+            out[ev][0]++;
+            if(r[14] >= 0) out[ev][1]++;
+          }
+          return out;
+        }""")
+        cn = {k:v for k,v in snipe_cov.items() if 'China' in k}
+        check("china snipe coverage is complete",
+              all(v[1] == v[0] for v in cn.values()),
+              str({k: f"{v[1]}/{v[0]}" for k,v in cn.items()}))
 
         rows = pg.evaluate("""() => [...document.querySelectorAll('#teamRows tr')]
             .slice(0,5).map(tr => tr.innerText.split('\\t'))""")
