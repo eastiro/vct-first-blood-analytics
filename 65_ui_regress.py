@@ -166,27 +166,12 @@ def main() -> None:
         check("snipe column is a percentage 0-100",
               all(0 <= v <= 100 for v in snipes), str(snipes[:5]))
 
-        # 10. 赛段对比跟随赛事，且数值自洽
-        stage_rows = pg.evaluate("document.querySelectorAll('#stageRows tr').length")
-        stage_note = pg.inner_text("#stageNote")
-        check("stage panel follows the region", "太平洋" in stage_note, stage_note)
-        check("stage panel lists both stages", stage_rows >= 10, f"({stage_rows} rows)")
-
-        nums = pg.evaluate("""() => [...document.querySelectorAll('#stageRows tr')].map(tr => {
-          const c = [...tr.children].map(td => parseFloat(td.textContent));
-          return {n1: c[1], p1: c[2], n2: c[3], p2: c[4], d: c[5]};
-        })""")
-        check("S1 -> S2 delta is arithmetically right",
-              all(abs((x["p2"] - x["p1"]) - x["d"]) < 0.15 for x in nums),
-              str(nums[:3]))
-        check("stage sample sizes are disclosed",
-              all(x["n1"] >= 150 and x["n2"] >= 150 for x in nums), str(nums[:2]))
-
-        # 国际赛事回落到「全部赛区」
-        pg.evaluate("() => {F.ev = S.D.events.indexOf('Champions Shanghai 2026'); rebuild();}")
-        pg.wait_for_timeout(600)
-        check("international events pool all regions",
-              "全部赛区" in pg.inner_text("#stageNote"), pg.inner_text("#stageNote"))
+        # 10. 赛段对比面板已按用户要求整块删除（"玩围棋的人进来会云里雾里"，
+        # 而且选国际赛事时 region 回落到 ALL，拿全赛区混合数据去比单个大师赛
+        # 的 S1/S2 本来就是错的口径）。这里只确认它确实不再存在。
+        stage_left = pg.evaluate("""() => ['stageRows','stageNote','stageCards',
+            'stageLead','stageFoot'].filter(id => document.getElementById(id)).length""")
+        check("stage comparison panel removed", stage_left == 0, f"({stage_left} left)")
 
         # 11. 队标 + 官方缩写（每个队都要有，且图片要真能加载）
         meta = pg.evaluate("""() => ({

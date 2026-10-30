@@ -24,10 +24,6 @@
   h1{margin:0; font-size:23px; letter-spacing:.5px}
   h1 span{color:var(--red)}
   .sub{color:var(--dim); font-size:12px; margin-top:4px}
-  .kpis{display:flex; gap:22px; flex-wrap:wrap}
-  .kpi{text-align:right}
-  .kpi b{display:block; font-size:19px; color:var(--cyan); font-weight:600}
-  .kpi i{font-style:normal; font-size:10.5px; color:var(--dim); letter-spacing:.5px}
 
   main{padding:18px 26px 50px; max-width:1760px; margin:0 auto}
 
@@ -291,12 +287,6 @@ header{
 h1{font-size:21px; font-weight:600; letter-spacing:-.01em; line-height:1.2; color:var(--fg)}
 h1 span{color:var(--red); font-weight:400; margin:0 1px}
 .sub{font-size:11.5px; color:var(--dim2); margin-top:6px}
-.kpis{gap:0; align-items:stretch}
-.kpi{text-align:right; padding-left:18px; border-left:1px solid var(--line)}
-.kpi:first-child{border-left:0; padding-left:0}
-.kpi b{font-size:20px; color:var(--fg); font-weight:600}
-.kpi i{font-size:10px; letter-spacing:.1em; color:var(--dim2)}
-.kpi.hero b{color:var(--red)}
 .ghostlink{
   background:#fff; border:1px solid var(--line2); color:var(--dim);
   padding:7px 13px; border-radius:5px; font-size:11.5px; text-decoration:none;
@@ -330,22 +320,10 @@ h1 span{color:var(--red); font-weight:400; margin:0 1px}
 select.teamsel{border-radius:5px; font-size:12px; padding:6px 10px;
   background:#fff; border:1px solid var(--line2); color:var(--fg)}
 
-#stageCards{max-width:none}
   /* 地图下方的四个数：横线分隔的规格表，不用卡片 */
   #mapCards{gap:0; margin-top:14px}
   #mapCards .stat{border:0; border-top:1px solid var(--line); border-radius:0;
                   background:none; padding:10px 14px 0 0}
-  /* 赛段面板三张数：左侧竖线分隔 */
-  #stageCards{gap:0}
-  #stageCards .stat{border:0; border-left:1px solid var(--line); border-radius:0;
-                    background:none; padding:0 0 0 16px}
-  #stageCards .stat:first-child{border-left:0; padding-left:0}
-/* 赛段面板：左边三张数、右边解读，避免整行留白 */
-.stagehead{
-  display:grid; grid-template-columns:minmax(0,680px) minmax(0,1fr);
-  gap:18px; margin-bottom:12px; align-items:start;
-}
-@media (max-width:1100px){ .stagehead{grid-template-columns:minmax(0,1fr)} }
 
 /* ---------- 面板 / 分区 ---------- */
 .panel{border-radius:6px; padding:14px 15px; border-color:var(--line); background:var(--panel)}
@@ -467,8 +445,6 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
   header{padding:18px 16px 14px}
   main{padding:14px 16px 40px}
   .filters{padding:10px 11px}
-  .kpi{padding-left:12px}
-  .kpi b{font-size:17px}
   td, th{padding-left:4px; padding-right:4px}
 }
 </style>
@@ -483,7 +459,6 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
     <div class="sub" id="sub">加载中…</div>
   </div>
   <div style="display:flex;gap:8px;align-items:flex-end">
-    <div class="kpis" id="kpis" aria-live="polite"></div>
     <button class="ghostlink" id="shareBtn" title="复制当前筛选的链接">复制链接</button>
     <a href="scout.html" class="ghostlink">队伍报告 →</a>
   </div>
@@ -596,30 +571,6 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
         </div>
         <div id="teamLegend"></div>
         <div class="note" id="teamReliability"></div>
-  </div>
-
-  <div class="sectitle"><h2>第一赛段 → 第二赛段：谁真的变了</h2><span id="stageNote"></span></div>
-  <div class="panel reveal" style="animation-delay:.12s">
-    <div class="stagehead">
-      <div class="stats4" id="stageCards"
-           style="grid-template-columns:repeat(3,minmax(0,1fr));margin:0"></div>
-      <div class="note" id="stageLead" style="margin:0; line-height:1.75"></div>
-    </div>
-    <div class="tblscroll" style="max-height:430px">
-      <table>
-        <thead><tr>
-          <th>队伍</th>
-          <th class="num" title="第一赛段的回合数">S1 回合</th>
-          <th class="num" title="第一赛段的首杀率">S1 首杀率</th>
-          <th class="num" title="第二赛段的回合数">S2 回合</th>
-          <th class="num" title="第二赛段的首杀率">S2 首杀率</th>
-          <th class="num" title="第二赛段减第一赛段，表面上的涨跌">原始变化</th>
-          <th class="num" title="扣掉「本来就该回落」的那部分之后，还剩多少">扣掉回归后</th>
-        </tr></thead>
-        <tbody id="stageRows"></tbody>
-      </table>
-    </div>
-    <div class="note" id="stageFoot"></div>
   </div>
 </main>
 
@@ -865,29 +816,7 @@ function initShare(){
   };
 }
 
-/* ---------- KPI 数字滚动：只在数值真变时播 ---------- */
-const kpiPrev = [];
-function countUp(el, i){
-  const txt = (el.textContent || '').trim();
-  const m = txt.match(/^(-?[\d,]+(?:\.\d+)?)(.*)$/);
-  if(!m || prefersReduced()) return;
-  const target = parseFloat(m[1].replace(/,/g, ''));
-  const suffix = m[2] || '';
-  const dec = (m[1].split('.')[1] || '').length;
-  const from = kpiPrev[i];
-  kpiPrev[i] = target;
-  // 首屏（from 为空）不播：innerHTML 里已经是最终值，播了反而闪
-  if(from == null || from === target) return;
-  const t0 = performance.now(), dur = 420;
-  const tick = now => {
-    const p = Math.min(1, (now - t0) / dur);
-    const e = 1 - Math.pow(1 - p, 3);
-    const v = from + (target - from) * e;
-    el.textContent = (dec ? v.toFixed(dec) : Math.round(v).toLocaleString('en-US')) + suffix;
-    if(p < 1) requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-}
+/* ---------- KPI 数字滚动已删除（顶部 KPI 条不再显示） ---------- */
 
 
 async function boot(){
@@ -916,7 +845,6 @@ async function boot(){
   F.ev = ci >= 0 ? ci : 0;
   const fromURL = readURL();     // 地址栏里有筛选条件就覆盖默认值
 
-  buildStageStats();
   buildAgentMapCounts();
   buildEventSelect();
   buildMapSelect();
@@ -1256,219 +1184,16 @@ function agg(rows){
 /* render                                                              */
 /* ================================================================== */
 /* ================================================================== */
-/* stage comparison — 第一赛段 vs 第二赛段                              */
-/* ================================================================== */
-const REGION_ZH = {Americas:'美洲', China:'中国', EMEA:'EMEA', Pacific:'太平洋', ALL:'全部赛区'};
-
-/* 一次算好：region -> {S1: Map(team -> stats), S2: ...}，同时留一份 ALL */
-function buildStageStats(){
-  const out = {};
-  const bump = (region, stg, t, winT, killT, snipe)=>{
-    let reg = out[region];
-    if(!reg){ reg = out[region] = {S1:new Map(), S2:new Map()}; }
-    const m = reg[stg];
-    let d = m.get(t);
-    if(!d){ d = {n:0, fb:0, fbw:0, ag:0, agw:0, snipe:0}; m.set(t, d); }
-    d.n++;
-    if(killT === t){ d.fb++; if(winT === t) d.fbw++; if(snipe === 1) d.snipe++; }
-    else if(killT >= 0){ d.ag++; if(winT === t) d.agw++; }
-  };
-  for(const r of S.raw.rounds){
-    const ev = S.D.events[r[0]];
-    const m = ev.match(/VCT (\w+) Stage ([12])/);
-    if(!m) continue;
-    const region = m[1], stg = 'S' + m[2];
-    const winT = r[4], killT = r[5], snipe = r[14];
-    for(const t of new Set([r[2], r[3]])){
-      if(t < 0) continue;
-      bump(region, stg, t, winT, killT, snipe);
-      bump('ALL', stg, t, winT, killT, snipe);
-    }
-  }
-  S.stage = out;
-}
-
-function pearson(xs, ys){
-  const n = xs.length;
-  if(n < 4) return null;
-  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
-  let num = 0, dx = 0, dy = 0;
-  for(let i=0;i<n;i++){
-    num += (xs[i]-mx)*(ys[i]-my);
-    dx += (xs[i]-mx)**2;
-    dy += (ys[i]-my)**2;
-  }
-  return (dx && dy) ? num/Math.sqrt(dx*dy) : null;
-}
-
-function renderStage(){
-  const tb = document.getElementById('stageRows');
-  const cardBox = document.getElementById('stageCards');
-  const lead = document.getElementById('stageLead');
-  const foot = document.getElementById('stageFoot');
-
-  const ev = S.D.events[F.ev] || '';
-  const mm = ev.match(/VCT (\w+) Stage [12]/);
-  const region = mm ? mm[1] : 'ALL';
-  const reg = S.stage && S.stage[region];
-
-  document.getElementById('stageNote').textContent = mm
-    ? `（${REGION_ZH[region] || region}赛区，跟随上方赛事）`
-    : '（国际赛事 → 全部赛区合并；想在单个赛区比较请选赛区赛段）';
-
-  if(!reg || !reg.S1 || !reg.S2){
-    tb.innerHTML = '<tr><td colspan="7" class="empty">没有赛段数据</td></tr>';
-    cardBox.innerHTML = ''; lead.textContent = ''; foot.textContent = '';
-    return;
-  }
-
-  const list = [];
-  for(const [t, s1] of reg.S1){
-    const s2 = reg.S2.get(t);
-    if(!s1 || !s2 || s1.n < 150 || s2.n < 150) continue;
-    const p1 = 100*s1.fb/s1.n, p2 = 100*s2.fb/s2.n;
-    const se = Math.sqrt(p1*(100-p1)/s1.n + p2*(100-p2)/s2.n);
-    list.push({t, n1:s1.n, n2:s2.n, p1, p2, d:p2-p1, se,
-               sig: Math.abs(p2-p1) > 1.96*se});
-  }
-  if(list.length < 6){
-    tb.innerHTML = '<tr><td colspan="7" class="empty">两支赛段都有 ≥150 回合的队伍不够，没法比较</td></tr>';
-    cardBox.innerHTML = ''; lead.textContent = ''; foot.textContent = '';
-    return;
-  }
-
-  const rs = pearson(list.map(x=>x.p1), list.map(x=>x.p2));
-  // 回归斜率：Δ 对 (S1 - 50) 回归。纯噪声 ≈ -1，完全稳定 ≈ 0。
-  const mx = list.reduce((a,x)=>a+(x.p1-50),0)/list.length;
-  const my = list.reduce((a,x)=>a+x.d,0)/list.length;
-  let num = 0, den = 0;
-  for(const x of list){
-    num += (x.p1-50-mx) * (x.d-my);
-    den += (x.p1-50-mx)**2;
-  }
-  const slope = den ? num/den : null;
-  const sd = Math.sqrt(list.reduce((a,x)=>a+(x.d-my)**2,0)/list.length);
-
-  // 扣掉回归均值：Δ 对 (S1-50) 的回归斜率就是「回归项」本身
-  // （首杀率全局恒为 50%，所以 50 是自然的中心）
-  for(const x of list){
-    x.exp = (slope || 0) * (x.p1 - 50);
-    x.resid = x.d - x.exp;
-    x.sig = Math.abs(x.resid) > 1.96 * x.se;   // 变化是否超出「回归 + 抽样」能解释的范围
-  }
-  list.sort((a,b)=> b.resid - a.resid);
-
-  const sigN = list.filter(x=>x.sig).length;
-  // 前 5 名的跨赛段保留率 —— 比相关系数更好懂
-  const byS1 = [...list].sort((a,b)=> b.p1 - a.p1);
-  const byS2 = [...list].sort((a,b)=> b.p2 - a.p2);
-  const k = 5;
-  const keep = byS1.slice(0,k).filter(x => byS2.slice(0,k).some(y => y.t === x.t)).length;
-  const randExp = k*k/list.length;
-
-  // 「变化」的方差分解：回归项 + 残差项
-  const varD = list.reduce((a,x)=>a+x.d*x.d,0)/list.length - my*my;
-  const mRes = list.reduce((a,x)=>a+x.resid,0)/list.length;
-  const varR = list.reduce((a,x)=>a+(x.resid-mRes)**2,0)/list.length;
-  const share = varD > 0 ? Math.max(0, Math.min(100, 100*(1 - varR/varD))) : 0;
-  const up = list.slice(0, 3);
-  const dn = list.slice(-3).reverse();
-  const top1 = [...list].sort((a,b)=>b.p1-a.p1)[0];
-  const top2 = [...list].sort((a,b)=>b.p2-a.p2)[0];
-
-  cardBox.innerHTML = [
-    ['跨赛段相关 r', rs==null?'—':(rs>=0?'+':'')+rs.toFixed(2),
-     rs==null?'':(rs>0.5?'排序可迁移':rs>0.3?'弱':'几乎不可迁移'), ''],
-    ['回归斜率', slope==null?'—':(slope>=0?'+':'')+slope.toFixed(2),
-     '−1 = 全是运气，0 = 完全稳定', 'red'],
-    ['统计上站得住的变化', `${sigN} / ${list.length}`,
-     '超出运气与抽样误差能解释的范围', ''],
-  ].map(([k,v,sub,cls])=>
-    `<div class="stat"><h3>${k}</h3>
-      <div class="big ${cls}">${v}</div><p>${sub}</p></div>`).join('');
-
-  const nm = t => esc(S.D.teams[t]);
-  const fmtT = (x, sign) => `<b>${nm(x.t)}</b> ${sign ? '+' : ''}${x.resid.toFixed(1)}`;
-  lead.innerHTML =
-    `<b>${REGION_ZH[region] || region}</b> · ${list.length} 支队两个赛段各 ≥150 回合<br>`
-    + `· 两个赛段的首杀率相关 <b>${rs==null?'—':(rs>=0?'+':'')+rs.toFixed(2)}</b>。`
-    + `这个数接近 0 就说明「第一赛段打得凶，第二赛段也凶」这件事基本不成立。<br>`
-    + `· 有一件事必须先扣掉：<b>回归均值</b>。第一赛段首杀率特别高的队，`
-    + `第二赛段大概率会掉下来，不是因为退步，而是因为「运气好的时候」不会一直持续。`
-    + `本表算下来，这种「自动回落」能解释掉 <b>${share.toFixed(0)}%</b> 的涨跌幅度。<br>`
-    + `· 所以最后一列 = 原始变化 减掉「按它第一赛段的位置本来就该变的那部分」。`
-    + `扣完还剩正数的，才算真的涨了。<br>`
-    + `· S1 首杀率前 ${k} 名里，到 S2 只剩 <b>${keep} 支</b>还在前 ${k}`
-    + `（完全随机也会中 ${randExp.toFixed(1)} 支）。<br>`
-    + `· 扣掉之后真的涨了：${up.map(x=>fmtT(x,true)).join('、')}；`
-    + `真的掉了：${dn.map(x=>fmtT(x,false)).join('、')}`;
-
-  tb.innerHTML = list.map(x=>{
-    const col = x.d >= 0 ? '#157F3B' : '#DE3B49';
-    return `<tr>
-      <td>${teamCell(x.t)}${x.sig ? '<span class="stagetag">显著</span>' : ''}</td>
-      <td class="num">${fmt(x.n1)}</td>
-      <td class="num">${x.p1.toFixed(1)}%</td>
-      <td class="num">${fmt(x.n2)}</td>
-      <td class="num">${x.p2.toFixed(1)}%</td>
-      <td class="num" style="color:${col}">${x.d>=0?'+':''}${x.d.toFixed(1)}</td>
-      <td class="num" style="color:${x.resid>=0?'#157F3B':'#DE3B49'}">${x.resid>=0?'+':''}${x.resid.toFixed(1)}</td>
-    </tr>`;
-  }).join('');
-
-  // 首杀转化率的跨赛段相关（用同一批队算，避免写死结论）
-  const cv1 = [], cv2 = [];
-  for(const x of list){
-    const a = reg.S1.get(x.t), b = reg.S2.get(x.t);
-    if(!a || !b || a.fb < 120 || b.fb < 120) continue;
-    cv1.push(100*a.fbw/a.fb);
-    cv2.push(100*b.fbw/b.fb);
-  }
-  const rConv = pearson(cv1, cv2);
-
-  // 每个赛段自己的首杀转化率第一名（只在有足够首杀时算）
-  const convTop = stg => {
-    let best = null;
-    for(const [t, d] of reg[stg]){
-      if(d.fb < 120) continue;
-      const v = 100*d.fbw/d.fb;
-      if(!best || v > best.v) best = {t, v};
-    }
-    return best;
-  };
-  const c1 = convTop('S1'), c2 = convTop('S2');
-
-  foot.innerHTML =
-    `S1 首杀率最高：<b>${nm(top1.t)}</b> ${top1.p1.toFixed(1)}%；`
-    + `S2 最高：<b>${nm(top2.t)}</b> ${top2.p2.toFixed(1)}%。`
-    + (c1 && c2
-        ? ` 首杀转化率第一名：S1 <b>${nm(c1.t)}</b> ${c1.v.toFixed(1)}%（n≥120 次首杀），`
-          + `S2 <b>${nm(c2.t)}</b> ${c2.v.toFixed(1)}%。`
-        : '')
-    + ` 原始变化的标准差 ${sd.toFixed(1)}pp，扣掉回归项后只剩 ${Math.sqrt(varR).toFixed(1)}pp。`
-    + ` 「显著」= 扣掉回归项后的残差超过 1.96×标准误（两个赛段各自的抽样误差都算进去）。`
-    + ` 首杀转化率跨赛段相关只有 ${rConv==null?'—':(rConv>=0?'+':'')+rConv.toFixed(2)}`
-    + `（${cv1.length} 队），基本不可迁移，所以本表只比首杀率。`;
-}
 
 function renderAll(){
   const a = agg();
   lastAgg = a;
-
-  document.getElementById('kpis').innerHTML = [
-    ['筛选回合', fmt(a.n)],
-    ['首杀→回合胜率', pct(a.won, a.n)+'%'],
-    ['首杀被补枪率', pct(a.traded, a.n)+'%'],
-    ['中位时刻', fmtSec(a.medianSec)],
-  ].map(([k,v],i)=>`<div class="kpi${i===1?' hero':''}"><b>${v}</b><i>${k}</i></div>`).join('');
-  [...document.querySelectorAll('#kpis .kpi b')].forEach((el,i)=> countUp(el,i));
 
   renderMap(a);
   renderAgents(a);
   renderCauses(a);
   renderEvents(a);
   renderTeams(a);
-  renderStage();
 
   document.getElementById('foot').textContent =
     `数据抓取自 vlr.gg 的 2D 回放（${S.D.events.length} 个赛事、${fmt(S.M.rounds)} 回合）。`
@@ -1941,8 +1666,7 @@ function renderTeams(a){
     '<b>这些列能排到什么程度：</b> '
     + '<b>狙击首杀</b>最稳（换赛段 r≈0.81，但它是打法指纹，不是强弱）；'
     + '其余按换赛段相关排：<b>丢首杀→胜</b> 0.27、<b>首杀率</b> 0.16、<b>首杀→胜</b> −0.12；'
-    + '首杀率和狙击首杀可以排序，转化那两列只看点估计，别当真名次。'
-    + ' 页面最底下的「第一赛段 → 第二赛段」面板有完整检验。';
+    + '首杀率和狙击首杀可以排序，转化那两列只看点估计，别当真名次。';
 }
 
 boot();
