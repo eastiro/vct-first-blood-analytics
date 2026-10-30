@@ -42,13 +42,17 @@ def main():
         n = pg.evaluate("view.length")
         check("event round count", n == 1810, f"({n})")
 
-        tv = pg.inner_text("#tradedVal")
-        uv = pg.inner_text("#untradedVal")
-        gap = pg.inner_text("#tradeGap")
-        print(f"  traded={tv} untraded={uv} gap={gap}")
-        check("traded FB win% ~57.1", tv.startswith("57.1"), tv)
-        check("untraded FB win% ~75.4", uv.startswith("75.4"), uv)
-        check("gap ~18.3pp", gap.startswith("18.3"), gap)
+        # 补枪面板与「首杀时刻×攻守」面板都已按用户要求删除。
+        # 补枪的两个数字仍由 agg() 算出来（队伍表还在用），这里直接验算，
+        # 保证删掉 UI 之后底层口径没有被顺手改坏。
+        tv, uv = pg.evaluate("""() => {
+          const a = agg(S.raw.rounds);
+          return [100*a.tradedWon/a.traded, 100*a.untradedWon/a.untraded];
+        }""")
+        print(f"  traded={tv:.1f} untraded={uv:.1f} gap={uv-tv:.1f}")
+        check("traded FB win% ~56.9 (season)", 56.5 <= tv <= 57.3, f"{tv:.1f}")
+        check("untraded FB win% ~75.7 (season)", 75.3 <= uv <= 76.1, f"{uv:.1f}")
+        check("gap ~18.8pp (season)", 18.3 <= (uv-tv) <= 19.3, f"{uv-tv:.1f}")
 
         # 全样本基准（15,715 回合的 71.1%）不再是一个可选视图，
         # 但仍然印在卡片里当参照系，不能丢。

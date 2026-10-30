@@ -107,6 +107,28 @@
         white-space:nowrap; font-variant-numeric:tabular-nums}
   .vnone{color:var(--dim); font-size:13px}
 
+  /* 全部候选（折叠） */
+  .candfold{margin-top:14px; border-top:1px solid var(--line); padding-top:11px}
+  .candfold summary{
+    cursor:pointer; font-size:11.5px; color:var(--dim); list-style:none;
+    padding:2px 0; user-select:none;
+  }
+  .candfold summary::-webkit-details-marker{display:none}
+  .candfold summary::before{content:'▸ '; color:var(--dim)}
+  .candfold[open] summary::before{content:'▾ '}
+  .candfold summary:hover{color:var(--fg)}
+  .candlist{margin-top:9px; display:grid; gap:5px}
+  .canditem{
+    display:grid; grid-template-columns:74px minmax(0,1fr) auto;
+    gap:10px; align-items:baseline; font-size:11.5px; padding:5px 8px;
+    border-radius:5px; color:var(--dim);
+  }
+  .canditem.on{background:var(--panel2); color:var(--fg)}
+  .canditem .ctag{font-size:10.5px; letter-spacing:.3px; color:var(--dim)}
+  .canditem .cmain{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .canditem .ccmp{font-size:10.5px; color:var(--dim2); white-space:nowrap}
+  .candnote{margin-top:8px; font-size:10.5px; color:var(--dim2); line-height:1.6}
+
   /* grid */
   .grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
   .full{grid-column:1 / -1}
@@ -130,6 +152,21 @@
   .kpi b{display:block; font-size:21px; color:var(--cyan); font-weight:500; line-height:1.25}
   .kpi b.dim2{color:var(--dim)}
   .kpi i{font-style:normal; font-size:10.5px; color:var(--dim); letter-spacing:.4px}
+
+  /* 术语小问号：点开就地显示解释，不另开版面 */
+  .kpi{position:relative}
+  .termq{cursor:pointer; border-bottom:1px dotted var(--dim); white-space:nowrap}
+  .termq i{font-style:normal; font-size:9px; vertical-align:super;
+           color:var(--dim); margin-left:1px; opacity:.75}
+  .termq.open{border-bottom-color:var(--red)}
+  .termtip{
+    display:none; position:absolute; left:8px; right:8px; top:100%;
+    margin-top:6px; z-index:40; background:var(--panel); color:var(--fg);
+    border:1px solid var(--line); border-radius:7px; padding:9px 11px;
+    font-size:11.5px; line-height:1.6; font-style:normal; text-align:left;
+    box-shadow:0 6px 18px rgba(0,0,0,.12);
+  }
+  .termq.open + .termtip{display:block}
   .kpi .cmp{font-size:10px; color:var(--dim); margin-top:2px}
   .cmp .up{color:var(--green)}
   .cmp .dn{color:var(--red)}
@@ -283,7 +320,7 @@
   </div>
 
   <div class="verdict">
-    <h2>可利用倾向 · top 3</h2>
+    <h2 id="verdictTitle">可利用倾向 · top 3</h2>
     <div id="verdictBody"></div>
   </div>
 
@@ -302,21 +339,9 @@
     </div>
 
     <div class="panel">
-      <h3>经济结构</h3>
-      <div class="note" id="econNote">按本回合实际持有的长枪数分档</div>
-      <div id="econList"></div>
-    </div>
-
-    <div class="panel">
-      <h3>手枪局与第 2 局</h3>
+      <h3>手枪局</h3>
       <div class="note" id="pistolNote"></div>
       <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))" id="pistolKpis"></div>
-      <div style="margin-top:14px;font-size:11.5px;color:var(--dim)">
-        输掉手枪局后第 2 局的买法
-      </div>
-      <div class="hist" id="r2Hist"></div>
-      <div class="hist-x" id="r2HistX"></div>
-      <div class="note" id="r2Note" style="margin:8px 0 0"></div>
     </div>
 
     <div class="panel">
@@ -330,11 +355,11 @@
 
     <div class="panel full">
       <h3>谁在开火</h3>
-      <div class="note">拿到首杀的球员，以及占比与所用英雄</div>
+      <div class="note">拿到首杀的选手，以及占比与所用英雄</div>
       <table>
         <thead><tr>
-          <th>球员</th><th>首杀</th><th>占队内</th><th>每 10 回合</th>
-          <th>主用英雄</th><th>首杀时该队胜率</th>
+          <th>选手</th><th>首杀</th><th>占队内</th><th>每 10 回合</th>
+          <th>主用英雄</th>
         </tr></thead>
         <tbody id="playerRows"></tbody>
       </table>
@@ -507,14 +532,17 @@ function buildBaselines(){
     m.set(r[19], (m.get(r[19])||0)+1);
   }
   let cSum = 0, cN = 0;
+  const cShares = [];
   for(const [t, m] of tmp){
     const tot = [...m.values()].reduce((a,b)=>a+b,0);
     const top = Math.max(...m.values());
     const share = tot ? 100*top/tot : 0;
-    b.conc.set(t, {tot, top, share, pid: [...m.entries()].sort((a,b)=>b[1]-a[1])[0][0]});
-    if(tot >= 80){ cSum += share; cN++; }
+    b.conc.set(t, {tot, top, share, players: m.size,
+                   pid: [...m.entries()].sort((a,b)=>b[1]-a[1])[0][0]});
+    if(tot >= 80){ cSum += share; cN++; cShares.push(share); }
   }
   b.concAvg = cN ? cSum/cN : null;
+  b.concMed = cShares.length ? median(cShares) : null;
 
   // 联赛首杀中位时刻（倾向面板要拿它当基准）
   const secAll = [];
@@ -633,10 +661,12 @@ function insights(a, b, t, ps){
       `联赛 ${b.atkWin.toFixed(1)}% · ${pp(d)}`);
   }
 
-  if(conc && conc.tot >= 40 && conc.share > 27){
-    push((conc.share-27)*0.9, '首杀集中',
-      `${S.players[conc.pid].n} 一个人拿了 ${conc.top} 次首杀`,
-      `占队内 ${conc.share.toFixed(0)}% · 联赛均 ${b.concAvg ? b.concAvg.toFixed(0) : '—'}%`,
+  // 队内平分 = 100 / 实际出场人数。换过人的队伍会是 6 人，平分就低于 20%。
+  if(conc && conc.tot >= 40 && conc.share > 30){
+    const teamAvg = 100 / Math.max(1, conc.players);
+    push((conc.share - 20)*0.9, '开火点',
+      `${S.players[conc.pid].n} 拿了 ${conc.top} 次首杀`,
+      `占队内 ${conc.share.toFixed(0)}% · ${conc.players} 人平分 ${teamAvg.toFixed(0)}% · 联盟中位 ${b.concMed ? b.concMed.toFixed(0) : '—'}%`,
       'player:' + conc.pid);
   }
 
@@ -676,22 +706,11 @@ function insights(a, b, t, ps){
         `基准 50% · ${pp(d)}`);
   }
 
-  if(ps && ps.r2N >= 8){
-    const saveRate = 100*ps.r2Save/ps.r2N;
-    const d = saveRate - b.r2Save;
-    if(Math.abs(d) >= 12)
-      push(Math.abs(d)*0.5, '输手枪后',
-        `输掉手枪局后全存 ${saveRate.toFixed(0)}%`,
-        `联赛 ${b.r2Save.toFixed(0)}% · ${pp(d)}`);
-  }
+  // 「输掉手枪局后第 2 局的买法」已删除：分档用长枪数，而手枪局后几乎没有长枪，
+  // 「硬起 / 强起」恒为 0；而且强起意愿跟当前比分强相关（不想放赛点），
+  // 单看买法分不出来是风格还是被迫。
 
-  // 两条常驻描述：不比较，只报事实
-  if(conc && conc.tot >= 30)
-    push(0.9, '开火点',
-      `首杀最多的是 ${S.players[conc.pid].n}`,
-      `${conc.top} 次首杀 · 占队内 ${conc.share.toFixed(0)}%`,
-      'player:' + conc.pid);
-
+  // 常驻描述：不比较，只报事实
   if(a.compN){
     const topCid = [...a.comps.entries()].sort((x,y)=>y[1]-x[1])[0][0];
     const names = S.raw.comps[topCid].map(i => agentName(i));
@@ -701,16 +720,34 @@ function insights(a, b, t, ps){
       `${n} 回合 · 占 ${(100*n/a.compN).toFixed(0)}%`);
   }
 
-  out.sort((x,y) => y.sev - x.sev);
+  // 类别固定顺序：先首杀本身，再攻防，再经济，最后描述性事实。
+  // 同类内按偏离幅度降序 —— 避免多个指标偏离接近时顺序看起来随机。
+  const CAT_ORDER = {
+    '首杀率': 1, '首杀转化': 2, '被补率': 3, '开火点': 4,
+    '防守端': 5, '进攻端': 6, '开局时机': 7,
+    '全买局': 8, 'eco 局': 9, '手枪局': 10, '输手枪后': 11,
+    '默认阵容': 13,
+  };
+  out.sort((x,y) => {
+    const cx = CAT_ORDER[x.tag] ?? 99, cy = CAT_ORDER[y.tag] ?? 99;
+    if(cx !== cy) return cx - cy;
+    return y.sev - x.sev;
+  });
+
+  // 选了「全部赛事 + 全部地图」时不再截断，全部列出来
+  const wideOpen = (F.ev < 0 && F.map < 0);
+  const limit = wideOpen ? out.length : 3;
+
   const picked = [];
   const usedKeys = new Set();
   for(const o of out){
-    if(picked.length >= 3) break;
+    if(picked.length >= limit) break;
     if(usedKeys.has(o.key)) continue;
     usedKeys.add(o.key);
     picked.push(o);
   }
-  return picked;
+  // 同时把「全部候选」交出去，面板底部折叠展示，让读者看到 top 3 是从哪挑的
+  return {picked, candidates: out, wideOpen};
 }
 
 /* ---------------------------------------------------------------- */
@@ -749,18 +786,39 @@ function renderHead(a, t){
 }
 
 function renderVerdict(a, b, t, ps){
-  const list = insights(a, b, t, ps);
+  const all = insights(a, b, t, ps);
+  const list = all.picked;
   const box = document.getElementById('verdictBody');
+  const title = document.getElementById('verdictTitle');
+  const wideOpen = (F.ev < 0 && F.map < 0);
+  if(title) title.textContent = wideOpen ? '可利用倾向 · 全部赛事与地图' : '可利用倾向 · top 3';
   if(!list.length){
     box.innerHTML = '<div class="vnone">这个范围里没有明显偏离联赛基准的倾向。换一张图或放宽赛事范围再看。</div>';
     return;
   }
+  // 底部折叠：把全部候选列出来，读者能看到 top 3 是从哪些指标里挑的、其余为什么没入选
+  const shownKeys = new Set(list.map(o => o.key));
+  const rest = all.candidates.filter(o => !shownKeys.has(o.key));
+  const fold = `
+    <details class="candfold">
+      <summary>全部候选 ${all.candidates.length} 项 · 上面${wideOpen?'已全部列出':'只取前 3'}</summary>
+      <div class="candlist">
+        ${all.candidates.map(o => `
+          <div class="canditem${shownKeys.has(o.key)?' on':''}">
+            <span class="ctag">${esc(o.tag)}</span>
+            <span class="cmain">${o.main}</span>
+            <span class="ccmp">${o.cmp}</span>
+          </div>`).join('')}
+      </div>
+      <div class="candnote">灰底 = 已在上方展示。候选按类别固定顺序排列（首杀 → 攻防 → 经济 → 描述），
+        同类别内按偏离幅度降序。</div>
+    </details>`;
   box.innerHTML = list.map((o, i) => `
     <div class="vitem">
       <span class="vnum">${i+1}</span>
       <span class="vtag">${esc(o.tag)}</span>
       <span class="vbody"><span class="vmain">${o.main}</span><span class="vcmp">${o.cmp}</span></span>
-    </div>`).join('');
+    </div>`).join('') + fold;
 }
 
 function renderKpis(a, b, t){
@@ -769,7 +827,8 @@ function renderKpis(a, b, t){
     ['首杀率', a.n ? 100*a.fbFor/a.n : null, null, a.n],
     ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor],
     ['首杀被补率', (a.traded+a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null, b.tradePct, a.traded+a.untraded],
-    ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null, b.concAvg,
+    // 集中度用「队内平分 20%」当参照，不用「所有队伍的平均」——后者等于拿队比自己
+    ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null, 20,
       (b.conc.get(t)||{}).tot],
     ['Meta Fit', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN]
   ];
@@ -782,10 +841,37 @@ function renderKpis(a, b, t){
     }
     if(n != null) cmp += `${cmp?' · ':''}n=${fmt(n)}`;
     const small = (n != null && n < 40) ? ' <span style="color:#fbbf24">小样本</span>' : '';
+    const tip = TERMS[lab] ? `<span class="termtip">${esc(TERMS[lab])}</span>` : '';
     return `<div class="kpi"><b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b>
-      <i>${lab}</i><div class="cmp">${cmp}${small}</div></div>`;
+      <i>${termBtn(lab)}${tip}</i><div class="cmp">${cmp}${small}</div></div>`;
   }).join('');
 }
+
+/* 术语卡片：指标名后面的小问号，点开就地显示解释，不另开版面 */
+const TERMS = {
+  '首杀被补率': '本队拿到首杀的回合里，那个首杀者被对方队友在 5 秒内反杀的比例。'
+    + '越高说明打完首杀容易被换掉。',
+  '首杀集中度': '本队拿到的首杀里，队内拿得最多的那个人占了多大比例。'
+    + '它不等于首杀率——首杀率是「这队抢到多少首杀」，集中度是「抢到的首杀由谁拿」。'
+    + '5 个人平分的话每人 20%，换过人的队伍人数更多，平分就更低。',
+  'Meta Fit': '阵容里有多少个属于该图的版本英雄（每图全球选取率前 7）。'
+    + '衡量这支队伍跟不跟版本，不衡量强弱。',
+  '首杀率': '本队拿到首杀的回合占它总回合的比例。反映打法激进还是保守，不反映强弱。',
+  '首杀→胜': '拿到首杀的回合里，最后赢下来的比例。全样本基准是 71%，不是 50%。',
+};
+
+function termBtn(lab){
+  if(!TERMS[lab]) return esc(lab);
+  return `<span class="termq" data-term="${esc(lab)}">${esc(lab)}<i>?</i></span>`;
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.termq');
+  document.querySelectorAll('.termq.open').forEach(x => {
+    if(x !== btn) x.classList.remove('open');
+  });
+  if(btn) btn.classList.toggle('open');
+});
 
 function agentName(i){ return S.Z.agents[S.D.agents[i]] || S.D.agents[i]; }
 
@@ -867,35 +953,6 @@ function renderComps(a, rows, t){
   }).join('') || '<div class="small">无数据</div>';
 }
 
-function renderEcon(a, b){
-  const names = ['eco（<span class="small">≤1 长枪</span>）','半买（<span class="small">2–3 把</span>）','全买（<span class="small">≥4 把</span>）'];
-  const tot = a.econ[0][0]+a.econ[1][0]+a.econ[2][0];
-  const covered = a.n ? 100*tot/a.n : 0;
-  document.getElementById('econNote').innerHTML = tot
-    ? `按本回合实际持有的长枪数分档 · ${fmt(tot)} 回合有数据` +
-      (covered < 99.5 ? `（<span style="color:#fbbf24">覆盖 ${covered.toFixed(0)}%，其余为中国赛区</span>）` : '')
-    : '<span style="color:#fbbf24">这个范围没有经济数据（中国赛区不提供）</span>';
-  const maxShare = Math.max(...[0,1,2].map(k => tot ? 100*a.econ[k][0]/tot : 0), 1);
-  document.getElementById('econList').innerHTML = [0,1,2].map(k => {
-    const [n, w] = a.econ[k];
-    const share = tot ? 100*n/tot : 0;
-    const wr = n ? 100*w/n : null;
-    const d = wr != null ? wr - b.econWin[k] : null;
-    const thin = n < 20;
-    const wrTxt = wr==null ? '—'
-      : `<span style="${thin?'color:#8fa3b3':''}">${wr.toFixed(1)}%</span>`
-        + (thin ? '<span style="color:#fbbf24"> 小样本</span>'
-                : (d==null?'':` <span style="color:${d>=0?'#4ade80':'#ff4655'}">(${d>=0?'+':''}${d.toFixed(0)})</span>`));
-    return `<div class="bar">
-      <div class="lab">
-        <span>${names[k]}</span>
-        <span>${share.toFixed(0)}% · n=${n} · ${wrTxt}</span>
-      </div>
-      <div class="track"><div class="fill cyan" style="width:${100*share/maxShare}%"></div></div>
-    </div>`;
-  }).join('');
-}
-
 function renderPistol(a, b, rows, t){
   const st = pistolStats(rows, t);
   const note = document.getElementById('pistolNote');
@@ -911,27 +968,6 @@ function renderPistol(a, b, rows, t){
     cell('进攻手枪', st.atkN ? 100*st.atkWon/st.atkN : null, `${st.atkWon}/${st.atkN}`, st.atkN < 5),
     cell('防守手枪', st.defN ? 100*st.defWon/st.defN : null, `${st.defWon}/${st.defN}`, st.defN < 5)
   ].join('');
-
-  const labels = ['全存','半存','半起','硬起','强起'];
-  const edges = [0, 3000, 8000, 13000, 18000, 99999];
-  const bins = labels.map(()=>0);
-  for(const s of st.r2Spend){
-    for(let i=0;i<edges.length-1;i++) if(s>=edges[i] && s<edges[i+1]){ bins[i]++; break; }
-  }
-  const mx = Math.max(...bins, 1);
-  const total = st.r2Spend.length;
-  document.getElementById('r2Hist').innerHTML = total
-    ? bins.map((n,i)=>
-      `<div class="hbar"><div class="t">${Math.round(100*n/total)}%</div>
-       <div class="b" style="height:${Math.max(3, 60*n/mx)}px;${i===3?'background:#ff4655':''}"></div></div>`
-    ).join('')
-    : '<div class="small">无经济数据</div>';
-  document.getElementById('r2HistX').innerHTML = labels.map(l=>`<div>${l}</div>`).join('');
-
-  document.getElementById('r2Note').innerHTML = total
-    ? `样本 <b>${total}</b> 次 · 全存率 <b>${(100*st.r2Save/total).toFixed(0)}%</b>`
-      + `（联赛 ${b.r2Save.toFixed(0)}%）· 均花费 <b>${fmt(Math.round(st.r2Spend.reduce((x,y)=>x+y,0)/total))}</b>`
-    : '';
 }
 
 function renderSides(a){
@@ -962,9 +998,8 @@ function renderPlayers(a){
       <td>${pct(p.n,tot)}%</td>
       <td>${a.n?(10*p.n/a.n).toFixed(1):'—'}</td>
       <td class="small">${ags}</td>
-      <td>${pct(p.won,p.n)}%</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="6" class="small">这个范围没有首杀记录</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="small">这个范围没有首杀记录</td></tr>';
 }
 
 function renderTime(a){
@@ -1012,10 +1047,13 @@ function renderTrade(a, b){
 /* ---------------------------------------------------------------- */
 function fillSelects(){
   const ts = document.getElementById('teamSel');
+  // 次级队默认不进下拉框：它们只在第二赛段出现、回合数太少，没人会拿来分析，
+  // 留着只会把下拉框拉得很长，找队都找不到。
+  const skip = new Set(S.raw.feeder || []);
   const ranked = S.D.teams.map((name, i) => ({
     name, i,
     n: S.raw.rounds.reduce((s,r)=> s + ((r[2]===i||r[3]===i)?1:0), 0)
-  })).sort((a,b)=> b.n - a.n);
+  })).filter(o => !skip.has(o.name)).sort((a,b)=> b.n - a.n);
   ts.innerHTML = ranked.map(o => `<option value="${o.i}">${esc(o.name)}</option>`).join('');
 }
 
@@ -1125,7 +1163,6 @@ function recompute(){
   renderVerdict(a, b, t, ps);
   renderKpis(a, b, t);
   renderComps(a, view, t);
-  renderEcon(a, b);
   renderPistol(a, b, view, t);  renderSides(a);
   renderPlayers(a);
   renderTime(a);

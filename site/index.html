@@ -512,31 +512,7 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
     <div id="gloss"></div>
   </div>
 
-  <!-- 主角：补枪效应。全宽、第一眼就看到，因为它解释的方差最大 -->
-  <div class="panel hero" id="tradePanel">
-    <div class="paneltitle">
-      <h2>首杀之后，队友有没有补上那一枪</h2>
-      <span class="aside" id="tradeNote"></span>
-    </div>
-    <div class="tbars">
-      <div class="tb">
-        <span class="tbl">首杀后被补掉 <span class="term" data-key="trade">?</span></span>
-        <span class="trk"><i class="fill bad" id="tradedBar"></i></span>
-        <span class="tbn" id="tradedVal">—</span>
-        <span class="tbs" id="tradedSub">—</span>
-      </div>
-      <div class="tb">
-        <span class="tbl">首杀没有被补</span>
-        <span class="trk"><i class="fill good" id="untradedBar"></i></span>
-        <span class="tbn" id="untradedVal">—</span>
-        <span class="tbs" id="untradedSub">—</span>
-      </div>
-    </div>
-    <div class="tfoot">
-      <span class="tgapv" id="tradeGap">—</span>
-      <span class="tcap">个百分点 · 同一个回合里，只差一次补枪</span>
-    </div>
-  </div>
+  <!-- 首屏直接是地图，不再有总结论面板 -->
 
   <div class="grid">
     <!-- left: map + stats -->
@@ -633,9 +609,12 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
       <table>
         <thead><tr>
           <th>队伍</th>
-          <th class="num">S1 回合</th><th class="num">S1 首杀率</th>
-          <th class="num">S2 回合</th><th class="num">S2 首杀率</th>
-          <th class="num">原始变化</th><th class="num">扣掉回归后</th>
+          <th class="num" title="第一赛段的回合数">S1 回合</th>
+          <th class="num" title="第一赛段的首杀率">S1 首杀率</th>
+          <th class="num" title="第二赛段的回合数">S2 回合</th>
+          <th class="num" title="第二赛段的首杀率">S2 首杀率</th>
+          <th class="num" title="第二赛段减第一赛段，表面上的涨跌">原始变化</th>
+          <th class="num" title="扣掉「本来就该回落」的那部分之后，还剩多少">扣掉回归后</th>
         </tr></thead>
         <tbody id="stageRows"></tbody>
       </table>
@@ -659,8 +638,10 @@ const GLOSSARY = [
     zh: '首杀被补枪 / 没有被补',
     en: 'Traded / Untraded First Blood',
     text: '看首杀之后队友有没有立刻报仇。首杀者在击杀后 5 秒内被死者的队友反杀，'
-        + '这个首杀就叫「被补掉」。被补掉等于 1 换 1，人数优势消失。'
-        + '数据显示这两种情况差 18.7 个百分点，是全部数据里影响最大的一个变量。',
+        + '这个首杀就叫「被补掉」。被补掉等于 1 换 1，双方回到 4v4。'
+        + '注意：这两种情况确实差 18.7 个百分点，但它比的其实是「5v4 还是 4v4」，'
+        + '也就是人数差，不是补枪这个动作本身——数据里 4v4 的胜率恰好是 49.9%。'
+        + '补枪真正有信息量的是时机：补得越快，首杀方越吃亏（0 秒补 53.4% → 5 秒补 61.3%）。',
     formula: '被补 = 首杀者被死者队友在 ≤5 秒内击杀',
   },
   {
@@ -914,6 +895,15 @@ async function boot(){
   S.raw = j; S.D = j.dict; S.Z = j.zh; S.M = j.meta;
   S.comps = j.comps; S.metaTop = j.metaTop; S.TM = j.teamMeta || null;
 
+  // 次级队名单只有 v5 才知道（判定依赖季后赛轮次，v3 行里没有 phase）。
+  // 取不到就算了 —— 宁可多显示，不要因为顺手一次的请求失败就把队藏了。
+  try{
+    const v5 = await (await fetch('data/site_v5.json')).json();
+    FEEDER_NAMES = new Set(v5.feeder || []);
+  }catch(e){
+    FEEDER_NAMES = null;
+  }
+
   document.getElementById('sub').textContent =
     `${S.D.events.length} 个赛事 · ${S.D.maps.length} 张地图 · ${S.M.teams_shown} 支队伍`
     + ` · ${fmt(S.M.rounds)} 回合 · 数据源 vlr.gg 2D 回放`;
@@ -1074,8 +1064,26 @@ function buildAgentSelect(){
 /* ------------------------------------------------------------------ */
 /* team <select> — options depend on the selected event                */
 /* ------------------------------------------------------------------ */
+/* 首轮出局的次级队：只在单个赛事出现、只打季后赛、一轮游，通常 88–250 回合。
+   打进胜者组前 4 的次级队（Enterprise / Sharper / Fire Flux / Joblife）是真打上来了，
+   保留 —— 这条判定依赖 phase 字段，site_v3.json 里没有，所以名单由 93 构建时
+   写进 site_v5.json 的 "feeder"，首页在 boot 时顺手取一次。 */
+let FEEDER_CACHE = null;
+let FEEDER_NAMES = null;   // Set<队名>，来自 v5
+function feederSet(){
+  if(FEEDER_CACHE) return FEEDER_CACHE;
+  const out = new Set();
+  if(!FEEDER_NAMES) return out;   // 还没取到就当没有，宁可多显示不可漏显示
+  for(let i = 0; i < S.D.teams.length; i++){
+    if(FEEDER_NAMES.has(S.D.teams[i])) out.add(i);
+  }
+  FEEDER_CACHE = out;
+  return out;
+}
+
 function teamsForCurrentEvent(){
   const counts = new Map();     // teamIndex -> rounds within the event scope
+  const feeder = feederSet();
   for(const r of S.raw.rounds){
     if(r[0] !== F.ev) continue;
     for(const t of new Set([r[2], r[3]])){
@@ -1084,7 +1092,7 @@ function teamsForCurrentEvent(){
     }
   }
   return [...counts.entries()]
-    .filter(([t,n]) => n >= 20)
+    .filter(([t,n]) => n >= 20 && !feeder.has(t))
     .sort((a,b)=> b[1]-a[1]);
 }
 
@@ -1372,9 +1380,9 @@ function renderStage(){
     ['跨赛段相关 r', rs==null?'—':(rs>=0?'+':'')+rs.toFixed(2),
      rs==null?'':(rs>0.5?'排序可迁移':rs>0.3?'弱':'几乎不可迁移'), ''],
     ['回归斜率', slope==null?'—':(slope>=0?'+':'')+slope.toFixed(2),
-     '−1 = 全是回归均值', 'red'],
+     '−1 = 全是运气，0 = 完全稳定', 'red'],
     ['统计上站得住的变化', `${sigN} / ${list.length}`,
-     '超出回归+抽样能解释的范围', ''],
+     '超出运气与抽样误差能解释的范围', ''],
   ].map(([k,v,sub,cls])=>
     `<div class="stat"><h3>${k}</h3>
       <div class="big ${cls}">${v}</div><p>${sub}</p></div>`).join('');
@@ -1383,12 +1391,17 @@ function renderStage(){
   const fmtT = (x, sign) => `<b>${nm(x.t)}</b> ${sign ? '+' : ''}${x.resid.toFixed(1)}`;
   lead.innerHTML =
     `<b>${REGION_ZH[region] || region}</b> · ${list.length} 支队两个赛段各 ≥150 回合<br>`
-    + `· 首杀率 S1 → S2 相关 <b>${rs==null?'—':(rs>=0?'+':'')+rs.toFixed(2)}</b>，`
-    + `回归斜率 <b>${slope==null?'—':slope.toFixed(2)}</b>（−1 = 全是回归均值）——`
-    + `有 <b>${share.toFixed(0)}%</b> 的「变化」方差能被「S1 偏高就会回落」解释掉<br>`
-    + `· S1 首杀率前 ${k} 名里，到 S2 只剩 <b>${keep} 支</b>还在前 ${k}（随机也会中 ${randExp.toFixed(1)} 支）<br>`
-    + `· 扣掉回归项后真的变了：升 ${up.map(x=>fmtT(x,true)).join('、')}；`
-    + `降 ${dn.map(x=>fmtT(x,false)).join('、')}`;
+    + `· 两个赛段的首杀率相关 <b>${rs==null?'—':(rs>=0?'+':'')+rs.toFixed(2)}</b>。`
+    + `这个数接近 0 就说明「第一赛段打得凶，第二赛段也凶」这件事基本不成立。<br>`
+    + `· 有一件事必须先扣掉：<b>回归均值</b>。第一赛段首杀率特别高的队，`
+    + `第二赛段大概率会掉下来，不是因为退步，而是因为「运气好的时候」不会一直持续。`
+    + `本表算下来，这种「自动回落」能解释掉 <b>${share.toFixed(0)}%</b> 的涨跌幅度。<br>`
+    + `· 所以最后一列 = 原始变化 减掉「按它第一赛段的位置本来就该变的那部分」。`
+    + `扣完还剩正数的，才算真的涨了。<br>`
+    + `· S1 首杀率前 ${k} 名里，到 S2 只剩 <b>${keep} 支</b>还在前 ${k}`
+    + `（完全随机也会中 ${randExp.toFixed(1)} 支）。<br>`
+    + `· 扣掉之后真的涨了：${up.map(x=>fmtT(x,true)).join('、')}；`
+    + `真的掉了：${dn.map(x=>fmtT(x,false)).join('、')}`;
 
   tb.innerHTML = list.map(x=>{
     const col = x.d >= 0 ? '#157F3B' : '#DE3B49';
@@ -1450,7 +1463,6 @@ function renderAll(){
   ].map(([k,v],i)=>`<div class="kpi${i===1?' hero':''}"><b>${v}</b><i>${k}</i></div>`).join('');
   [...document.querySelectorAll('#kpis .kpi b')].forEach((el,i)=> countUp(el,i));
 
-  renderTrade(a);
   renderMap(a);
   renderAgents(a);
   renderCauses(a);
@@ -1462,34 +1474,6 @@ function renderAll(){
     `数据抓取自 vlr.gg 的 2D 回放（${S.D.events.length} 个赛事、${fmt(S.M.rounds)} 回合）。`
     + ` 中国赛区无 2D 回放，地图打点不含该赛区，但其余统计包含它。`
     + ` 「补枪」定义为首杀发生后 ${S.M.trade_window_sec} 秒内，死者的队友击杀首杀者。`;
-}
-
-/* ---------------------- trade headline ----------------------------- */
-function renderTrade(a){
-  const tv = a.traded ? 100*a.tradedWon/a.traded : null;
-  const uv = a.untraded ? 100*a.untradedWon/a.untraded : null;
-
-  document.getElementById('tradedVal').textContent = tv==null?'—':tv.toFixed(1)+'%';
-  document.getElementById('untradedVal').textContent = uv==null?'—':uv.toFixed(1)+'%';
-  // 单位交给旁边的「个百分点」，这里只留数字，避免出现 "18.3 pp 个百分点"
-  document.getElementById('tradeGap').textContent =
-    (tv==null||uv==null)?'—':(uv-tv).toFixed(1);
-
-  document.getElementById('tradedSub').textContent =
-    `n = ${fmt(a.traded)} · 占首杀 ${pct(a.traded, a.n)}%`;
-  document.getElementById('untradedSub').textContent =
-    `n = ${fmt(a.untraded)} · 占首杀 ${pct(a.untraded, a.n)}%`;
-  document.getElementById('tradeNote').textContent =
-    `窗口 ${S.M.trade_window_sec} 秒`;
-
-  // 两条都按 0–100 的同一把尺子铺，长度差就是 18 个百分点本身
-  const bar = (id, v) => {
-    const el = document.getElementById(id);
-    if(el) el.style.width = v == null ? '0%'
-      : Math.max(0, Math.min(100, v)).toFixed(1) + '%';
-  };
-  bar('tradedBar', tv);
-  bar('untradedBar', uv);
 }
 
 /* ---------------------------- map ---------------------------------- */

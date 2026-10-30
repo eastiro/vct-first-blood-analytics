@@ -107,6 +107,8 @@ EVENT_SHORT = {
 MIN_TEAM_ROUNDS = 20
 TRADE_WINDOW = 5
 META_SIZE = 7
+# 次级队判定：只在一个赛事出现、且回合数低于这个阈值
+FEEDER_MAX_ROUNDS = 400
 
 LONG_GUNS = {"vandal", "phantom", "guardian", "bulldog",
              "odin", "operator", "outlaw", "marshal"}
@@ -253,6 +255,42 @@ def main():
     teams = sorted(t for t, n in team_rounds.items() if n >= MIN_TEAM_ROUNDS)
     team_idx = {t: i for i, t in enumerate(teams)}
     OTHER = -1
+
+    # 次级队（挑战者队）识别。
+    # 第二赛段起各赛区引入挑战者队参与季后赛席位争夺，它们只出现在一个赛事、
+    # 而且只打季后赛（phase 里没有 Week N）。
+    #
+    # 但「是次级队」不等于「该剔除」：打进胜者组前 4（Upper Semifinals 及以后）
+    # 的队伍是真的打上来了，样本也有几百回合，应当保留。
+    # 只剔除「首轮就出局」的 —— 它们通常只有 88–250 回合，没人会分析。
+    # 实测：14 支次级队里 4 支进了前 4（Enterprise / Sharper / Fire Flux / Joblife），
+    # 其余 10 支首轮出局（含 M80 仅 88 回合）。
+    DEEP_PHASES = {
+        "Upper Semifinals", "Upper Final",
+        "Upper Quarterfinals", "Lower Final", "Grand Final",
+    }
+    _team_events: dict[str, set] = defaultdict(set)
+    _team_deep: dict[str, int] = defaultdict(int)
+    for r in rows:
+        t1, t2 = (r["teams"].split(" vs ") + ["", ""])[:2]
+        is_deep = (r.get("phase") or "") in DEEP_PHASES
+        for t in (t1, t2):
+            if t:
+                _team_events[t].add(r["event"])
+                if is_deep:
+                    _team_deep[t] += 1
+    feeder = {
+        t for t in teams
+        if len(_team_events[t]) == 1
+        and team_rounds[t] < FEEDER_MAX_ROUNDS
+        and _team_deep[t] == 0          # 只剔除首轮出局的
+    }
+    kept_deep = {
+        t for t in teams
+        if len(_team_events[t]) == 1
+        and team_rounds[t] < FEEDER_MAX_ROUNDS
+        and _team_deep[t] > 0           # 打进前 4 的次级队，保留
+    }
 
     comp_ids: dict[tuple, int] = {}
     comps: list[list[int]] = []
@@ -442,6 +480,9 @@ def main():
             "comps": len(comps),
             "teams_shown": len(teams),
             "min_team_rounds": MIN_TEAM_ROUNDS,
+            "feeder_teams": len(feeder),
+            "feeder_kept": len(kept_deep),
+            "feeder_max_rounds": FEEDER_MAX_ROUNDS,
             "players": len(players),
             "games": len(game_ids),
             "econ_rows": len(econ_rows),
@@ -465,6 +506,8 @@ def main():
         "comps": comps,
         "metaTop": {str(k): v for k, v in meta_top.items()},
         "teamMeta": team_meta(teams),
+        "feeder": sorted(feeder),
+        "feederKept": sorted(kept_deep),
         "players": players,
         "rounds": out_rows,
     }
