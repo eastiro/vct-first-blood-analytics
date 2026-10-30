@@ -94,8 +94,10 @@ def main() -> None:
             pg.select_option(sel, index=i)
 
         # ---------- headers ----------
+        # 「全部赛事 + 全部地图」现在不截断，会把所有倾向都列出来；
+        # 缩小范围时才收回到 top 3。
         nm = pg.evaluate("() => document.querySelectorAll('#verdictBody .vitem').length")
-        check("always 1-3 exploitable tendencies", 1 <= nm <= 3, f"({nm})")
+        check("wide scope lists all tendencies", nm >= 3, f"({nm})")
 
         # ---------- numeric agreement: PRX / Sunset ----------
         pg.select_option("#teamSel", label="Paper Rex")
@@ -131,11 +133,17 @@ def main() -> None:
               f"offline {gap:+.1f}, page {got['gap']}")
 
         # ---------- economy ----------
-        econ = pg.evaluate("""() => [...document.querySelectorAll('#econList .bar')]
-            .map(b => b.querySelector('.lab > span:last-child').textContent)""")
-        check("three economy buckets rendered", len(econ) == 3, str(len(econ)))
-        check("economy shows a win rate + n per bucket",
-              all("n=" in e and "%" in e for e in econ), econ[0])
+        # 「经济结构」面板已按用户要求删除，这里改为验证它确实不在 DOM 里，
+        # 并且底层 econ 统计仍然可用（insights 还在用，不能顺手删坏）。
+        econ_bars = pg.evaluate("""() => document.querySelectorAll('#econList .bar').length""")
+        check("economy panel removed from DOM", econ_bars == 0, str(econ_bars))
+        econ_ok = pg.evaluate("""() => {
+          const i = S.D.teams.indexOf('Paper Rex');
+          const a = aggregate(view, i);
+          const tot = a.econ[0][0]+a.econ[1][0]+a.econ[2][0];
+          return tot > 0;
+        }""")
+        check("econ stats still computed under the hood", econ_ok is True)
 
         # ---------- player level ----------
         players = pg.evaluate("""() => [...document.querySelectorAll('#playerRows tr')]
@@ -158,11 +166,13 @@ def main() -> None:
             .map(b => b.textContent)""")
         check("china gets a no-economy badge",
               any("无经济" in b or "经济覆盖" in b for b in badges), str(badges))
-        econ_note = pg.inner_text("#econNote")
-        check("china economy panel degrades honestly",
-              "没有经济数据" in econ_note, econ_note[:40])
-        hist = pg.inner_text("#r2Hist")
-        check("china round-2 histogram shows no-data", "无经济数据" in hist, hist[:20])
+        # 「输掉手枪局后第 2 局的买法」已整体删除（分档口径不成立），
+        # 这里改为确认相关 DOM 不再存在，且手枪局面板本身还在。
+        r2_gone = pg.evaluate("""() => document.querySelector('#r2Hist') === null
+            && document.querySelector('#r2Note') === null""")
+        check("round-2 buy histogram removed", r2_gone is True)
+        pistol = pg.inner_text("#pistolKpis")
+        check("pistol panel still present", len(pistol.strip()) > 0, pistol[:30])
 
         # partial coverage must be flagged, not silently averaged
         pg.select_option("#evSel", value="-1")
