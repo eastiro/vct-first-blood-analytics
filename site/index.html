@@ -538,19 +538,6 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
     </div>
   </div>
 
-  <div class="sectitle">
-    <h2>各赛事对比 · 固定基准</h2><span id="eventCompareNote"></span>
-  </div>
-  <div class="panel reveal">
-        <table>
-          <thead><tr>
-            <th>赛事</th><th>回合</th><th>攻方占比</th>
-            <th>首杀→胜</th><th>被补枪率</th><th>未补→胜</th><th>中位时刻</th>
-          </tr></thead>
-        <tbody id="eventRows"></tbody>
-      </table>
-  </div>
-
   <div class="sectitle"><h2>队伍对比</h2><span id="teamCompareNote"></span>
         <button class="scopebtn" id="teamScopeBtn" title="切换：只看当前筛选 / 整季全样本">本赛事</button></div>
       <div class="panel reveal" style="animation-delay:.06s">
@@ -571,6 +558,19 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
         </div>
         <div id="teamLegend"></div>
         <div class="note" id="teamReliability"></div>
+  </div>
+
+  <div class="sectitle">
+    <h2>各赛事对比 · 固定基准</h2><span id="eventCompareNote"></span>
+  </div>
+  <div class="panel reveal">
+        <table>
+          <thead><tr>
+            <th>赛事</th><th>回合</th><th>攻方占比</th>
+            <th>首杀→胜</th><th>被补枪率</th><th>未补→胜</th><th>中位时刻</th>
+          </tr></thead>
+        <tbody id="eventRows"></tbody>
+      </table>
   </div>
 </main>
 
@@ -1663,10 +1663,15 @@ function renderTeams(a){
   }
 
   document.getElementById('teamReliability').innerHTML =
-    '<b>这些列能排到什么程度：</b> '
-    + '<b>狙击首杀</b>最稳（换赛段 r≈0.81，但它是打法指纹，不是强弱）；'
-    + '其余按换赛段相关排：<b>丢首杀→胜</b> 0.27、<b>首杀率</b> 0.16、<b>首杀→胜</b> −0.12；'
-    + '首杀率和狙击首杀可以排序，转化那两列只看点估计，别当真名次。';
+    '<b>哪些列的名次可信：</b>'
+    + '用第一赛段的数据去对第二赛段，看同一支队的排名还对不对得上'
+    + '（这个相关值记作 r，1 = 完全对得上，0 = 完全对不上）。'
+    + '对得上的列，名次换赛段还成立；对不上的，名次基本是噪声。<br>'
+    + '<b>狙击首杀</b> r≈0.81 —— 最稳，名次可信。但它测的是「首杀里有多少出自狙击枪」，'
+    + '是打法指纹，不代表强弱。<br>'
+    + '<b>丢首杀→胜</b> r≈0.27、<b>首杀率</b> r≈0.16 —— 弱，名次只能粗看。<br>'
+    + '<b>首杀→胜</b> r≈−0.12 —— 负的，换个赛段名次会反过来，<b>不要用来排名</b>，'
+    + '只看它的具体数值（比如 73.4%）本身。';
 }
 
 boot();
