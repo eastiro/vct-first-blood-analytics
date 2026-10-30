@@ -1,6 +1,6 @@
 """Build the v4 site payload: 6 events incl. Champions Shanghai 2026.
 
-Per-round flat row (16 ints):
+Per-round flat row (17 ints):
   0 ev      event index
   1 map     map index
   2 atkT    attacking team index
@@ -18,6 +18,9 @@ Per-round flat row (16 ints):
  14 snipe   1 = AWP-class first blood (Operator/Outlaw/Marshal)
             0 = a known non-AWP weapon, -1 = weapon unknown (no loadouts, e.g. China)
  15 pkill   player index of the first-blood killer (-1 unknown)
+ 16 vkill   player index of the first-blood VICTIM (-1 unknown)
+            「尝试次数 = pkill 拿到 + vkill 被人拿」，两者合起来才能算
+            一名选手参与了多少次首杀对决。
 
 Also emits:
   "players" : [{"n": name, "t": teamIdx}, ...]
@@ -330,6 +333,7 @@ def main():
             int(sec) if sec is not None else -1,
             x, y, tr, comp_a, comp_b,
             snipe, player_id(fk.get("killer") or "", kill_name),
+            player_id(fk.get("victim") or "", fk.get("victim_team") or ""),
         ])
         stat["traded" if tr == 1 else "untraded" if tr == 0 else "unknown"] += 1
 

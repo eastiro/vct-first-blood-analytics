@@ -185,8 +185,10 @@
 
   footer{padding:18px 26px; border-top:1px solid var(--line); color:var(--dim);
          font-size:11px}
-  /* 队伍表不再限高：12 支队整表展开，读者不用去猜下面还有没有行 */
-  .tblscroll{overflow:visible}
+  /* 队伍表不再限高：12 支队整表展开，读者不用去猜下面还有没有行。
+     窄屏放不下 8 列时让表格自己横向滚（overflow-x:auto 会把 y 也变成 auto，
+     所以不限 max-height，纵向不会出现滚动条）。 */
+  .tblscroll{max-width:100%; overflow-x:auto}
   .tblscroll.tall{max-height:430px; overflow:auto}
   .tblscroll::-webkit-scrollbar{width:6px}
   .tblscroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px}
@@ -326,6 +328,10 @@ select.teamsel{border-radius:5px; font-size:12px; padding:6px 10px;
   #mapCards{gap:0; margin-top:14px}
   #mapCards .stat{border:0; border-top:1px solid var(--line); border-radius:0;
                   background:none; padding:10px 14px 0 0}
+
+  /* ---------- 选手散点图 ---------- */
+  .duelwrap{position:relative; width:100%; overflow:hidden}
+  #duelCanvas{width:100%; height:auto; display:block; max-width:100%}
 
 /* ---------- 面板 / 分区 ---------- */
 .panel{border-radius:6px; padding:14px 15px; border-color:var(--line); background:var(--panel)}
@@ -573,6 +579,14 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
           </tr></thead>
         <tbody id="eventRows"></tbody>
       </table>
+  </div>
+
+  <div class="sectitle"><h2>选手对比 · 谁愿意抢首杀，谁抢到了</h2><span id="duelNote"></span></div>
+  <div class="panel reveal" style="animation-delay:.1em">
+    <div class="duelwrap">
+      <canvas id="duelCanvas" width="900" height="560" aria-label="选手首杀尝试率与成功率散点图"></canvas>
+    </div>
+    <div class="note" id="duelCaption"></div>
   </div>
 </main>
 
@@ -825,6 +839,7 @@ async function boot(){
   const j = await (await fetch('data/site_v3.json')).json();
   S.raw = j; S.D = j.dict; S.Z = j.zh; S.M = j.meta;
   S.comps = j.comps; S.metaTop = j.metaTop; S.TM = j.teamMeta || null;
+  S.players = j.players || [];
 
   // 次级队名单只有 v5 才知道（判定依赖季后赛轮次，v3 行里没有 phase）。
   // 取不到就算了 —— 宁可多显示，不要因为顺手一次的请求失败就把队藏了。
@@ -1196,6 +1211,7 @@ function renderAll(){
   renderCauses(a);
   renderEvents(a);
   renderTeams(a);
+  renderDuel();
 
   document.getElementById('foot').textContent =
     `数据抓取自 vlr.gg 的 2D 回放（${S.D.events.length} 个赛事、${fmt(S.M.rounds)} 回合）。`
@@ -1529,6 +1545,187 @@ function renderEvents(a){
   document.getElementById('eventCompareNote').textContent =
     '（' + S.D.events.length + ' 个赛事全样本，不随上方筛选变化）';
 }
+
+/* ---------- 选手对比：首杀尝试 × 首杀成功率 ---------- */
+/* 只取「队内首杀占比 ≥25%」且「尝试 ≥40 次」的选手，每队最多 2 人。
+   X = 每百回合的尝试次数（这个人多愿意去抢开局第一枪）
+   Y = 尝试里赢下来的比例（抢的时候成功率）
+   一次首杀对决里必定有一个人赢、一个人输，所以：
+     尝试 = 他拿到的首杀 + 他被别人首杀 */
+const DUEL_MIN_TRIES = 40;
+const DUEL_MIN_SHARE = 25;
+
+function duelData(ev){
+  const R = S.raw.rounds;
+  const per = new Map();
+  const teamRounds = new Map();
+  const teamFb = new Map();
+  for(const r of R){
+    if(r[0] !== ev) continue;
+    for(const t of new Set([r[2], r[3]])){
+      if(t >= 0) teamRounds.set(t, (teamRounds.get(t)||0)+1);
+    }
+    const k = r[15], v = r[16];
+    if(k < 0) continue;
+    const kt = r[5];
+    let a = per.get(k);
+    if(!a){ a = {win:0, lose:0, team:kt}; per.set(k, a); }
+    a.win++;
+    if(kt >= 0){
+      a.team = kt;
+      teamFb.set(kt, (teamFb.get(kt)||0)+1);
+    }
+    if(v >= 0 && v !== k){
+      let b = per.get(v);
+      if(!b){ b = {win:0, lose:0, team:-1}; per.set(v, b); }
+      b.lose++;
+    }
+  }
+  const byTeam = new Map();
+  for(const [pid, s] of per){
+    const n = s.win + s.lose;
+    if(n < DUEL_MIN_TRIES || s.team < 0) continue;
+    const tf = teamFb.get(s.team) || 0;
+    if(!tf) continue;
+    const rounds = teamRounds.get(s.team) || 0;
+    const rec = {
+      pid, name: (S.players[pid]||{}).n || '?', team: s.team,
+      n, win: s.win, rate: 100*s.win/n,
+      share: 100*s.win/tf,
+      per100: rounds ? 100*n/rounds : 0,
+      rounds,
+    };
+    if(!byTeam.has(s.team)) byTeam.set(s.team, []);
+    byTeam.get(s.team).push(rec);
+  }
+  const out = [];
+  for(const [, list] of byTeam){
+    list.sort((a,b) => b.share - a.share);
+    if(list[0] && list[0].share >= DUEL_MIN_SHARE) out.push(list[0]);
+    if(list[1] && list[1].share >= DUEL_MIN_SHARE) out.push(list[1]);
+  }
+  return out;
+}
+
+function renderDuel(){
+  const cv = document.getElementById('duelCanvas');
+  if(!cv) return;
+  // canvas 有固有像素宽度，窄屏时会撑破页面。按容器实际宽度等比调整，
+  // 高清屏用 devicePixelRatio 保证文字不糊。
+  const holder = cv.parentElement;
+  const cw = Math.max(320, Math.floor(holder.clientWidth || 900));
+  const ch = Math.round(cw * 560 / 900);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.floor(cw * dpr);
+  cv.height = Math.floor(ch * dpr);
+  cv.style.width = cw + 'px';
+  cv.style.height = ch + 'px';
+
+  const pts = duelData(F.ev);
+  const noteEl = document.getElementById('duelNote');
+  const capEl = document.getElementById('duelCaption');
+  const evName = (S.Z.events || {})[S.D.events[F.ev]] || S.D.events[F.ev];
+  noteEl.textContent = `（${evName} · ${pts.length} 名选手）`;
+
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = cw, H = ch;
+  const L = 74, Rm = 26, T = 26, B = 58;
+  const pw = W - L - Rm, ph = H - T - B;
+  ctx.clearRect(0, 0, W, H);
+
+  if(pts.length < 3){
+    ctx.fillStyle = '#6B6862'; ctx.font = '13px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('这个赛事进入筛选的选手不足 3 人，画不出对比', W/2, H/2);
+    capEl.textContent = '';
+    return;
+  }
+
+  const xs = pts.map(p => p.per100), ys = pts.map(p => p.rate);
+  const padR = (a,b) => { const d = (b-a)||1; return [a - d*0.08, b + d*0.08]; };
+  let [x0, x1] = padR(Math.min(...xs), Math.max(...xs));
+  let [y0, y1] = padR(Math.min(...ys), Math.max(...ys));
+  y0 = Math.max(30, y0); y1 = Math.min(80, y1);
+  // Y 太窄看不清差异，太宽点会挤在中间；至少给 10pp 的视野
+  if(y1 - y0 < 10){ const m = (y0+y1)/2; y0 = m-5; y1 = m+5; }
+
+  const px = v => L + (v - x0) / (x1 - x0) * pw;
+  const py = v => T + ph - (v - y0) / (y1 - y0) * ph;
+
+  ctx.strokeStyle = '#E4DFD4'; ctx.lineWidth = 1;
+  ctx.font = '11px system-ui'; ctx.fillStyle = '#8B8780';
+  const nx = 4, ny = 4;
+  for(let i = 0; i <= nx; i++){
+    const v = x0 + (x1-x0)*i/nx, x = px(v);
+    ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T+ph); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.fillText(v.toFixed(0), x, T+ph+18);
+  }
+  for(let i = 0; i <= ny; i++){
+    const v = y0 + (y1-y0)*i/ny, y = py(v);
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L+pw, y); ctx.stroke();
+    ctx.textAlign = 'right'; ctx.fillText(v.toFixed(0)+'%', L-9, y+4);
+  }
+
+  const medX = median(xs), medY = median(ys);
+  ctx.strokeStyle = '#C9C2B4'; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(px(medX), T); ctx.lineTo(px(medX), T+ph); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(L, py(medY)); ctx.lineTo(L+pw, py(medY)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 象限标签不放图里：中位数不在正中时会压到点上，四个角又会错位。
+  // 一句话写在图下方的 caption 里就够了。
+
+  const maxN = Math.max(...pts.map(p => p.n));
+  for(const p of pts){
+    const r = 4 + 7 * Math.sqrt(p.n / maxN);
+    ctx.beginPath(); ctx.arc(px(p.per100), py(p.rate), r, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(222,59,73,.72)'; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  // 标签：按样本量降序打，做了简单避让 —— 撞上已画的标签就换到点的左侧/上方
+  const labelled = [...pts].sort((a,b) => b.n - a.n).slice(0, 14);
+  ctx.font = '11px system-ui'; ctx.fillStyle = '#3A3733';
+  const placed = [];
+  const hits = (bx, by, bw, bh) => placed.some(p =>
+    bx < p.x + p.w && bx + bw > p.x && by < p.y + p.h && by + bh > p.y);
+  for(const p of labelled){
+    const r = 4 + 7 * Math.sqrt(p.n / maxN);
+    const cx = px(p.per100), cy = py(p.rate);
+    const tw = ctx.measureText(p.name).width;
+    // 候选位置：右侧、左侧、上方、下方
+    const cands = [
+      [cx + r + 3, cy + 3.5],
+      [cx - r - 3 - tw, cy + 3.5],
+      [cx - tw/2, cy - r - 5],
+      [cx - tw/2, cy + r + 12],
+    ];
+    let put = cands[0];
+    for(const c of cands){
+      if(!hits(c[0], c[1] - 9, tw, 12)){ put = c; break; }
+    }
+    ctx.textAlign = 'left';
+    ctx.fillText(p.name, put[0], put[1]);
+    placed.push({x: put[0], y: put[1] - 9, w: tw, h: 12});
+  }
+
+  ctx.fillStyle = '#6B6862'; ctx.font = '11.5px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('首杀尝试 · 每 100 回合', L + pw/2, H - 14);
+  ctx.save(); ctx.translate(16, T + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('首杀成功率', 0, 0); ctx.restore();
+
+  capEl.textContent =
+    `点的大小 = 尝试次数。虚线是中位数（尝试 ${medX.toFixed(0)} 次 / 成功率 ${medY.toFixed(0)}%），`
+    + ` 右上角 = 又爱抢又抢得准。`
+    + ` 只收录队内首杀占比 ≥${DUEL_MIN_SHARE}% 且尝试 ≥${DUEL_MIN_TRIES} 次的选手，每队最多 2 人。`;
+}
+
+/* 窗口宽度变了要重画散点图（canvas 宽度跟着容器走） */
+let duelResizeTimer = null;
+window.addEventListener('resize', () => {
+  if(duelResizeTimer) clearTimeout(duelResizeTimer);
+  duelResizeTimer = setTimeout(() => { try{ renderDuel(); }catch(e){} }, 160);
+});
 
 function renderTeams(a){
   const tb = document.getElementById('teamRows');
