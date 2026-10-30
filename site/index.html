@@ -333,6 +333,17 @@ select.teamsel{border-radius:5px; font-size:12px; padding:6px 10px;
   .duelwrap{position:relative; width:100%; overflow:hidden}
   #duelCanvas{width:100%; height:auto; display:block; max-width:100%}
 
+  /* ---------- 顶部三个页签 ---------- */
+  .tabs{display:flex; gap:2px; align-items:center}
+  .tabs .ghostlink{margin-left:12px}
+  .tab{
+    display:inline-block; padding:7px 14px 8px; font-size:12.5px;
+    color:var(--dim); text-decoration:none; border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  .tab:hover{color:var(--fg)}
+  .tab.on{color:var(--fg); border-bottom-color:var(--red); font-weight:600}
+
 /* ---------- 面板 / 分区 ---------- */
 .panel{border-radius:6px; padding:14px 15px; border-color:var(--line); background:var(--panel)}
 .panel h2{letter-spacing:.1em; color:var(--dim2); font-size:10px}
@@ -466,10 +477,12 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
     <h1>首杀 <span>/</span> 无畏契约 2026</h1>
     <div class="sub" id="sub">加载中…</div>
   </div>
-  <div style="display:flex;gap:8px;align-items:flex-end">
+  <nav class="tabs" role="tablist">
+    <a class="tab on" href="index.html" role="tab" aria-selected="true">总览</a>
+    <a class="tab" href="scout.html" role="tab" aria-selected="false">队伍简报</a>
+    <a class="tab" href="#duelSection" id="tabDuel" role="tab" aria-selected="false">选手对比</a>
     <button class="ghostlink" id="shareBtn" title="复制当前筛选的链接">复制链接</button>
-    <a href="scout.html" class="ghostlink">队伍报告 →</a>
-  </div>
+  </nav>
 </header>
 
 <main id="main">
@@ -581,12 +594,14 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
       </table>
   </div>
 
-  <div class="sectitle"><h2>选手对比 · 谁愿意抢首杀，谁抢到了</h2><span id="duelNote"></span></div>
+  <div id="duelSection">
+  <div class="sectitle"><h2>选手对比 · 首杀</h2><span id="duelNote"></span></div>
   <div class="panel reveal" style="animation-delay:.1em">
     <div class="duelwrap">
-      <canvas id="duelCanvas" width="900" height="560" aria-label="选手首杀尝试率与成功率散点图"></canvas>
+      <canvas id="duelCanvas" width="900" height="560" aria-label="选手首杀尝试与成功率散点图"></canvas>
     </div>
     <div class="note" id="duelCaption"></div>
+  </div>
   </div>
 </main>
 
@@ -883,8 +898,28 @@ async function boot(){
     ft.setAttribute('aria-expanded', String(open));
   };
   initShare();
+  // 「选手对比」是页内区块，点了滚过去而不是跳页
+  const td = document.getElementById('tabDuel');
+  if(td) td.onclick = e => {
+    e.preventDefault();
+    const sec = document.getElementById('duelSection');
+    if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    td.classList.add('on');
+  };
   rebuild();
   if(fromURL) toast('已按链接恢复筛选条件');
+
+  // 从别的页面点「选手对比」跳过来时，直接滚到那块
+  if(location.hash === '#duelSection'){
+    const sec = document.getElementById('duelSection');
+    if(sec) setTimeout(() => sec.scrollIntoView({block:'start'}), 80);
+    const td2 = document.getElementById('tabDuel');
+    if(td2){
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+      td2.classList.add('on');
+    }
+  }
 }
 
 /* 点表头排序：同键切换升降序，换键默认降序 */
@@ -1600,9 +1635,11 @@ function duelData(ev){
   }
   const out = [];
   for(const [, list] of byTeam){
-    list.sort((a,b) => b.share - a.share);
-    if(list[0] && list[0].share >= DUEL_MIN_SHARE) out.push(list[0]);
-    if(list[1] && list[1].share >= DUEL_MIN_SHARE) out.push(list[1]);
+    // 不设人数上限：达到占比门槛的有几个就出几个
+    // （实测每个赛事每队最多 2 人达标，但别把这一点写死）
+    for(const p of list){
+      if(p.share >= DUEL_MIN_SHARE) out.push(p);
+    }
   }
   return out;
 }
@@ -1645,9 +1682,13 @@ function renderDuel(){
   const padR = (a,b) => { const d = (b-a)||1; return [a - d*0.08, b + d*0.08]; };
   let [x0, x1] = padR(Math.min(...xs), Math.max(...xs));
   let [y0, y1] = padR(Math.min(...ys), Math.max(...ys));
-  y0 = Math.max(30, y0); y1 = Math.min(80, y1);
-  // Y 太窄看不清差异，太宽点会挤在中间；至少给 10pp 的视野
-  if(y1 - y0 < 10){ const m = (y0+y1)/2; y0 = m-5; y1 = m+5; }
+  // 夹在合理区间内。注意必须保证 y1 > y0 —— 早期版本先 max 再 min，
+  // 数据全在 85% 以上时会算出 y1 < y0，坐标轴翻转，图整个空白。
+  y0 = Math.max(20, y0);
+  y1 = Math.min(90, y1);
+  if(y1 - y0 < 10){ const m = (y0 + y1) / 2; y0 = m - 5; y1 = m + 5; }
+  if(!(y1 > y0)){ y0 = 0; y1 = 100; }
+  if(!(x1 > x0)){ const m = (x0 + x1) / 2; x0 = m - 1; x1 = m + 1; }
 
   const px = v => L + (v - x0) / (x1 - x0) * pw;
   const py = v => T + ph - (v - y0) / (y1 - y0) * ph;
@@ -1666,34 +1707,40 @@ function renderDuel(){
     ctx.textAlign = 'right'; ctx.fillText(v.toFixed(0)+'%', L-9, y+4);
   }
 
+  // 中位虚线
   const medX = median(xs), medY = median(ys);
-  ctx.strokeStyle = '#C9C2B4'; ctx.setLineDash([4,4]);
+  ctx.strokeStyle = '#BDB6A8'; ctx.lineWidth = 1; ctx.setLineDash([3,4]);
   ctx.beginPath(); ctx.moveTo(px(medX), T); ctx.lineTo(px(medX), T+ph); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(L, py(medY)); ctx.lineTo(L+pw, py(medY)); ctx.stroke();
   ctx.setLineDash([]);
+
+  // 坐标轴加粗，让两条轴线明显
+  ctx.strokeStyle = '#9A9387'; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(L, T); ctx.lineTo(L, T+ph); ctx.lineTo(L+pw, T+ph);
+  ctx.stroke();
 
   // 象限标签不放图里：中位数不在正中时会压到点上，四个角又会错位。
   // 一句话写在图下方的 caption 里就够了。
 
   const maxN = Math.max(...pts.map(p => p.n));
   for(const p of pts){
-    const r = 4 + 7 * Math.sqrt(p.n / maxN);
+    const r = 3.5 + 5 * Math.sqrt(p.n / maxN);
     ctx.beginPath(); ctx.arc(px(p.per100), py(p.rate), r, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(222,59,73,.72)'; ctx.fill();
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = 'rgba(222,59,73,.78)'; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
   }
 
-  // 标签：按样本量降序打，做了简单避让 —— 撞上已画的标签就换到点的左侧/上方
+  // 标签：按样本量降序打，简单避让
   const labelled = [...pts].sort((a,b) => b.n - a.n).slice(0, 14);
   ctx.font = '11px system-ui'; ctx.fillStyle = '#3A3733';
   const placed = [];
   const hits = (bx, by, bw, bh) => placed.some(p =>
     bx < p.x + p.w && bx + bw > p.x && by < p.y + p.h && by + bh > p.y);
   for(const p of labelled){
-    const r = 4 + 7 * Math.sqrt(p.n / maxN);
+    const r = 3.5 + 5 * Math.sqrt(p.n / maxN);
     const cx = px(p.per100), cy = py(p.rate);
     const tw = ctx.measureText(p.name).width;
-    // 候选位置：右侧、左侧、上方、下方
     const cands = [
       [cx + r + 3, cy + 3.5],
       [cx - r - 3 - tw, cy + 3.5],
@@ -1709,15 +1756,13 @@ function renderDuel(){
     placed.push({x: put[0], y: put[1] - 9, w: tw, h: 12});
   }
 
-  ctx.fillStyle = '#6B6862'; ctx.font = '11.5px system-ui'; ctx.textAlign = 'center';
-  ctx.fillText('首杀尝试 · 每 100 回合', L + pw/2, H - 14);
-  ctx.save(); ctx.translate(16, T + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle = '#4A463F'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('首杀尝试 / 每 100 回合', L + pw/2, H - 16);
+  ctx.save(); ctx.translate(20, T + ph/2); ctx.rotate(-Math.PI/2);
   ctx.fillText('首杀成功率', 0, 0); ctx.restore();
 
   capEl.textContent =
-    `点的大小 = 尝试次数。虚线是中位数（尝试 ${medX.toFixed(0)} 次 / 成功率 ${medY.toFixed(0)}%），`
-    + ` 右上角 = 又爱抢又抢得准。`
-    + ` 只收录队内首杀占比 ≥${DUEL_MIN_SHARE}% 且尝试 ≥${DUEL_MIN_TRIES} 次的选手，每队最多 2 人。`;
+    `收队内首杀占比 ≥${DUEL_MIN_SHARE}% 且尝试 ≥${DUEL_MIN_TRIES} 次的选手。`;
 }
 
 /* 窗口宽度变了要重画散点图（canvas 宽度跟着容器走） */
