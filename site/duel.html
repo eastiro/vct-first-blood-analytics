@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>选手对比 · 无畏契约 2026</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root{
+    --bg:#EAE7E0; --panel:#FFFFFF; --panel2:#F5F2EC; --line:#DBD5C9; --line2:#C9C2B4;
+    --fg:#1B1A17; --dim:#6B6862; --dim2:#8B8780; --red:#DE3B49; --cyan:#0E7C74; --gold:#A5741C;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg); line-height:1.55;
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
+  }
+  header{
+    padding:20px 26px 0; border-bottom:1px solid var(--line);
+    display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
+    justify-content:space-between;
+  }
+  h1{margin:0; font-size:23px; letter-spacing:.5px; font-weight:600}
+  h1 span{color:var(--red)}
+  .sub{color:var(--dim); font-size:12px; margin-top:4px}
+  .tabs{display:flex; gap:2px; align-items:center}
+  .tab{
+    display:inline-block; padding:7px 14px 8px; font-size:12.5px;
+    color:var(--dim); text-decoration:none; border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  .tab:hover{color:var(--fg)}
+  .tab.on{color:var(--fg); border-bottom-color:var(--red); font-weight:600}
+
+  main{padding:18px 26px 50px; max-width:1760px; margin:0 auto}
+
+  .bar{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:13px 16px; margin-bottom:16px;
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center;
+  }
+  .bar label{font-size:10.5px; letter-spacing:.1em; color:var(--dim); text-transform:uppercase}
+  select{
+    background:var(--panel2); border:1px solid var(--line); color:var(--fg);
+    padding:7px 12px; border-radius:6px; font-size:12.5px; min-width:200px;
+    font-family:inherit; cursor:pointer; outline:none;
+  }
+  select:hover{border-color:var(--red)}
+  .hint{margin-left:auto; font-size:11.5px; color:var(--dim)}
+
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px}
+  .charthead{display:flex; align-items:baseline; gap:12px; margin-bottom:12px; flex-wrap:wrap}
+  .charthead h2{margin:0; font-size:13px; font-weight:600}
+  .charthead .aside{font-size:11.5px; color:var(--dim)}
+
+  .duelwrap{position:relative; width:100%; overflow:hidden}
+  #duelCanvas{display:block; max-width:100%}
+
+  .note{margin-top:10px; font-size:11.5px; color:var(--dim2); line-height:1.6}
+
+  @media (max-width:760px){
+    header{padding:16px 14px 0}
+    main{padding:14px 14px 40px}
+    h1{font-size:19px}
+    .bar{padding:11px 12px; gap:10px}
+    select{min-width:0; width:100%}
+    .hint{margin-left:0; width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>选手对比 <span>/</span> 无畏契约 2026</h1>
+    <div class="sub" id="sub">首杀对决 · 谁参与得多，谁赢得多</div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <a class="tab" href="index.html" role="tab" aria-selected="false">总览</a>
+    <a class="tab" href="scout.html" role="tab" aria-selected="false">队伍简报</a>
+    <a class="tab on" href="duel.html" role="tab" aria-selected="true">选手对比</a>
+  </nav>
+</header>
+
+<main>
+  <div class="bar">
+    <label>赛事</label>
+    <select id="evSel"></select>
+    <select id="teamSel" title="只看一支队"></select>
+    <span class="hint" id="scope"></span>
+  </div>
+
+  <div class="panel">
+    <div class="charthead">
+      <h2>首杀对决</h2>
+      <span class="aside" id="chartNote"></span>
+    </div>
+    <div class="duelwrap">
+      <canvas id="duelCanvas" width="1200" height="760"></canvas>
+    </div>
+    <div class="note" id="caption"></div>
+  </div>
+</main>
+
+<script>
+/* ================================================================== */
+/* 首杀对决散点图                                                      */
+/*                                                                    */
+/* X = 每 100 回合参与的首杀对决次数（越多越常冲在开局第一线）          */
+/* Y = 这些对决里赢下来的比例                                          */
+/*                                                                    */
+/* 一次首杀对决必定一对一，输的那方也是一次尝试，所以：                 */
+/*   尝试 = 拿到的首杀 + 被别人首杀                                    */
+/* 这样两个轴都能从击杀流直接量出来，不需要猜测。                       */
+/* ================================================================== */
+const MIN_TRIES = 20;      // 至少参与过这么多次首杀对决
+const MIN_SHARE = 25;      // 且队内首杀占比至少这么高
+
+/* 颜色不编码角色。
+   试过按「首杀最多的英雄」判角色，结果 24 人里有 24 人被标成决斗——
+   因为决斗位天然冲在开局第一线，拿首杀最多的英雄当然也是决斗英雄。
+   这个标签测的是「这队的战术安排」，不是选手属性，会误导人。
+   所以统一用一个颜色，读者看位置和名字就够了。 */
+const DOT_COLOR = '#DE3B49';
+
+let S = { raw: null, D: null, Z: null, M: null, agents: {} };
+let state = { ev: 0, team: -1 };
+
+const $ = id => document.getElementById(id);
+
+/* ---------------- 数据 ---------------- */
+/* 每名选手在某个赛事里的首杀对决记录。
+   teamOf 用的是「他拿首杀时的队伍」，因为首杀受害者那边可能拿不到队名。 */
+function build(evIdx){
+  const per = new Map();          // pid -> {win, lose, team, agents}
+  const teamRounds = new Map();
+  const teamFb = new Map();
+
+  for(const r of S.raw.rounds){
+    if(r[0] !== evIdx) continue;
+    for(const t of [r[2], r[3]]){
+      if(t >= 0) teamRounds.set(t, (teamRounds.get(t) || 0) + 1);
+    }
+    const k = r[15], v = r[16];
+    if(k < 0) continue;
+    const kt = r[5];
+
+    let a = per.get(k);
+    if(!a){ a = {win: 0, lose: 0, team: -1}; per.set(k, a); }
+    a.win++;
+    if(kt >= 0){
+      a.team = kt;
+      teamFb.set(kt, (teamFb.get(kt) || 0) + 1);
+    }
+
+    if(v >= 0 && v !== k){
+      let b = per.get(v);
+      if(!b){ b = {win: 0, lose: 0, team: -1}; per.set(v, b); }
+      b.lose++;
+    }
+  }
+
+  const out = [];
+  for(const [pid, s] of per){
+    const n = s.win + s.lose;
+    if(n < MIN_TRIES || s.team < 0) continue;
+    const tf = teamFb.get(s.team) || 0;
+    if(!tf) continue;
+    const share = 100 * s.win / tf;
+    if(share < MIN_SHARE) continue;
+    const rounds = teamRounds.get(s.team) || 0;
+
+    out.push({
+      pid,
+      name: (S.players[pid] || {}).n || '?',
+      team: s.team,
+      n, win: s.win,
+      rate: 100 * s.win / n,
+      share,
+      per100: rounds ? 100 * n / rounds : 0,
+      rounds,
+    });
+  }
+  return out;
+}
+
+/* ---------------- 绘图 ---------------- */
+let chartPts = [];
+
+function median(a){
+  if(!a.length) return 0;
+  const s = a.slice().sort((x,y) => x - y);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
+}
+
+function draw(){
+  const cv = $('duelCanvas');
+  const holder = cv.parentElement;
+  const cw = Math.max(300, Math.floor(holder.clientWidth || 1200));
+  const ch = Math.round(Math.min(cw * 0.62, 760));
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.floor(cw * dpr);
+  cv.height = Math.floor(ch * dpr);
+  cv.style.width = cw + 'px';
+  cv.style.height = ch + 'px';
+
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cw, ch);
+
+  const evName = S.Z.events[S.D.events[state.ev]] || S.D.events[state.ev];
+
+  let pts = build(state.ev);
+  if(state.team >= 0) pts = pts.filter(p => p.team === state.team);
+
+  const scope = state.team >= 0 ? S.D.teams[state.team] : '全部队伍';
+  $('scope').textContent = `${evName} · ${scope} · ${pts.length} 人`;
+  $('chartNote').textContent = `${pts.length} 名选手`;
+
+  if(pts.length < 2){
+    ctx.fillStyle = '#8B8780';
+    ctx.font = '13px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('这个范围进入筛选的选手不足 2 人', cw/2, ch/2);
+    $('caption').textContent = '';
+    chartPts = [];
+    return;
+  }
+  chartPts = pts;
+
+  const L = 72, Rm = 30, T = 24, B = 62;
+  const pw = cw - L - Rm, ph = ch - T - B;
+
+  const xs = pts.map(p => p.per100), ys = pts.map(p => p.rate);
+  let x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const dx = (x1 - x0) || 1, dy = (y1 - y0) || 1;
+  x0 -= dx * 0.12; x1 += dx * 0.12;
+  y0 -= dy * 0.12; y1 += dy * 0.12;
+  // 保证 y1 > y0（早期版本先 max 再 min，数据集中在一端时会翻转轴，图全空）
+  if(y1 - y0 < 8){ const m = (y0 + y1) / 2; y0 = m - 4; y1 = m + 4; }
+  if(!(y1 > y0)){ y0 = 0; y1 = 100; }
+  if(!(x1 > x0)){ const m = (x0 + x1) / 2; x0 = m - 1; x1 = m + 1; }
+
+  const px = v => L + (v - x0) / (x1 - x0) * pw;
+  const py = v => T + ph - (v - y0) / (y1 - y0) * ph;
+
+  // 网格
+  ctx.strokeStyle = '#E8E3D8'; ctx.lineWidth = 1;
+  ctx.font = '11px system-ui'; ctx.fillStyle = '#8B8780';
+  for(let i = 0; i <= 4; i++){
+    const v = x0 + (x1 - x0) * i / 4, x = px(v);
+    ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + ph); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.fillText(v.toFixed(1), x, T + ph + 18);
+  }
+  for(let i = 0; i <= 4; i++){
+    const v = y0 + (y1 - y0) * i / 4, y = py(v);
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
+    ctx.textAlign = 'right'; ctx.fillText(v.toFixed(0) + '%', L - 9, y + 4);
+  }
+
+  // 中位线
+  const mx = median(xs), my = median(ys);
+  ctx.strokeStyle = '#C4BCAC'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(px(mx), T); ctx.lineTo(px(mx), T + ph); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(L, py(my)); ctx.lineTo(L + pw, py(my)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 轴线
+  ctx.strokeStyle = '#9A9387'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(L, T); ctx.lineTo(L, T + ph); ctx.lineTo(L + pw, T + ph);
+  ctx.stroke();
+
+  // 点
+  const maxN = Math.max(...pts.map(p => p.n));
+  for(const p of pts){
+    const r = 4 + 6 * Math.sqrt(p.n / maxN);
+    ctx.beginPath(); ctx.arc(px(p.per100), py(p.rate), r, 0, Math.PI * 2);
+    ctx.fillStyle = DOT_COLOR;
+    ctx.globalAlpha = 0.78; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+
+  // 标签：按样本量降序，做碰撞避让
+  const labelled = [...pts].sort((a, b) => b.n - a.n).slice(0, Math.min(pts.length, 32));
+  ctx.font = '10.5px system-ui';
+  const placed = [];
+  const hits = (bx, by, bw, bh) => placed.some(q =>
+    bx < q.x + q.w && bx + bw > q.x && by < q.y + q.h && by + bh > q.y);
+  for(const p of labelled){
+    const r = 4 + 6 * Math.sqrt(p.n / maxN);
+    const cx = px(p.per100), cy = py(p.rate);
+    const tw = ctx.measureText(p.name).width;
+    const cands = [
+      [cx + r + 3, cy + 3.5],
+      [cx - r - 3 - tw, cy + 3.5],
+      [cx - tw/2, cy - r - 5],
+      [cx - tw/2, cy + r + 12],
+    ];
+    let put = cands[0];
+    for(const c of cands){
+      if(!hits(c[0], c[1] - 9, tw, 12)){ put = c; break; }
+    }
+    ctx.textAlign = 'left'; ctx.fillStyle = '#3A3733';
+    ctx.fillText(p.name, put[0], put[1]);
+    placed.push({x: put[0], y: put[1] - 9, w: tw, h: 12});
+  }
+
+  // 轴标题
+  ctx.fillStyle = '#4A463F'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('首杀对决 / 每 100 回合', L + pw/2, ch - 18);
+  ctx.save(); ctx.translate(18, T + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('首杀成功率', 0, 0); ctx.restore();
+
+  $('caption').textContent =
+    `收队内首杀占比 ≥${MIN_SHARE}% 且参与 ≥${MIN_TRIES} 次首杀对决的选手。`
+    + ` 对决次数 = 拿到的首杀 + 被别人首杀。`;
+}
+
+/* ---------------- 交互 ---------------- */
+function fillEvents(){
+  const sel = $('evSel');
+  sel.innerHTML = S.D.events.map((e, i) =>
+    `<option value="${i}">${S.Z.events[e] || e}</option>`).join('');
+  sel.value = String(state.ev);
+  sel.onchange = () => { state.ev = +sel.value; state.team = -1; fillTeams(); draw(); };
+}
+
+function fillTeams(){
+  const sel = $('teamSel');
+  const pts = build(state.ev);
+  const ids = [...new Set(pts.map(p => p.team))].sort(
+    (a, b) => S.D.teams[a].localeCompare(S.D.teams[b]));
+  sel.innerHTML = `<option value="-1">全部队伍（${ids.length} 支）</option>` +
+    ids.map(t => `<option value="${t}">${S.D.teams[t]}</option>`).join('');
+  sel.value = String(state.team);
+  sel.onchange = () => { state.team = +sel.value; draw(); };
+}
+
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  if(resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(draw, 160);
+});
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  const j = await (await fetch('data/site_v3.json')).json();
+  S.raw = j; S.D = j.dict; S.Z = j.zh; S.M = j.meta;
+  S.players = j.players || [];
+
+  // 默认落到最后一个赛事（上海冠军赛）
+  const ci = S.D.events.indexOf('Champions Shanghai 2026');
+  state.ev = ci >= 0 ? ci : 0;
+
+  $('sub').textContent =
+    `${S.D.events.length} 个赛事 · ${S.M.rounds.toLocaleString('en-US')} 回合 · 数据源 vlr.gg 2D 回放`;
+
+  fillEvents();
+  fillTeams();
+  draw();
+}
+
+boot();
+</script>
+</body>
+</html>
