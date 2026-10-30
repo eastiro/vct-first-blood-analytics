@@ -293,6 +293,34 @@ def main():
     stat = Counter()
     econ_unknown = 0
     game_ids: dict[tuple[int, int], int] = {}
+
+    # 预扫：按 (series, game, team) 从击杀流收集每个选手用过的英雄。
+    # 用于给没有 loadouts 的赛区（中国）补阵容。
+    _seen = defaultdict(lambda: defaultdict(set))   # key -> player -> agents
+    for r in rows:
+        key = (r["series_id"], r["game_id"])
+        for k in r.get("kills") or []:
+            for role in ("killer", "victim"):
+                nm = k.get(role)
+                ag = k.get(f"{role}_agent")
+                tm = k.get(f"{role}_team")
+                if nm and ag and tm:
+                    _seen[key + (tm,)][nm].add(ag.lower())
+    game_comp: dict[tuple[int, int, str], set[str]] = {}
+    for key, _players in _seen.items():
+        if len(_players) < 5:
+            continue
+        # 每个选手取唯一英雄；有多个（跨图/异常）就跳过这支队
+        ags = set()
+        ok = True
+        for nm, agset in _players.items():
+            if len(agset) != 1:
+                ok = False
+                break
+            ags |= agset
+        if ok and len(ags) == 5:
+            game_comp[key] = ags
+
     for r in rows:
         fk = first_kill(r)
         if not fk:
@@ -332,6 +360,18 @@ def main():
             name = TAGMAP.get(tag, tag)
             if len(ags) == 5:
                 comp_by_name[name] = comp_id(ags)
+
+        # 中国赛区没有 loadouts（vlr.gg 不给），但击杀流里每个选手都带英雄。
+        # 一张图内不能换英雄，所以整张图只出现 5 个选手就足以拼出阵容。
+        # 先用本回合 loadouts；缺失时回落到「本场（series+game）该队的击杀流阵容」。
+        if len(comp_by_name) < 2:
+            for name in (t1, t2):
+                if name in comp_by_name:
+                    continue
+                ags = game_comp.get((r["series_id"], r["game_id"], name))
+                if ags and len(ags) == 5:
+                    comp_by_name[name] = comp_id(sorted(ags))
+
         comp_a = comp_by_name.get(kill_name, -1)
         other_name = t1 if kill_name == t2 else t2
         comp_b = comp_by_name.get(other_name, -1)
