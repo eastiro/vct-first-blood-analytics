@@ -222,9 +222,9 @@ def main() -> None:
         check("verdict has no advice paragraphs",
               pg.evaluate("() => document.querySelectorAll('#verdictBody .vtext').length") == 0)
         items = pg.evaluate("""() => [...document.querySelectorAll('#verdictBody .vitem')]
-            .map(x => ({ tag: x.children[1].textContent,
-                         main: x.children[2].children[0].textContent,
-                         cmp: x.children[2].children[1].textContent }))""")
+            .map(x => ({ tag: x.querySelector('.vtag').textContent,
+                         main: x.querySelector('.vmain').textContent,
+                         cmp: x.querySelector('.vcmp').textContent }))""")
         check("every finding carries a baseline", len(items) > 0 and all(
             ("联赛" in o["cmp"] or "基准" in o["cmp"] or "占队内" in o["cmp"]
              or "占 " in o["cmp"]) for o in items), str(items[:2]))
