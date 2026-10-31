@@ -20,7 +20,6 @@
   body{
     margin:0; background:var(--bg); color:var(--fg);
     font-family:var(--sans); font-size:13px; line-height:1.55; letter-spacing:.004em;
-    background-image:radial-gradient(1100px 520px at 10% -12%, rgba(255,70,85,.06), transparent 60%);
   }
   a{color:var(--cyan); text-decoration:none}
   a:hover{text-decoration:underline}
@@ -28,45 +27,46 @@
     padding:16px 26px 13px; border-bottom:1px solid var(--line);
     display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
     justify-content:space-between; position:sticky; top:0; z-index:20;
-    background:rgba(255,255,255,.96); backdrop-filter:blur(10px) saturate(1.1);
+    background:#FFFFFF;
   }
   h1{margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em}
   h1 span{color:var(--red); font-weight:400}
-  .sub{color:var(--dim2); font-size:11.5px; margin-top:3px}
+  .sub{color:var(--dim2); font-size:12px; margin-top:3px}
   .navbtn{
-    background:transparent; border:1px solid var(--line2); color:var(--dim);
-    padding:6px 12px; border-radius:4px; font-size:11.5px; cursor:pointer;
-    font-family:inherit; transition:.12s;
+    background:none; border:0; border-bottom:1px solid var(--line2); color:var(--dim);
+    padding:2px 0; border-radius:0; font-size:12px; font-family:inherit;
+    cursor:pointer; transition:.12s;
   }
-  .navbtn:hover{color:var(--fg); border-color:var(--dim2)}
+  .navbtn:hover{color:var(--fg); border-bottom-color:var(--fg)}
 
   /* 顶部三个页签，与总览页一致 */
   .tabs{display:flex; gap:2px; align-items:flex-end}
   .tab{
-    display:inline-block; padding:7px 14px 8px; font-size:12.5px;
+    display:inline-block; padding:7px 14px 8px; font-size:13px;
     color:var(--dim); text-decoration:none; border-bottom:2px solid transparent;
     white-space:nowrap;
   }
   .tab:hover{color:var(--fg)}
-  .tab.on{color:var(--fg); border-bottom-color:var(--red); font-weight:600}
+  /* 选中态用墨黑不用红：红只留给数据 */
+  .tab.on{color:var(--fg); border-bottom-color:var(--fg); font-weight:600}
 
   main{padding:18px 26px 60px; max-width:1560px; margin:0 auto}
 
   /* controls */
   .controls{
-    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
     padding:14px 16px; margin-bottom:16px;
     display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
   }
   .ctl{display:flex; flex-direction:column; gap:5px; min-width:0}
-  .ctl label{font-size:10.5px; letter-spacing:1px; color:var(--dim); text-transform:uppercase}
+  .ctl label{font-size:10px; letter-spacing:1px; color:var(--dim); text-transform:uppercase}
   select{
     background:var(--panel2); border:1px solid var(--line); color:var(--fg);
-    padding:8px 10px; border-radius:7px; font-size:13.5px; font-family:inherit;
+    padding:8px 10px; border-radius:6px; font-size:13px; font-family:inherit;
     min-width:190px; cursor:pointer;
   }
   select:focus{outline:none; border-color:var(--cyan)}
-  .scope{margin-left:auto; text-align:right; font-size:11.5px; color:var(--dim)}
+  .scope{margin-left:auto; text-align:right; font-size:12px; color:var(--dim)}
   .scope b{color:var(--cyan); font-weight:500}
 
   /* report head */
@@ -81,18 +81,19 @@
          filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))}
   .rlogo[hidden]{display:none}
   .rlogo.plt{background:transparent; padding:0}
-  .rlogo.pltl{background:#2A2925; border-radius:10px; padding:6px}
-  .rhead .team{font-size:27px; font-weight:600; letter-spacing:.5px}
+  .rlogo.pltl{background:#2A2925; border-radius:6px; padding:6px}
+  .rhead .team{font-size:19px; font-weight:600; letter-spacing:.5px}
   .ttag{display:inline-block; vertical-align:6px; margin-left:9px; font-size:10px;
         line-height:16px; padding:0 5px; color:var(--dim);
-        border:1px solid var(--line); border-radius:3px; letter-spacing:.6px}
+        border:1px solid var(--line); border-radius:2px; letter-spacing:.6px}
   .rhead .meta{font-size:12px; color:var(--dim); margin-top:2px}
   .badges{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto}
+  /* 徽章只在真的缺数据时才出现，平时不占位 */
   .badge{
-    font-size:11px; padding:4px 9px; border-radius:20px;
-    background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+    font-size:12px; padding:2px 0; border-radius:0;
+    background:none; border:0; border-bottom:1px solid var(--line); color:var(--dim);
   }
-  .badge.warn{border-color:rgba(251,191,36,.45); color:var(--amber)}
+  .badge.warn{border-bottom-color:var(--amber); color:var(--amber)}
 
   /* verdict */
   .verdict{
@@ -103,24 +104,23 @@
     margin:0 0 12px; font-size:12px; letter-spacing:1.6px; color:var(--red);
     text-transform:uppercase; font-weight:600;
   }
-  .vitem{display:grid; grid-template-columns:16px 74px minmax(0,1fr);
+  .vitem{display:grid; grid-template-columns:74px minmax(0,1fr);
          gap:11px; align-items:baseline; padding:7px 0;
          border-top:1px solid rgba(27,26,23,.07)}
   .vitem:first-of-type{border-top:none; padding-top:2px}
-  .vnum{font-family:var(--mono); font-size:10.5px; color:var(--dim2); text-align:right}
-  .vtag{font-size:10.5px; color:var(--dim); border:1px solid var(--line);
+  .vtag{font-size:10px; color:var(--dim); border:1px solid var(--line);
         border-radius:2px; padding:0 5px; white-space:nowrap; justify-self:start}
   .vbody{display:flex; gap:13px; align-items:baseline; min-width:0; flex-wrap:wrap}
-  .vmain{font-size:13.5px}
+  .vmain{font-size:13px}
   .vbody{flex:1; min-width:0}
-  .vcmp{font-family:var(--mono); font-size:11px; color:var(--dim2);
+  .vcmp{font-family:var(--mono); font-size:12px; color:var(--dim2);
         white-space:nowrap; font-variant-numeric:tabular-nums}
   .vnone{color:var(--dim); font-size:13px}
 
   /* 全部候选（折叠） */
   .candfold{margin-top:14px; border-top:1px solid var(--line); padding-top:11px}
   .candfold summary{
-    cursor:pointer; font-size:11.5px; color:var(--dim); list-style:none;
+    cursor:pointer; font-size:12px; color:var(--dim); list-style:none;
     padding:2px 0; user-select:none;
   }
   .candfold summary::-webkit-details-marker{display:none}
@@ -130,14 +130,13 @@
   .candlist{margin-top:9px; display:grid; gap:5px}
   .canditem{
     display:grid; grid-template-columns:74px minmax(0,1fr) auto;
-    gap:10px; align-items:baseline; font-size:11.5px; padding:5px 8px;
-    border-radius:5px; color:var(--dim);
+    gap:10px; align-items:baseline; font-size:12px; padding:5px 8px;
+    border-radius:4px; color:var(--dim);
   }
   .canditem.on{background:var(--panel2); color:var(--fg)}
-  .canditem .ctag{font-size:10.5px; letter-spacing:.3px; color:var(--dim)}
+  .canditem .ctag{font-size:10px; letter-spacing:.3px; color:var(--dim)}
   .canditem .cmain{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .canditem .ccmp{font-size:10.5px; color:var(--dim2); white-space:nowrap}
-  .candnote{margin-top:8px; font-size:10.5px; color:var(--dim2); line-height:1.6}
+  .canditem .ccmp{font-size:10px; color:var(--dim2); white-space:nowrap}
 
   /* grid */
   .grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
@@ -146,7 +145,7 @@
   /* 窄屏：宽表会把 panel 撑破，让面板自己横向滚，别把整页推出去 */
   @media (max-width:760px){
     .panel{min-width:0; overflow-x:auto}
-    .vitem{grid-template-columns:14px 70px minmax(0,1fr); gap:9px}
+    .vitem{grid-template-columns:70px minmax(0,1fr); gap:9px}
     .vmain{font-size:13px}
   }
 
@@ -154,27 +153,26 @@
   .panel h3{
     margin:0 0 3px; font-size:13px; letter-spacing:.6px; font-weight:500;
   }
-  .panel .note{font-size:11px; color:var(--dim); margin-bottom:12px}
+  .panel .note{font-size:12px; color:var(--dim); margin-bottom:12px}
 
   /* kpi */
   .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px}
-  .kpi{background:var(--panel2); border-radius:8px; padding:10px 12px}
-  .kpi b{display:block; font-size:21px; color:var(--cyan); font-weight:500; line-height:1.25}
+  .kpi{background:var(--panel2); border-radius:6px; padding:10px 12px}
+  .kpi b{display:block; font-size:19px; color:var(--cyan); font-weight:500; line-height:1.25}
   .kpi b.dim2{color:var(--dim)}
-  .kpi i{font-style:normal; font-size:10.5px; color:var(--dim); letter-spacing:.4px}
+  .kpi i{font-style:normal; font-size:10px; color:var(--dim); letter-spacing:.4px}
 
   /* 术语小问号：点开就地显示解释，不另开版面 */
   .kpi{position:relative}
   .termq{cursor:pointer; border-bottom:1px dotted var(--dim); white-space:nowrap}
-  .termq i{font-style:normal; font-size:9px; vertical-align:super;
+  .termq i{font-style:normal; font-size:10px; vertical-align:super;
            color:var(--dim); margin-left:1px; opacity:.75}
   .termq.open{border-bottom-color:var(--red)}
   .termtip{
     display:none; position:absolute; left:8px; right:8px; top:100%;
     margin-top:6px; z-index:40; background:var(--panel); color:var(--fg);
-    border:1px solid var(--line); border-radius:7px; padding:9px 11px;
-    font-size:11.5px; line-height:1.6; font-style:normal; text-align:left;
-    box-shadow:0 6px 18px rgba(0,0,0,.12);
+    border:1px solid var(--line2); border-radius:6px; padding:9px 11px;
+    font-size:12px; line-height:1.6; font-style:normal; text-align:left;
   }
   .termq.open + .termtip{display:block}
   .kpi .cmp{font-size:10px; color:var(--dim); margin-top:2px}
@@ -185,36 +183,35 @@
   .bar{margin-bottom:9px}
   .bar .lab{display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px; gap:10px}
   .bar .lab span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .bar .lab span:last-child{color:var(--dim); flex:0 0 auto; font-variant-numeric:tabular-nums; font-size:11px; white-space:nowrap}
-  .track{height:7px; background:rgba(27,26,23,.09); border-radius:4px; overflow:hidden}
+  .bar .lab span:last-child{color:var(--dim); flex:0 0 auto; font-variant-numeric:tabular-nums; font-size:12px; white-space:nowrap}
   .fill{height:100%; background:var(--red); border-radius:4px}
   .fill.cyan{background:var(--cyan)}
   .fill.gold{background:var(--gold)}
 
   /* comp timeline */
   .clegend{display:flex; flex-direction:column; gap:4px; margin-bottom:13px}
-  .clegend .ci{display:flex; align-items:baseline; gap:7px; font-size:11.5px; line-height:1.4}
+  .clegend .ci{display:flex; align-items:baseline; gap:7px; font-size:12px; line-height:1.4}
   .csw{width:9px; height:9px; border-radius:2px; flex:0 0 auto; transform:translateY(-1px)}
   .cname{flex:1; min-width:0; color:var(--fg)}
-  .cnum{font-family:var(--mono); font-size:10.5px; color:var(--dim); white-space:nowrap;
+  .cnum{font-family:var(--mono); font-size:10px; color:var(--dim); white-space:nowrap;
         font-variant-numeric:tabular-nums}
   .tlrow{display:flex; align-items:center; gap:10px; margin-bottom:6px}
-  .tlrow .k{flex:0 0 150px; font-size:11px; color:var(--dim); white-space:nowrap;
+  .tlrow .k{flex:0 0 150px; font-size:12px; color:var(--dim); white-space:nowrap;
             overflow:hidden; text-overflow:ellipsis}
   .tlbar{flex:1; min-width:0; height:16px; display:flex; border-radius:2px; overflow:hidden;
          background:rgba(27,26,23,.06)}
   .tlbar.nodata{background:repeating-linear-gradient(45deg,rgba(27,26,23,.05) 0 4px,transparent 4px 8px)}
   .tlbar i{height:100%; display:block}
   .tlrow .v{flex:0 0 auto; min-width:84px; text-align:right; font-family:var(--mono);
-            font-size:10.5px; color:var(--dim); font-variant-numeric:tabular-nums}
+            font-size:10px; color:var(--dim); font-variant-numeric:tabular-nums}
   .tlrow .v b{font-weight:500; color:var(--fg)}
   .tlrow .v.mute b{color:var(--dim2)}
 
   /* table */
-  table{width:100%; border-collapse:collapse; font-size:12.5px}
+  table{width:100%; border-collapse:collapse; font-size:13px}
   th{
     text-align:right; padding:6px 8px; color:var(--dim); font-weight:400;
-    font-size:10.5px; letter-spacing:.5px; border-bottom:1px solid var(--line);
+    font-size:10px; letter-spacing:.5px; border-bottom:1px solid var(--line);
     white-space:nowrap;
   }
   th:first-child{text-align:left}
@@ -222,21 +219,20 @@
      font-variant-numeric:tabular-nums}
   td:first-child{text-align:left; font-variant-numeric:normal}
   tbody tr:hover{background:rgba(255,255,255,.03)}
-  .small{font-size:10.5px; color:var(--dim)}
-  .th-in{font-size:10px; color:var(--dim); display:block; font-weight:400}
+  .small{font-size:10px; color:var(--dim)}
 
   /* histogram */
   .hist{display:flex; align-items:flex-end; gap:6px; height:96px; margin:8px 0 4px}
   .hbar{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px}
-  .hbar .b{width:100%; background:var(--cyan); border-radius:3px 3px 0 0; min-height:2px}
-  .hbar .t{font-size:9.5px; color:var(--dim)}
+  .hbar .b{width:100%; background:var(--cyan); border-radius:2px 3px 0 0; min-height:2px}
+  .hbar .t{font-size:10px; color:var(--dim)}
   .hist-x{display:flex; gap:6px}
-  .hist-x div{flex:1; text-align:center; font-size:9.5px; color:var(--dim)}
+  .hist-x div{flex:1; text-align:center; font-size:10px; color:var(--dim)}
 
-  .legend{display:flex; gap:14px; font-size:11px; color:var(--dim); margin-top:8px; flex-wrap:wrap}
+  .legend{display:flex; gap:14px; font-size:12px; color:var(--dim); margin-top:8px; flex-wrap:wrap}
   .legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px}
 
-  footer{padding:20px 26px 40px; color:var(--dim); font-size:11px; border-top:1px solid var(--line); margin-top:20px}
+  footer{padding:20px 26px 40px; color:var(--dim); font-size:12px; border-top:1px solid var(--line); margin-top:20px}
 
   @media print{
     body{background:#fff; color:#111}
@@ -244,32 +240,23 @@
     .panel,.rhead,.verdict{background:#fff; border-color:#ccc; break-inside:avoid}
     .kpi{background:#f4f4f4}
     .kpi b{color:#0b6b7a}
-    .track{background:#e5e5e5}
   }
   /* ---------- design pass v2：与主站同一套视觉语言 ---------- */
-  .eyebrow{
-    font-size:9.5px; font-weight:600; letter-spacing:.18em; color:var(--dim2);
-    text-transform:uppercase; margin-bottom:7px;
-  }
   /* 数字全部等宽，读数时列不会抖 */
-  .kpi b, .tstat b, td.num, .num, .big, .cmp{
+  .kpi b, td.num, .num, .cmp{
     font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.015em;
   }
-  .kpi b{color:var(--fg); font-weight:600; font-size:20px}
-  .kpi{background:#F8F5EF; border:1px solid var(--line); border-radius:5px}
+  .kpi b{color:var(--fg); font-weight:600; font-size:19px}
+  .kpi{background:#F8F5EF; border:1px solid var(--line); border-radius:4px}
   .panel{border-radius:6px; border-color:var(--line)}
   .panel h3{
     display:flex; align-items:center; gap:8px;
     font-size:12px; letter-spacing:.01em; color:var(--fg); font-weight:600;
   }
-  .panel h3::before{
-    content:''; width:3px; height:11px; border-radius:1px; background:var(--red);
-    flex:0 0 auto;
-  }
   .panel h3 .note{display:inline}
   .verdict{border-radius:6px; border-color:var(--line)}
   .note{color:var(--dim2)}
-  .badge{border-radius:4px; border-color:var(--line2); font-size:10.5px}
+  .badge{border-radius:4px; border-color:var(--line2); font-size:10px}
   table th{font-size:10px; letter-spacing:.13em; color:var(--dim2)}
   table td{border-bottom:1px solid rgba(31,45,56,.75)}
   tbody tr:hover{background:rgba(255,255,255,.028)}
@@ -277,9 +264,9 @@
     background:transparent; border:1px solid var(--line2); border-radius:4px;
     color:var(--fg); font-size:12px; padding:6px 10px;
   }
-  .ctl label{font-size:9.5px; letter-spacing:.14em; color:var(--dim2); text-transform:uppercase}
+  .ctl label{font-size:10px; letter-spacing:.14em; color:var(--dim2); text-transform:uppercase}
   .verdict h2{font-size:12px; letter-spacing:.02em}
-  .vitem{border-radius:5px}
+  .vitem{border-radius:4px}
   .toast{position:fixed; left:50%; bottom:28px; transform:translate(-50%, 10px);
     background:var(--fg); color:#fff; padding:9px 16px; border-radius:6px;
     font-size:12px; opacity:0; pointer-events:none; z-index:300;
@@ -341,7 +328,6 @@
   <div class="grid">
     <div class="panel full">
       <h3>核心指标</h3>
-      <div class="note">括号内为与联赛基准的差，仅作方向参考</div>
       <div class="kpis" id="kpis"></div>
     </div>
 
@@ -360,7 +346,6 @@
 
     <div class="panel">
       <h3>攻防分侧</h3>
-      <div class="note">同一批回合，按自己进攻 / 防守拆开</div>
       <table>
         <thead><tr><th>位置</th><th>回合</th><th>胜率</th><th>首杀率</th><th>首杀→胜</th></tr></thead>
         <tbody id="sideRows"></tbody>
@@ -369,7 +354,6 @@
 
     <div class="panel full">
       <h3>谁在开火</h3>
-      <div class="note">拿到首杀的选手，以及占比与所用英雄</div>
       <table>
         <thead><tr>
           <th>选手</th><th>首杀</th><th>占队内</th><th>每 10 回合</th>
@@ -388,7 +372,6 @@
 
     <div class="panel">
       <h3>首杀后能不能赢</h3>
-      <div class="note">只看这个队伍自己拿到首杀的回合</div>
       <div id="tradeBlock"></div>
     </div>
   </div>
@@ -794,7 +777,6 @@ function renderHead(a, t){
   if(econPct < 1) badges.push(['无经济数据', 'warn']);
   else if(econPct < 95) badges.push([`经济覆盖 ${econPct.toFixed(0)}%`, 'warn']);
   if(a.n < 60) badges.push([`样本偏小（${a.n} 回合）`, 'warn']);
-  badges.push([`阵容池 ${S.M.comps} 套`, '']);
   document.getElementById('teamBadges').innerHTML =
     badges.map(([txt, cls]) => `<span class="badge ${cls}">${esc(txt)}</span>`).join('');
 }
@@ -815,7 +797,7 @@ function renderVerdict(a, b, t, ps){
   const rest = all.candidates.filter(o => !shownKeys.has(o.key));
   const fold = `
     <details class="candfold">
-      <summary>全部候选 ${all.candidates.length} 项 · 上面${wideOpen?'已全部列出':'只取前 3'}</summary>
+      <summary>全部候选 ${all.candidates.length} 项</summary>
       <div class="candlist">
         ${all.candidates.map(o => `
           <div class="canditem${shownKeys.has(o.key)?' on':''}">
@@ -824,12 +806,9 @@ function renderVerdict(a, b, t, ps){
             <span class="ccmp">${o.cmp}</span>
           </div>`).join('')}
       </div>
-      <div class="candnote">灰底 = 已在上方展示。候选按类别固定顺序排列（首杀 → 攻防 → 经济 → 描述），
-        同类别内按偏离幅度降序。</div>
     </details>`;
-  box.innerHTML = list.map((o, i) => `
+  box.innerHTML = list.map(o => `
     <div class="vitem">
-      <span class="vnum">${i+1}</span>
       <span class="vtag">${esc(o.tag)}</span>
       <span class="vbody"><span class="vmain">${o.main}</span><span class="vcmp">${o.cmp}</span></span>
     </div>`).join('') + fold;
@@ -854,7 +833,7 @@ function renderKpis(a, b, t){
       cmp += `vs 基准 <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
     }
     if(n != null) cmp += `${cmp?' · ':''}n=${fmt(n)}`;
-    const small = (n != null && n < 40) ? ' <span style="color:#fbbf24">小样本</span>' : '';
+    const small = (n != null && n < 40) ? ' <span style="color:var(--amber)">小样本</span>' : '';
     const tip = TERMS[lab] ? `<span class="termtip">${esc(TERMS[lab])}</span>` : '';
     return `<div class="kpi"><b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b>
       <i>${termBtn(lab)}${tip}</i><div class="cmp">${cmp}${small}</div></div>`;
@@ -976,7 +955,7 @@ function renderPistol(a, b, rows, t){
 
   const cell = (lab, v, sub, warn) => `<div class="kpi">
     <b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b><i>${lab}</i>
-    ${sub?`<div class="cmp">${sub}${warn?' <span style="color:#fbbf24">小样本</span>':''}</div>`:''}</div>`;
+    ${sub?`<div class="cmp">${sub}${warn?' <span style="color:var(--amber)">小样本</span>':''}</div>`:''}</div>`;
   document.getElementById('pistolKpis').innerHTML = [
     cell('手枪局胜率', st.n ? 100*st.won/st.n : null, `${st.won}/${st.n}`),
     cell('进攻手枪', st.atkN ? 100*st.atkWon/st.atkN : null, `${st.atkWon}/${st.atkN}`, st.atkN < 5),
@@ -985,14 +964,15 @@ function renderPistol(a, b, rows, t){
 }
 
 function renderSides(a){
+  // 颜色沿用全站那套：进攻 = 红、防守 = 青，不再用 Valorant 品牌色 #ff4655 / #22d3ee
   const rows = [
-    ['进攻', a.atk, '#ff4655'],
-    ['防守', a.def, '#22d3ee']
+    ['进攻', a.atk, 'var(--red)'],
+    ['防守', a.def, 'var(--cyan)']
   ];
   document.getElementById('sideRows').innerHTML = rows.map(([lab, s, color]) => `
     <tr>
       <td><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${color};margin-right:6px"></span>${lab}</td>
-      <td>${s.n}${s.n<30?'<span style="color:#fbbf24">*</span>':''}</td>
+      <td>${s.n}${s.n<30?'<span style="color:var(--amber)">*</span>':''}</td>
       <td>${s.n?pct(s.won,s.n)+'%':'—'}</td>
       <td>${s.n?pct(s.fbFor,s.n)+'%':'—'}</td>
       <td>${s.fbFor?pct(s.fbWon,s.fbFor)+'%':'—'}</td>
@@ -1043,7 +1023,7 @@ function renderTrade(a, b){
   if(gap == null){ box.innerHTML = '<div class="small">样本不足</div>'; return; }
   const delta = gap - b.tradeGap;
   const small = (a.traded < 25 || a.untraded < 25)
-    ? '<div class="legend" style="color:#fbbf24">样本偏小，差值仅供参考</div>' : '';
+    ? '<div class="legend" style="color:var(--amber)">样本偏小，差值仅供参考</div>' : '';
   box.innerHTML = `
     <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
       <div class="kpi"><b>${tw.toFixed(1)}%</b><i>首杀被补后</i><div class="cmp">n=${a.traded}</div></div>
@@ -1192,11 +1172,8 @@ async function boot(){
 
   document.getElementById('footNote').innerHTML =
     `${raw.meta.rounds.toLocaleString('en-US')} 回合 / ${raw.meta.maps_played} 张地图 / `
-    + `${raw.meta.teams_shown} 支队伍 · 首杀 ${raw.meta.first_bloods.toLocaleString('en-US')} 次 · `
-    + `经济数据覆盖 ${raw.meta.econ_rows.toLocaleString('en-US')} 回合（${(100*raw.meta.econ_rows/raw.meta.first_bloods).toFixed(1)}%）<br>`
-    + `买枪分档按本回合实际持有的长枪数：≤1 把 eco / 2–3 把 半买 / ≥4 把 全买。`
-    + `不用花费是因为留枪会污染它（上回合保下来的 Vandal 记 0 花费）。`
-    + `中国赛区无 2D 回放，因此没有坐标与经济数据。`;
+    + `${raw.meta.teams_shown} 支队伍 · 首杀 ${raw.meta.first_bloods.toLocaleString('en-US')} 次`
+    + ` · 中国赛区无 2D 回放，因此没有坐标与经济数据`;
 
   fillSelects();
   document.getElementById('teamSel').addEventListener('change', e => {
