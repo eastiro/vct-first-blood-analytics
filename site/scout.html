@@ -117,27 +117,6 @@
         white-space:nowrap; font-variant-numeric:tabular-nums}
   .vnone{color:var(--dim); font-size:13px}
 
-  /* 全部候选（折叠） */
-  .candfold{margin-top:14px; border-top:1px solid var(--line); padding-top:11px}
-  .candfold summary{
-    cursor:pointer; font-size:12px; color:var(--dim); list-style:none;
-    padding:2px 0; user-select:none;
-  }
-  .candfold summary::-webkit-details-marker{display:none}
-  .candfold summary::before{content:'▸ '; color:var(--dim)}
-  .candfold[open] summary::before{content:'▾ '}
-  .candfold summary:hover{color:var(--fg)}
-  .candlist{margin-top:9px; display:grid; gap:5px}
-  .canditem{
-    display:grid; grid-template-columns:74px minmax(0,1fr) auto;
-    gap:10px; align-items:baseline; font-size:12px; padding:5px 8px;
-    border-radius:4px; color:var(--dim);
-  }
-  .canditem.on{background:var(--panel2); color:var(--fg)}
-  .canditem .ctag{font-size:10px; letter-spacing:.3px; color:var(--dim)}
-  .canditem .cmain{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .canditem .ccmp{font-size:10px; color:var(--dim2); white-space:nowrap}
-
   /* grid */
   .grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
   .full{grid-column:1 / -1}
@@ -321,7 +300,7 @@
   </div>
 
   <div class="verdict">
-    <h2 id="verdictTitle">可利用倾向 · top 3</h2>
+    <h2 id="verdictTitle">与当前范围的平均对比</h2>
     <div id="verdictBody"></div>
   </div>
 
@@ -447,9 +426,18 @@ function pistolStats(rows, t){
 /* ---------------------------------------------------------------- */
 /* league baselines                                                 */
 /* ---------------------------------------------------------------- */
-function buildBaselines(){
-  const R = S.raw.rounds;
-  const b = {};
+/* 基准必须和筛选范围一致。
+   原来永远拿全样本当基准：切到「日落之城」时，PRX 的日落数据还在跟
+   所有地图的平均比——那是错的对比。
+
+   现在按当前 赛事/地图 重算基准（不含队伍筛选，因为要比的就是「这支队 vs
+   同一范围内所有队」）。scopeKey 用来判断要不要重算，避免每次换队都重跑一遍。 */
+function buildBaselines(ev, map){
+  ev = (ev == null) ? -1 : ev;
+  map = (map == null) ? -1 : map;
+  const R = S.raw.rounds.filter(r =>
+    (ev < 0 || r[0] === ev) && (map < 0 || r[1] === map));
+  const b = {n: 0, ev, map};
 
   let n = 0, atkWin = 0, fbConv = 0, fbN = 0, tradedN = 0, tradedWon = 0, untradedN = 0, untradedWon = 0;
   const econ = { 0:[0,0], 1:[0,0], 2:[0,0] };
@@ -470,15 +458,17 @@ function buildBaselines(){
     }
   }
   b.n = n;
+  if(!n) return b;
   b.atkWin = 100*atkWin/n;
-  b.fbConv = 100*fbConv/fbN;
-  b.tradePct = 100*tradedN/fbN;
-  b.tradedWin = 100*tradedWon/tradedN;
-  b.untradedWin = 100*untradedWon/untradedN;
-  b.tradeGap = b.untradedWin - b.tradedWin;
+  b.fbConv = fbN ? 100*fbConv/fbN : null;
+  b.tradePct = fbN ? 100*tradedN/fbN : null;
+  b.tradedWin = tradedN ? 100*tradedWon/tradedN : null;
+  b.untradedWin = untradedN ? 100*untradedWon/untradedN : null;
+  b.tradeGap = (b.tradedWin != null && b.untradedWin != null)
+    ? b.untradedWin - b.tradedWin : null;
   b.econShare = {}; b.econWin = {};
   for(const k of [0,1,2]){
-    b.econWin[k] = 100*econ[k][1]/econ[k][0];
+    b.econWin[k] = econ[k][0] ? 100*econ[k][1]/econ[k][0] : null;
     b.econShare[k] = 100*econ[k][0]/(econ[0][0]+econ[1][0]+econ[2][0]);
   }
 
@@ -541,10 +531,16 @@ function buildBaselines(){
   b.concAvg = cN ? cSum/cN : null;
   b.concMed = cShares.length ? median(cShares) : null;
 
-  // 联赛首杀中位时刻（倾向面板要拿它当基准）
+  // 同一范围内的首杀中位时刻（倾向面板要拿它当基准）
   const secAll = [];
   for(const r of R) if(r[5] >= 0 && r[8] >= 0) secAll.push(r[8]);
   b.secMed = secAll.length ? median(secAll) : null;
+
+  // 首杀集中度的随机基线：队内 n 人分摊时，「最高的那个」期望占比
+  // 不是 100/n，而是随机多项分布的最大值，取值约在 1.3~1.5 倍 100/n。
+  // precompute 太绕，这里直接记人数，渲染时算。
+  b.scopeLabel = (ev < 0 ? '全部赛事' : S.Z.events[S.D.events[ev]])
+    + ' · ' + (map < 0 ? '全部地图' : S.Z.maps[S.D.maps[map]]);
 
   return b;
 }
@@ -615,115 +611,113 @@ function insights(a, b, t, ps){
   const pp  = d => (d >= 0 ? '+' : '') + d.toFixed(1) + 'pp';
   const push = (sev, tag, main, cmp, key) =>
     out.push({sev: Math.abs(sev), tag, main, cmp, key: key || tag});
+  // 基准标签跟着筛选走，不再写「联赛」
+  const BL = b.scopeLabel || '全部赛事 · 全部地图';
 
   const fbRate  = a.n ? 100*a.fbFor/a.n : null;
   const fbConv  = a.fbFor ? 100*a.fbWon/a.fbFor : null;
   const tradePct= (a.traded + a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null;
   const defWin  = a.def.n ? 100*a.def.won/a.def.n : null;
   const atkWin  = a.atk.n ? 100*a.atk.won/a.atk.n : null;
-  const baseDef = 100 - b.atkWin;
+  const baseDef = b.atkWin != null ? 100 - b.atkWin : null;
   const fullWin = a.econ[2][0] ? 100*a.econ[2][1]/a.econ[2][0] : null;
   const ecoWin  = a.econ[0][0] ? 100*a.econ[0][1]/a.econ[0][0] : null;
   const conc    = b.conc.get(t);
   const secMed  = median(a.secs);
 
-  // ---- 每条只留「发生了什么 + 联赛是多少」，不写该怎么打 ----
-  if(fbConv != null){
+  /* 全部候选都列出来，不设阈值门槛。
+     页面存在的意义是让读者看到差距，不是替他判断哪个差距「够大」——
+     阈值只会把差异藏起来。每条后面都带基准值和差额，大小自己看。 */
+
+  if(fbConv != null && b.fbConv != null){
     const d = fbConv - b.fbConv;
-    if(Math.abs(d) >= 1.5)
-      push(d*2.2, '首杀转化',
-        `拿了首杀后赢下 ${fbConv.toFixed(1)}% 的回合`,
-        `联赛 ${b.fbConv.toFixed(1)}% · ${pp(d)}`);
+    push(d*2.2, '首杀转化',
+      `拿了首杀后赢下 ${fbConv.toFixed(1)}% 的回合`,
+      `${BL} ${b.fbConv.toFixed(1)}% · ${pp(d)}`);
   }
 
-  if(tradePct != null){
+  if(tradePct != null && b.tradePct != null){
     const d = tradePct - b.tradePct;
-    if(Math.abs(d) >= 3)
-      push(d*1.5, '被补率',
-        `首杀被补掉 ${tradePct.toFixed(1)}%`,
-        `联赛 ${b.tradePct.toFixed(1)}% · ${pp(d)}`);
+    push(d*1.5, '被补率',
+      `首杀被补掉 ${tradePct.toFixed(1)}%`,
+      `${BL} ${b.tradePct.toFixed(1)}% · ${pp(d)}`);
   }
 
-  if(defWin != null && Math.abs(defWin - baseDef) >= 5){
+  if(defWin != null && baseDef != null){
     const d = defWin - baseDef;
     push(Math.abs(d)*1.5, '防守端',
       `防守方胜率 ${defWin.toFixed(1)}%`,
-      `联赛 ${baseDef.toFixed(1)}% · ${pp(d)}`);
+      `${BL} ${baseDef.toFixed(1)}% · ${pp(d)}`);
   }
 
-  if(atkWin != null && Math.abs(atkWin - b.atkWin) >= 5){
+  if(atkWin != null && b.atkWin != null){
     const d = atkWin - b.atkWin;
     push(Math.abs(d)*1.4, '进攻端',
       `进攻方胜率 ${atkWin.toFixed(1)}%`,
-      `联赛 ${b.atkWin.toFixed(1)}% · ${pp(d)}`);
+      `${BL} ${b.atkWin.toFixed(1)}% · ${pp(d)}`);
   }
 
-  // 队内平分 = 100 / 实际出场人数。换过人的队伍会是 6 人，平分就低于 20%。
-  if(conc && conc.tot >= 40 && conc.share > 30){
+  // 开火点集中度：跟「队内平分」和「同范围的中位数」两个参照比
+  if(conc && conc.tot >= 40){
     const teamAvg = 100 / Math.max(1, conc.players);
-    push((conc.share - 20)*0.9, '开火点',
+    push(Math.abs(conc.share - teamAvg)*0.9, '开火点',
       `${S.players[conc.pid].n} 拿了 ${conc.top} 次首杀`,
-      `占队内 ${conc.share.toFixed(0)}% · ${conc.players} 人平分 ${teamAvg.toFixed(0)}% · 联盟中位 ${b.concMed ? b.concMed.toFixed(0) : '—'}%`,
+      `占队内 ${conc.share.toFixed(0)}% · ${conc.players} 人平分 ${teamAvg.toFixed(0)}%`
+        + (b.concMed != null ? ` · 同范围中位 ${b.concMed.toFixed(0)}%` : ''),
       'player:' + conc.pid);
   }
 
-  if(fullWin != null && Math.abs(fullWin - b.econWin[2]) >= 5){
+  if(fullWin != null && b.econWin[2] != null){
     const d = fullWin - b.econWin[2];
     push(Math.abs(d)*1.2, '全买局',
       `全买局胜率 ${fullWin.toFixed(1)}%`,
-      `联赛 ${b.econWin[2].toFixed(1)}% · ${pp(d)}`);
+      `${BL} ${b.econWin[2].toFixed(1)}% · ${pp(d)}`);
   }
 
-  if(ecoWin != null && Math.abs(ecoWin - b.econWin[0]) >= 7){
+  if(ecoWin != null && b.econWin[0] != null){
     const d = ecoWin - b.econWin[0];
     push(Math.abs(d)*1.1, 'eco 局',
       `eco 局胜率 ${ecoWin.toFixed(1)}%`,
-      `联赛 ${b.econWin[0].toFixed(1)}% · ${pp(d)}`);
+      `${BL} ${b.econWin[0].toFixed(1)}% · ${pp(d)}`);
   }
 
-  if(secMed != null && b.secMed != null && Math.abs(secMed - b.secMed) >= 2){
+  if(secMed != null && b.secMed != null){
     const d = secMed - b.secMed;
     push(Math.abs(d)*1.2, '开局时机',
       `首杀中位时刻 ${secMed.toFixed(0)} 秒`,
-      `联赛 ${b.secMed.toFixed(0)} 秒 · ${d>=0?'+':''}${d.toFixed(0)} 秒`, 'time');
+      `${BL} ${b.secMed.toFixed(0)} 秒 · ${d>=0?'+':''}${d.toFixed(0)} 秒`, 'time');
   }
 
-  if(fbRate != null && Math.abs(fbRate - 50) >= 3.5){
+  if(fbRate != null){
     const d = fbRate - 50;
     push(Math.abs(d)*1.2, '首杀率',
       `首杀率 ${fbRate.toFixed(1)}%`,
-      `基准 50% · ${pp(d)}`);
+      `对峙基准 50% · ${pp(d)}`);
   }
 
   if(ps && ps.n >= 8){
     const pw = 100*ps.won/ps.n, d = pw - 50;
-    if(Math.abs(d) >= 14)
-      push(Math.abs(d)*0.55, '手枪局',
-        `手枪局 ${ps.won}/${ps.n}（${pw.toFixed(0)}%）`,
-        `基准 50% · ${pp(d)}`);
+    push(Math.abs(d)*0.55, '手枪局',
+      `手枪局 ${ps.won}/${ps.n}（${pw.toFixed(0)}%）`,
+      `对峙基准 50% · ${pp(d)}`);
   }
 
   // 「输掉手枪局后第 2 局的买法」已删除：分档用长枪数，而手枪局后几乎没有长枪，
   // 「硬起 / 强起」恒为 0；而且强起意愿跟当前比分强相关（不想放赛点），
   // 单看买法分不出来是风格还是被迫。
 
-  // 常驻描述：不比较，只报事实
-  if(a.compN){
-    const topCid = [...a.comps.entries()].sort((x,y)=>y[1]-x[1])[0][0];
-    const names = S.raw.comps[topCid].map(i => agentName(i));
-    const n = a.comps.get(topCid);
-    push(0.8, '默认阵容',
-      names.join(' · '),
-      `${n} 回合 · 占 ${(100*n/a.compN).toFixed(0)}%`);
-  }
+  /* 阵容不在这里报。
+     阵容是按地图选的：PRX 最常用的 5 套里有 4 套只出现在单一地图上。
+     在「全部地图」下说「默认阵容占 11%」是把不同地图的阵容混在一起算，
+     那个数字没有意义。阵容完整地放在下面的「阵容 · 按赛事」时间轴里，
+     按赛事（或地图）分开看。 */
 
-  // 类别固定顺序：先首杀本身，再攻防，再经济，最后描述性事实。
-  // 同类内按偏离幅度降序 —— 避免多个指标偏离接近时顺序看起来随机。
+  // 类别固定顺序：先首杀本身，再攻防，再经济，最后对峙基准。
+  // 同类内按偏离幅度降序。
   const CAT_ORDER = {
     '首杀率': 1, '首杀转化': 2, '被补率': 3, '开火点': 4,
     '防守端': 5, '进攻端': 6, '开局时机': 7,
-    '全买局': 8, 'eco 局': 9, '手枪局': 10, '输手枪后': 11,
-    '默认阵容': 13,
+    '全买局': 8, 'eco 局': 9, '手枪局': 10,
   };
   out.sort((x,y) => {
     const cx = CAT_ORDER[x.tag] ?? 99, cy = CAT_ORDER[y.tag] ?? 99;
@@ -731,20 +725,8 @@ function insights(a, b, t, ps){
     return y.sev - x.sev;
   });
 
-  // 选了「全部赛事 + 全部地图」时不再截断，全部列出来
-  const wideOpen = (F.ev < 0 && F.map < 0);
-  const limit = wideOpen ? out.length : 3;
-
-  const picked = [];
-  const usedKeys = new Set();
-  for(const o of out){
-    if(picked.length >= limit) break;
-    if(usedKeys.has(o.key)) continue;
-    usedKeys.add(o.key);
-    picked.push(o);
-  }
-  // 同时把「全部候选」交出去，面板底部折叠展示，让读者看到 top 3 是从哪挑的
-  return {picked, candidates: out, wideOpen};
+  // 不再截断：所有候选一律列出，按偏离幅度排序，读者自己看差距
+  return {picked: out, candidates: out};
 }
 
 /* ---------------------------------------------------------------- */
@@ -786,41 +768,28 @@ function renderVerdict(a, b, t, ps){
   const list = all.picked;
   const box = document.getElementById('verdictBody');
   const title = document.getElementById('verdictTitle');
-  const wideOpen = (F.ev < 0 && F.map < 0);
-  if(title) title.textContent = wideOpen ? '可利用倾向 · 全部赛事与地图' : '可利用倾向 · top 3';
+  // 标题写明对比范围，读者一眼知道这些数和谁比
+  const bl = b.scopeLabel || '全部赛事 · 全部地图';
+  if(title) title.textContent = `对比 ${bl} 的平均`;
   if(!list.length){
-    box.innerHTML = '<div class="vnone">这个范围里没有明显偏离联赛基准的倾向。换一张图或放宽赛事范围再看。</div>';
+    box.innerHTML = '<div class="vnone">这个范围里没有可比的指标。</div>';
     return;
   }
-  // 底部折叠：把全部候选列出来，读者能看到 top 3 是从哪些指标里挑的、其余为什么没入选
-  const shownKeys = new Set(list.map(o => o.key));
-  const rest = all.candidates.filter(o => !shownKeys.has(o.key));
-  const fold = `
-    <details class="candfold">
-      <summary>全部候选 ${all.candidates.length} 项</summary>
-      <div class="candlist">
-        ${all.candidates.map(o => `
-          <div class="canditem${shownKeys.has(o.key)?' on':''}">
-            <span class="ctag">${esc(o.tag)}</span>
-            <span class="cmain">${o.main}</span>
-            <span class="ccmp">${o.cmp}</span>
-          </div>`).join('')}
-      </div>
-    </details>`;
+  // 全部候选直接列出，不再折叠——折叠里放的和上面是同一批，等于打印两遍
   box.innerHTML = list.map(o => `
     <div class="vitem">
       <span class="vtag">${esc(o.tag)}</span>
       <span class="vbody"><span class="vmain">${o.main}</span><span class="vcmp">${o.cmp}</span></span>
-    </div>`).join('') + fold;
+    </div>`).join('');
 }
 
 function renderKpis(a, b, t){
   const items = [
+    // 回合胜率、首杀率、Meta Fit 没有「同范围平均」这一说，用对峙基准（50%）
     ['回合胜率', a.n ? 100*a.won/a.n : null, 50, a.n],
-    ['首杀率', a.n ? 100*a.fbFor/a.n : null, null, a.n],
+    ['首杀率', a.n ? 100*a.fbFor/a.n : null, 50, a.n],
     ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor],
     ['首杀被补率', (a.traded+a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null, b.tradePct, a.traded+a.untraded],
-    // 集中度用「队内平分 20%」当参照，不用「所有队伍的平均」——后者等于拿队比自己
     ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null, 20,
       (b.conc.get(t)||{}).tot],
     ['Meta Fit', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN]
@@ -849,8 +818,11 @@ const TERMS = {
     + '5 个人平分的话每人 20%，换过人的队伍人数更多，平分就更低。',
   'Meta Fit': '阵容里有多少个属于该图的版本英雄（每图全球选取率前 7）。'
     + '衡量这支队伍跟不跟版本，不衡量强弱。',
-  '首杀率': '本队拿到首杀的回合占它总回合的比例。反映打法激进还是保守，不反映强弱。',
-  '首杀→胜': '拿到首杀的回合里，最后赢下来的比例。全样本基准是 71%，不是 50%。',
+  '首杀率': '本队拿到首杀的回合占它总回合的比例。反映打法激进还是保守，不反映强弱。'
+    + '基准取 50%——每个回合总有一方拿到首杀，两支队伍的平均必然是 50%。',
+  '首杀→胜': '拿到首杀的回合里，最后赢下来的比例。'
+    + '对比对象是当前筛选范围（同一赛事 / 同一地图）的平均。'
+    + '全部赛事 + 全部地图时是 71%，不是 50%。',
 };
 
 function termBtn(lab){
@@ -877,9 +849,17 @@ function compName(cid){ return S.raw.comps[cid].map(agentName).join(' · '); }
 function evShort(i){ return S.Z.events[S.D.events[i]] || S.D.events[i]; }
 
 function renderComps(a, rows, t){
-  const dim = (F.ev >= 0) ? 'map' : 'ev';
-  const keyOf = r => (dim === 'ev') ? r[0] : r[1];
+  /* 阵容永远按地图看。
+     原因：阵容就是按地图选的——PRX 最常用的 5 套里 4 套只出现在单一地图上。
+     把不同地图的阵容混在一起算「默认阵容占比」，那个数字没有意义。
 
+     维度规则：
+       锁定一张图          → 只有一行，直接列
+       锁定赛事、未锁图    → 按地图拆（这才是能比的东西）
+       都没锁              → 按地图拆，全季合计
+     赛事维度仍然保留在右侧的胜率列里，只是不再拿它当阵容的分组。 */
+  const dim = 'map';
+  const keyOf = r => r[1];
   const groups = new Map();
   for(const r of rows){
     const k = keyOf(r);
@@ -889,19 +869,16 @@ function renderComps(a, rows, t){
     const mc = myCompOf(r, t);
     if(mc >= 0){ g.comps.set(mc, (g.comps.get(mc)||0)+1); g.compN++; }
   }
-  const keys = [...groups.keys()].sort((x,y) =>
-    dim === 'ev' ? x - y : groups.get(y).n - groups.get(x).n);
+  const keys = [...groups.keys()].sort((x,y) => groups.get(y).n - groups.get(x).n);
 
   const NTOP = COMP_COLORS.length;
   const top = [...a.comps.entries()].sort((x,y)=>y[1]-x[1]).slice(0, NTOP);
   const colorOf = new Map(top.map(([cid], i) => [cid, COMP_COLORS[i]]));
 
-  document.getElementById('compTitle').textContent =
-    dim === 'ev' ? '阵容 · 按赛事' : '阵容 · 按地图';
+  document.getElementById('compTitle').textContent = '阵容 · 按地图';
   document.getElementById('compNote').innerHTML = a.compN
-    ? (dim === 'ev'
-        ? `每行一个赛事，按时间从上到下。色块宽度 = 这套阵容在该赛事里的份额，灰 = 没进前 6 的其余阵容。悬停看阵容与占比。数据只到赛事粒度，没有补丁日期。`
-        : `已锁定单个赛事，改为按地图拆。色块宽度 = 这套阵容在这张图上的份额，灰 = 没进前 6 的其余阵容。`)
+    ? `每行一张图，按该队在这张图上的回合数排序。色块宽度 = 这套阵容在这张图上的份额，灰 = 没进前 6 的其余阵容。悬停看阵容与占比。`
+      + `阵容本来就是按地图选的，跨地图合并没有意义。`
     : '这个范围没有阵容数据（中国赛区不提供）';
 
   const otherN = a.compN - top.reduce((s, x) => s + x[1], 0);
@@ -919,13 +896,13 @@ function renderComps(a, rows, t){
 
   document.getElementById('compList').innerHTML = keys.map(k => {
     const g = groups.get(k);
-    const label = dim === 'ev' ? evShort(k) : (S.Z.maps[S.D.maps[k]] || S.D.maps[k]);
+    const label = S.Z.maps[S.D.maps[k]] || S.D.maps[k];
     const wr = g.n ? 100*g.won/g.n : null;
     const thin = g.n < 20;
 
     let bar;
     if(!g.compN){
-      bar = `<div class="tlbar nodata" title="这个${dim==='ev'?'赛事':'地图'}没有阵容数据（中国赛区不提供）"></div>`;
+      bar = `<div class="tlbar nodata" title="这张图没有阵容数据（中国赛区不提供）"></div>`;
     }else{
       const segs = [];
       let otherN = 0, otherC = 0;
@@ -950,7 +927,7 @@ function renderPistol(a, b, rows, t){
   const st = pistolStats(rows, t);
   const note = document.getElementById('pistolNote');
   note.textContent = st.n
-    ? `${st.n} 个手枪局（每张图 2 个）· 联赛进攻方拿手枪 50.0%`
+    ? `${st.n} 个手枪局（每张图 2 个）· 进攻方拿手枪的基准 50.0%`
     : '这个范围没有手枪局数据';
 
   const cell = (lab, v, sub, warn) => `<div class="kpi">
@@ -1021,18 +998,19 @@ function renderTrade(a, b){
   const gap = (tw!=null && uw!=null) ? uw-tw : null;
   const box = document.getElementById('tradeBlock');
   if(gap == null){ box.innerHTML = '<div class="small">样本不足</div>'; return; }
-  const delta = gap - b.tradeGap;
+  const delta = (b.tradeGap != null) ? gap - b.tradeGap : null;
   const small = (a.traded < 25 || a.untraded < 25)
     ? '<div class="legend" style="color:var(--amber)">样本偏小，差值仅供参考</div>' : '';
+  const bl = b.scopeLabel || '全部赛事 · 全部地图';
   box.innerHTML = `
     <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
       <div class="kpi"><b>${tw.toFixed(1)}%</b><i>首杀被补后</i><div class="cmp">n=${a.traded}</div></div>
       <div class="kpi"><b>${uw.toFixed(1)}%</b><i>首杀没被补</i><div class="cmp">n=${a.untraded}</div></div>
       <div class="kpi"><b>${gap.toFixed(1)}</b><i>差值 pp</i>
-        <div class="cmp">基准 ${b.tradeGap.toFixed(1)} · <span class="${delta>=0?'up':'dn'}">${delta>=0?'+':''}${delta.toFixed(1)}</span></div></div>
+        <div class="cmp">${delta==null?'—':`vs ${b.tradeGap.toFixed(1)} · <span class="${delta>=0?'up':'dn'}">${delta>=0?'+':''}${delta.toFixed(1)}</span>`}</div></div>
     </div>
     <div class="legend">
-      <span>联赛：被补 ${b.tradedWin.toFixed(1)}% vs 没被补 ${b.untradedWin.toFixed(1)}%，差 ${b.tradeGap.toFixed(1)}pp</span>
+      <span>${bl}：被补 ${b.tradedWin!=null?b.tradedWin.toFixed(1):'—'}% vs 没被补 ${b.untradedWin!=null?b.untradedWin.toFixed(1):'—'}%，差 ${b.tradeGap!=null?b.tradeGap.toFixed(1):'—'}pp</span>
     </div>${small}`;
 }
 
@@ -1147,6 +1125,13 @@ function recompute(){
     return true;
   });
   const a = aggregate(view, t);
+
+  // 基准只在 赛事/地图 变化时重算（换队伍不影响基准，因为基准不含队伍筛选）
+  const key = `${F.ev}|${F.map}`;
+  if(S.baseKey !== key){
+    S.base = buildBaselines(F.ev, F.map);
+    S.baseKey = key;
+  }
   const b = S.base;
   const ps = pistolStats(view, t);
 
@@ -1168,7 +1153,8 @@ async function boot(){
   const raw = await (await fetch('data/site_v5.json')).json();
   S.raw = raw; S.D = raw.dict; S.Z = raw.zh; S.M = raw.meta;
   S.players = raw.players; S.TM = raw.teamMeta || null;
-  S.base = buildBaselines();
+  S.base = buildBaselines(-1, -1);
+  S.baseKey = '-1|-1';
 
   document.getElementById('footNote').innerHTML =
     `${raw.meta.rounds.toLocaleString('en-US')} 回合 / ${raw.meta.maps_played} 张地图 / `
