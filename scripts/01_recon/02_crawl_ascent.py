@@ -21,7 +21,7 @@ os.environ["no_proxy"] = "localhost,127.0.0.1"
 import vlrdevapi as v  # noqa: E402
 from vlrdevapi._series.replay.models import ReplayEventType  # noqa: E402
 
-BASE = Path(r"D:\好玩的项目\valorant-analytics")
+BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
 MANIFEST = BASE / "_cache" / "ascent_manifest.json"
 OUTDIR = BASE / "data"
 OUTDIR.mkdir(parents=True, exist_ok=True)

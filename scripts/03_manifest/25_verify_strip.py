@@ -25,7 +25,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import httpx  # noqa: E402
 from selectolax.lexbor import LexborHTMLParser  # noqa: E402
 
-BASE = Path(r"D:\好玩的项目\valorant-analytics")
+BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
 MANIFEST = BASE / "_cache" / "manifest.json"
 
 HEADERS = {

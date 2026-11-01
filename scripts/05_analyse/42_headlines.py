@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-BASE = Path(r"D:\好玩的项目\valorant-analytics")
+BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
 A = json.loads((BASE / "data" / "analysis.json").read_text(encoding="utf-8"))
 
 m = A["meta"]

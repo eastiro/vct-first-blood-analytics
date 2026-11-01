@@ -14,7 +14,7 @@ import httpx
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-BASE = Path(r"D:\好玩的项目\valorant-analytics")
+BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
 MANIFEST = BASE / "_cache" / "manifest.json"
 OUTDIR = BASE / "maps"
 OUTDIR.mkdir(parents=True, exist_ok=True)
