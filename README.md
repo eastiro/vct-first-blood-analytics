@@ -7,64 +7,99 @@
 
 ---
 
-## 站点
+## 跑起来
 
-纯静态，无框架无构建。字体已自托管，不依赖 CDN。
-
-```
-site/
-  index.html      总览   首杀位置、英雄、武器、队伍与赛事对比
-  scout.html      队伍简报  单队的赛前对手准备
-  duel.html       选手对比  谁参与首杀对决多、谁赢得多
-  data/           site_v3.json / site_v5.json（站点直接读这两个）
-  maps/           12 张地图的俯视底图
-  fonts/          Inter + JetBrains Mono（woff2 子集）
-```
-
-本地起服务：
+站点是纯静态的，无框架、无构建、无 CDN 依赖（字体已自托管）。
 
 ```bash
-cd site && python -m http.server 8777 --bind 127.0.0.1
-# http://127.0.0.1:8777/
+cd site
+python -m http.server 8777 --bind 127.0.0.1
+# 打开 http://127.0.0.1:8777/
+```
+
+三个页面：
+
+| 页面 | 文件 | 内容 |
+|---|---|---|
+| **总览** | `site/index.html` | 首杀位置分布、英雄与武器、队伍与赛事对比 |
+| **队伍简报** | `site/scout.html` | 单队的赛前对手准备报告，可导出 PDF |
+| **选手对比** | `site/duel.html` | 谁参与首杀对决多、谁赢得多 |
+
+页面直接读 `site/data/site_v3.json` 与 `site/data/site_v5.json`（共 3.9 MB），
+不需要任何后端。
+
+---
+
+## 目录
+
+```
+site/               静态站点（直接部署这个目录）
+  data/             站点读的数据（派生结果）
+  fonts/ maps/ logos/
+
+data/               分析用的数据
+  site_v3.json      站点主数据
+  site_v5.json      站点数据（含阵容）
+  analysis.json     汇总指标
+
+scripts/            全部脚本，按流水线阶段分目录
+  01_recon/         最早的爬虫原型（只针对 Ascent）
+  02_probe/         摸清 vlr.gg 回放结构
+  03_manifest/      抓取清单与中文化
+  04_crawl/         正式抓取
+  05_analyse/       补枪、经济、分侧等分析
+  06_site/          建站与 UI 测试
+  07_study/         深入检验（补枪敏感度、Meta Fit）
+  08_pipeline/      现役管线 + 回归测试
+
+docs/               结论、设计、交接文档
+figures/            图表与截图
+  charts/ maps/ site/ reference/ history/ deslop/
+
+maps/               12 张地图的俯视底图
 ```
 
 ---
 
-## 数据从哪来
+## 重新生成数据
 
-vlr.gg 每场比赛页面提供 2D 回放，里面有逐帧的坐标、击杀、经济与回合事件。
-`30_crawl.py` 把它们抓成本地 jsonl，再由 `90_site_data_v3.py` / `93_site_data_v5.py`
-压成站点用的紧凑整数二维数组。
-
-**原始抓取数据不在仓库里**（`data/rounds*.jsonl` 共 220.8 MB，超过 GitHub 单文件
-100 MB 上限）。需要的话重新跑：
+原始抓取数据（`data/rounds*.jsonl`，220 MB）不在仓库里——超过 GitHub 单文件
+100 MB 上限。需要的话重新跑：
 
 ```bash
-python 30_crawl.py          # 从 vlr.gg 重抓
-python 90_site_data_v3.py   # 重新生成 site_v3.json
-python 93_site_data_v5.py   # 重新生成 site_v5.json
+python scripts/04_crawl/30_crawl.py            # 从 vlr.gg 重抓
+python scripts/08_pipeline/90_site_data_v3.py  # 生成 site_v3.json
+python scripts/08_pipeline/93_site_data_v5.py  # 生成 site_v5.json
 ```
 
-仓库里的 `data/site_v3.json` 与 `data/site_v5.json` 是**派生结果**，站点运行只需要它们。
-
-### 中国赛区没有坐标
-
-vlr.gg 上 VCT 中国赛区（第一 / 第二赛段）的比赛页面写着
-“No 2D replay available for this match”，没有提供回放数据。
-所以中国赛区有击杀、英雄、武器、时间、补枪数据，**没有位置坐标与经济数据**，
-不出现在地图打点上。这不是抓取失败——同在上海办的全球冠军赛 2026 就有完整回放。
+脚本用绝对路径常量定位仓库根目录，与当前工作目录无关，在任何位置都能运行。
 
 ---
 
-## 几个定义
+## 测试
+
+```bash
+python scripts/08_pipeline/91_verify_metrics.py    # 12 项
+python scripts/08_pipeline/92_verify_champions.py  # 17 项
+python scripts/06_site/65_ui_regress.py            # 39 项
+python scripts/08_pipeline/94_verify_scout.py      # 46 项
+```
+
+共 114 项断言，用 Playwright 打开真实页面，把每个数字和离线重算的结果逐项比对。
+
+---
+
+## 几个关键定义
 
 | 术语 | 定义 |
 |---|---|
-| 首杀 (First Blood) | 一个回合里的第一次击杀 |
-| 补枪 (Trade) | 首杀发生后 **5 秒内**，死者的队友击杀首杀者 |
-| 首杀→胜 | 拿到首杀的一方最后赢下该回合的比例（全样本基准 **71.0%**） |
-| 首杀对决 | 一对一的开局交手；输的那方也是一次尝试 |
+| 首杀 | 一个回合里的第一次击杀 |
+| 补枪 | 首杀发生后 **5 秒内**，死者的队友击杀首杀者 |
+| 首杀→胜 | 拿到首杀的一方赢下该回合的比例（全季 **71.0%**） |
 | Meta Fit | 阵容 5 个英雄里有几个是该图全球选取率前 7 的版本英雄 |
+
+**基准口径**：一律用**回合加权平均**——把当前筛选范围内的所有回合放在一起算一个率。
+同一赛事、同一地图各自对应各自的平均，不拿全季平均去比单张图。
 
 ---
 
@@ -82,19 +117,12 @@ vlr.gg 上 VCT 中国赛区（第一 / 第二赛段）的比赛页面写着
 
 ---
 
-## 指标的可信度
+## 中国赛区缺坐标
 
-同一支队在一季里，哪些指标是真的「打法指纹」，哪些只是噪音？
-用同队回合随机拆两半重算、以及跨赛段（第一 → 第二赛段）求相关：
-
-| 指标 | 跨赛段 r | 读法 |
-|---|---|---|
-| 狙击首杀占比 | **0.81** | 最稳，几乎不受版本和运气影响 |
-| 丢首杀→胜 | 0.27 | 弱稳定 |
-| 首杀率 | 0.16 | 基本是噪音 |
-| 首杀→胜 | **−0.12** | 不存在跨赛段一致性 |
-
-结论写在 [`CONCLUSIONS.md`](CONCLUSIONS.md)。
+vlr.gg 上 VCT 中国赛区（第一 / 第二赛段）的比赛页面写着
+“No 2D replay available for this match”，没有提供回放数据。
+所以中国赛区有击杀、英雄、武器、时间、补枪数据，**没有位置坐标与经济数据**，
+不出现在地图打点上。这不是抓取失败——同在上海办的全球冠军赛 2026 就有完整回放。
 
 ---
 
@@ -102,32 +130,14 @@ vlr.gg 上 VCT 中国赛区（第一 / 第二赛段）的比赛页面写着
 
 | 文件 | 内容 |
 |---|---|
-| [`CONCLUSIONS.md`](CONCLUSIONS.md) | 全季结论，以及这些榜单有多少可信 |
-| [`RESULTS.md`](RESULTS.md) | 分赛事的基准数字 |
-| [`DESIGN.md`](DESIGN.md) | 视觉决策与去模板化规则（含参考站实测色值） |
-| [`AUDIT.md`](AUDIT.md) | 数据口径自查 |
-| [`TEAMS.md`](TEAMS.md) | 队伍名单与缩写 |
-
----
-
-## 脚本
-
-编号即顺序，从抓取到验证：
-
-- `01–29` 早期探测：确认 vlr.gg 的回放结构、坐标映射、中英文对照
-- `30–39` 抓取：`30_crawl.py` 主抓取，`31b_crawl_champions.py` 冠军赛补充
-- `40–59` 分析：补枪、经济、分侧、配图
-- `60–70` 建站：`60_site_data.py` 及其验证
-- `80–89` 进阶检验：补枪敏感度、Meta Fit、英雄标签
-- `90–99` 现役管线：`90/93` 生成站点数据，`91/92/94` 与 `65` 是回归测试
-  （共 114 项断言，全部通过）
-
-```bash
-python 91_verify_metrics.py    # 12 项
-python 92_verify_champions.py  # 17 项
-python 65_ui_regress.py        # 39 项
-python 94_verify_scout.py      # 46 项
-```
+| [CONCLUSIONS.md](docs/CONCLUSIONS.md) | 全季结论，以及这些榜单有多少可信 |
+| [RESULTS.md](docs/RESULTS.md) | 分赛事的基准数字 |
+| [AUDIT.md](docs/AUDIT.md) | 数据口径自查 |
+| [TEAMS.md](docs/TEAMS.md) | 队伍名单与缩写 |
+| [DESIGN.md](docs/DESIGN.md) | 视觉决策与去模板化规则 |
+| [DESIGN-REFS.html](docs/DESIGN-REFS.html) | 参考站截图逐条对照（独立页面） |
+| [HANDOFF.md](docs/HANDOFF.md) | 交接说明 |
+| [PORTFOLIO.md](docs/PORTFOLIO.md) | 项目说明 |
 
 ---
 
