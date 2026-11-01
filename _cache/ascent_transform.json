@@ -1,7 +1,0 @@
-{
-  "a_x": 0.07674772036474165,
-  "b_x": 405.2135258358663,
-  "a_y": 0.08667687595712098,
-  "b_y": 911.666156202144,
-  "note": "affine fit from valorant-api world coordinates to the 1024 icon"
-}

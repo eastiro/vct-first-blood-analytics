@@ -8,8 +8,11 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# 原始抓取数据：221 MB，超过 GitHub 单文件 100 MB 上限，不进仓库。
-# 用 30_crawl.py 从 vlr.gg 重新抓取即可；站点运行只需要
-# data/site_v3.json 与 data/site_v5.json（派生结果，已入库）。
+# 抓取中间产物：可重新生成，体积大，不入库
+_cache/
+scripts/_scratch/
+
+# 原始抓取数据：220 MB，超过 GitHub 单文件 100 MB 上限，不进仓库。
+# 用 scripts/04_crawl/30_crawl.py 从 vlr.gg 重抓即可；
+# 站点运行只需要 data/site_v3.json 与 data/site_v5.json（派生结果，已入库）。
 data/rounds*.jsonl
-data/ascent_rounds.jsonl
