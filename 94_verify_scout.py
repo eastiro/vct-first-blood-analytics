@@ -60,13 +60,17 @@ def offline(team: str, map_name: str | None, event: str | None = None) -> dict:
 
 
 def offline_tl(team: str) -> dict:
-    """Per-event (n, won, compN) straight from the raw rows."""
+    """Per-map (n, won, compN) straight from the raw rows.
+
+    阵容时间轴现在固定按地图分组：阵容是按地图选的，把不同地图的阵容
+    混在一起算份额没有意义（PRX 最常用的 5 套里 4 套只出现在单一地图上）。
+    """
     t = D["teams"].index(team)
     out = defaultdict(lambda: [0, 0, 0])
     for r in R:
         if r[2] != t and r[3] != t:
             continue
-        g = out[r[0]]
+        g = out[r[1]]
         g[0] += 1
         if r[4] == t:
             g[1] += 1
@@ -226,7 +230,7 @@ def main() -> None:
                          main: x.querySelector('.vmain').textContent,
                          cmp: x.querySelector('.vcmp').textContent }))""")
         check("every finding carries a baseline", len(items) > 0 and all(
-            ("联赛" in o["cmp"] or "基准" in o["cmp"] or "占队内" in o["cmp"]
+            ("赛事" in o["cmp"] or "基准" in o["cmp"] or "占队内" in o["cmp"]
              or "占 " in o["cmp"]) for o in items), str(items[:2]))
         check("findings do not contain coaching verbs",
               not any(w in (o["main"] + o["cmp"]) for o in items
@@ -283,15 +287,17 @@ def main() -> None:
                 nodata: e.querySelector('.tlbar').classList.contains('nodata')
             }))""")
             exp = offline_tl(team)
-            check(f"[{team}] timeline has one row per event",
+            check(f"[{team}] timeline has one row per map",
                   len(rows) == len(exp), f"page={len(rows)} offline={len(exp)}")
 
             bad = []
-            for row, (ev, (n, won, cn)) in zip(rows, sorted(exp.items())):
+            # 行按回合数降序排，offline 也按同样顺序对齐后再逐行核对
+            ordered = sorted(exp.items(), key=lambda kv: -kv[1][0])
+            for row, (mp, (n, won, cn)) in zip(rows, ordered):
                 if f"{100*won/n:.1f}%" not in row["v"] or f"{n:,}" not in row["v"]:
-                    bad.append(f"ev{ev} page='{row['v']}' want {100*won/n:.1f}%/{n:,}")
+                    bad.append(f"map{mp} page='{row['v']}' want {100*won/n:.1f}%/{n:,}")
                 if cn == 0 and not row["nodata"]:
-                    bad.append(f"ev{ev} should be marked no-data")
+                    bad.append(f"map{mp} should be marked no-data")
             check(f"[{team}] timeline n / win rate match offline", not bad, str(bad[:2]))
 
             sums = [abs(sum(float(w.rstrip('%')) for w in r["segs"]) - 100)
@@ -325,11 +331,12 @@ def main() -> None:
           F.ev = +ev.value; fillScopeSelects(); recompute();
         }""")
         pg.wait_for_timeout(450)
-        check("locking one event flips the timeline to maps",
+        check("timeline is always grouped by map",
               pg.text_content("#compTitle").strip() == "阵容 · 按地图",
               pg.text_content("#compTitle"))
         nmap = pg.eval_on_selector_all("#compList .tlrow", "e => e.length")
-        check("timeline rows become maps", 1 <= nmap <= len(D["maps"]), f"rows={nmap}")
+        check("locking one event narrows the map rows",
+              1 <= nmap <= len(D["maps"]), f"rows={nmap}")
 
         check("no js errors", not errs, str(errs[:2]))
 
