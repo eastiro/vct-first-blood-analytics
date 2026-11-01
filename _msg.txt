@@ -1,0 +1,13 @@
+chore: 仓库改名 valorant-analytics -> vct-first-blood-analytics
+
+原名太宽泛（valorant + analytics 什么都能装）。新名字点明范围：
+VCT / 首杀 / 分析。
+
+同步改了 59 个 tracked 文件里的绝对路径常量（脚本用
+BASE = Path("D:/好玩的项目/...") 定位仓库根，改文件夹名必须一起改），
+外加 25 个 _scratch 脚本。
+
+验证：
+- 服务器从新目录重启，三页均 200
+- 91/92/65/94: 12/17/39/46 passed, 0 failed
+- remote.origin.url 指向新仓库

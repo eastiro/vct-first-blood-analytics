@@ -29,7 +29,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import vlrdevapi as v  # noqa: E402
 
-BASE = Path(r"D:\好玩的项目\valorant-analytics")
+BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
 OUT = BASE / "_cache" / "manifest_2026_add.json"
 
 EVENTS: list[tuple[int, str, str]] = [

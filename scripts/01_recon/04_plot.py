@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Circle
 
-BASE = Path(r"D:\好玩的项目\valorant-analytics")
+BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
 FB = BASE / "data" / "ascent_first_bloods.json"
 MAPIMG = BASE / "_cache" / "maps" / "ascent_minimap.png"
 OUTDIR = BASE / "figures"

@@ -16,7 +16,7 @@ os.environ["no_proxy"] = "localhost,127.0.0.1"
 import vlrdevapi as v  # noqa: E402
 
 EVENT_ID = 2766
-OUT = Path(r"D:\好玩的项目\valorant-analytics\_cache\ascent_manifest.json")
+OUT = Path(r"D:\好玩的项目\vct-first-blood-analytics\_cache\ascent_manifest.json")
 TARGET_MAP = "Ascent"
 
 

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-OUT = Path(r"D:\好玩的项目\valorant-analytics\figures\_ref")
+OUT = Path(r"D:\好玩的项目\vct-first-blood-analytics\figures\_ref")
 OUT.mkdir(parents=True, exist_ok=True)
 
 SITES = [
