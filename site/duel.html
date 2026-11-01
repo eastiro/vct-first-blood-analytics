@@ -57,6 +57,25 @@
   .duelwrap{position:relative; width:100%; overflow:hidden}
   #duelCanvas{display:block; max-width:100%}
 
+  /* 点大小图例：直接用当前数据里的真实直径画，不是示意图 */
+  .dotlegend{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    margin-top:2px; padding-top:12px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--dim);
+  }
+  .dotlegend .lg-cap{color:var(--dim2)}
+  .dotlegend .lg-items{display:flex; align-items:flex-end; gap:16px}
+  .dotlegend .lg-i{display:flex; align-items:center; gap:6px}
+  .dotlegend .lg-dot{
+    display:inline-block; border-radius:50%; background:#DE3B49; opacity:.78;
+    flex:0 0 auto;
+  }
+  .dotlegend .lg-n{
+    font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;
+    font-variant-numeric:tabular-nums; color:var(--fg);
+  }
+  .dotlegend .lg-u{color:var(--dim2)}
+
   .note{margin-top:10px; font-size:12px; color:var(--dim2); line-height:1.6}
 
   @media (max-width:760px){
@@ -66,6 +85,10 @@
     .bar{padding:11px 12px; gap:10px}
     select{min-width:0; width:100%}
     .hint{margin-left:0; width:100%}
+    .dotlegend{gap:10px}
+    .dotlegend .lg-items{gap:12px}
+    /* 图例的点按真实直径画，窄屏放不下时按 0.8 缩一档但保持三档比例 */
+    .dotlegend .lg-dot{transform:scale(.8)}
   }
 </style>
 </head>
@@ -87,7 +110,6 @@
   <div class="bar">
     <label>赛事</label>
     <select id="evSel"></select>
-    <select id="teamSel" title="只看一支队"></select>
     <span class="hint" id="scope"></span>
   </div>
 
@@ -98,6 +120,7 @@
     <div class="duelwrap">
       <canvas id="duelCanvas" width="1200" height="760"></canvas>
     </div>
+    <div class="dotlegend" id="dotLegend"></div>
     <div class="note" id="caption"></div>
   </div>
 </main>
@@ -124,7 +147,7 @@ const MIN_SHARE = 25;      // 且队内首杀占比至少这么高
 const DOT_COLOR = '#DE3B49';
 
 let S = { raw: null, D: null, Z: null, M: null, agents: {} };
-let state = { ev: 0, team: -1 };
+let state = { ev: 0 };
 
 const $ = id => document.getElementById(id);
 
@@ -194,6 +217,36 @@ function median(a){
   return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
 }
 
+/* 点半径只表示样本量（参与过的首杀对决次数 n）。
+   用 sqrt 缩面积而不是缩直径：面积正比于 n，读者对「面积大 = 数量多」的直觉才成立。
+   最小 4px 保证 n 很小的点也看得见，最大 10px 不让大点盖住邻居。 */
+const R_MIN = 4, R_MAX = 10;
+const radiusOf = (n, maxN) => R_MIN + (R_MAX - R_MIN) * Math.sqrt(n / maxN);
+
+/* 图例：从当前这一屏的真实数据里挑几档 n 画出来，尺寸和图上完全一致 */
+function renderDotLegend(pts, maxN){
+  const box = $('dotLegend');
+  if(!pts || pts.length < 2){ box.innerHTML = ''; return; }
+
+  const ns = pts.map(p => p.n).sort((a,b) => a - b);
+  const picks = [];
+  for(const f of [0, 0.5, 1]){
+    const v = ns[Math.round(f * (ns.length - 1))];
+    if(!picks.includes(v)) picks.push(v);
+  }
+
+  const items = picks.map(n => {
+    const d = Math.round(2 * radiusOf(n, maxN));
+    return `<span class="lg-i">
+        <i class="lg-dot" style="width:${d}px;height:${d}px"></i>
+        <span class="lg-n">${n}</span>
+      </span>`;
+  }).join('');
+
+  box.innerHTML = `<span class="lg-cap">点的大小<span class="lg-u"> = 参与过的首杀对决次数</span></span>
+    <span class="lg-items">${items}<span class="lg-u">次</span></span>`;
+}
+
 function draw(){
   const cv = $('duelCanvas');
   const holder = cv.parentElement;
@@ -214,16 +267,15 @@ function draw(){
   const evName = S.Z.events[S.D.events[state.ev]] || S.D.events[state.ev];
 
   let pts = build(state.ev);
-  if(state.team >= 0) pts = pts.filter(p => p.team === state.team);
 
-  const scope = state.team >= 0 ? S.D.teams[state.team] : '全部队伍';
-  $('scope').textContent = `${evName} · ${scope} · ${pts.length} 人`;
+  $('scope').textContent = `${evName} · 全部队伍 · ${pts.length} 人`;
 
   if(pts.length < 2){
     ctx.fillStyle = '#8B8780';
     ctx.font = '13px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText('这个范围进入筛选的选手不足 2 人', cw/2, ch/2);
+    ctx.fillText('这个赛事进入筛选的选手不足 2 人', cw/2, ch/2);
     $('caption').textContent = '';
+    renderDotLegend([], 1);
     chartPts = [];
     return;
   }
@@ -273,10 +325,10 @@ function draw(){
   ctx.moveTo(L, T); ctx.lineTo(L, T + ph); ctx.lineTo(L + pw, T + ph);
   ctx.stroke();
 
-  // 点
+  // 点：半径 = 样本量（参与过多少次首杀对决）
   const maxN = Math.max(...pts.map(p => p.n));
   for(const p of pts){
-    const r = 4 + 6 * Math.sqrt(p.n / maxN);
+    const r = radiusOf(p.n, maxN);
     ctx.beginPath(); ctx.arc(px(p.per100), py(p.rate), r, 0, Math.PI * 2);
     ctx.fillStyle = DOT_COLOR;
     ctx.globalAlpha = 0.78; ctx.fill(); ctx.globalAlpha = 1;
@@ -292,7 +344,7 @@ function draw(){
   const hits = (bx, by, bw, bh) => placed.some(q =>
     bx < q.x + q.w && bx + bw > q.x && by < q.y + q.h && by + bh > q.y);
   for(const p of labelled){
-    const r = 4 + 6 * Math.sqrt(p.n / maxN);
+    const r = radiusOf(p.n, maxN);
     const cx = px(p.per100), cy = py(p.rate);
     const tw = ctx.measureText(p.name).width;
     const cands = [
@@ -317,6 +369,8 @@ function draw(){
   ctx.save(); ctx.translate(18, T + ph/2); ctx.rotate(-Math.PI/2);
   ctx.fillText('首杀成功率', 0, 0); ctx.restore();
 
+  renderDotLegend(pts, maxN);
+
   $('caption').textContent =
     `队内首杀占比 ≥${MIN_SHARE}% 且参与 ≥${MIN_TRIES} 次首杀对决的选手`
     + ` · 对决次数 = 拿到的首杀 + 被别人首杀`;
@@ -328,18 +382,7 @@ function fillEvents(){
   sel.innerHTML = S.D.events.map((e, i) =>
     `<option value="${i}">${S.Z.events[e] || e}</option>`).join('');
   sel.value = String(state.ev);
-  sel.onchange = () => { state.ev = +sel.value; state.team = -1; fillTeams(); draw(); };
-}
-
-function fillTeams(){
-  const sel = $('teamSel');
-  const pts = build(state.ev);
-  const ids = [...new Set(pts.map(p => p.team))].sort(
-    (a, b) => S.D.teams[a].localeCompare(S.D.teams[b]));
-  sel.innerHTML = `<option value="-1">全部队伍（${ids.length} 支）</option>` +
-    ids.map(t => `<option value="${t}">${S.D.teams[t]}</option>`).join('');
-  sel.value = String(state.team);
-  sel.onchange = () => { state.team = +sel.value; draw(); };
+  sel.onchange = () => { state.ev = +sel.value; draw(); };
 }
 
 let resizeTimer = null;
@@ -362,7 +405,6 @@ async function boot(){
     `${S.D.events.length} 个赛事 · ${S.M.rounds.toLocaleString('en-US')} 回合 · 数据源 vlr.gg 2D 回放`;
 
   fillEvents();
-  fillTeams();
   draw();
 }
 
