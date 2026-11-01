@@ -536,9 +536,13 @@ function buildBaselines(ev, map){
   for(const r of R) if(r[5] >= 0 && r[8] >= 0) secAll.push(r[8]);
   b.secMed = secAll.length ? median(secAll) : null;
 
-  // 首杀集中度的随机基线：队内 n 人分摊时，「最高的那个」期望占比
-  // 不是 100/n，而是随机多项分布的最大值，取值约在 1.3~1.5 倍 100/n。
-  // precompute 太绕，这里直接记人数，渲染时算。
+  /* 基准口径：回合加权平均。
+     即把该范围内所有回合放在一起算一个率——回合多的队伍自然权重大。
+     这是「真正的平均」：一个回合算一次，不因为属于哪支队而改变权重。
+     （另一种算法是「队伍等权」，先算每队各自的率再对队伍取平均。
+       两者在本赛季差约 1.2pp，差异全部来自赛程不平衡：PRX 2,396 回合
+       而 ONSIDE 只有 234 回合。回合加权不给小样本队伍同等的发言权。） */
+  b.weighting = '回合加权';
   b.scopeLabel = (ev < 0 ? '全部赛事' : S.Z.events[S.D.events[ev]])
     + ' · ' + (map < 0 ? '全部地图' : S.Z.maps[S.D.maps[map]]);
 
@@ -611,8 +615,10 @@ function insights(a, b, t, ps){
   const pp  = d => (d >= 0 ? '+' : '') + d.toFixed(1) + 'pp';
   const push = (sev, tag, main, cmp, key) =>
     out.push({sev: Math.abs(sev), tag, main, cmp, key: key || tag});
-  // 基准标签跟着筛选走，不再写「联赛」
-  const BL = b.scopeLabel || '全部赛事 · 全部地图';
+  /* 基准标签跟着筛选走。写「回合加权」是为了不让人误解——同一个范围里
+     也可以用「队伍等权」算（每队先各自出一个率再平均），两者不等。
+     我们统一用回合加权：一个回合算一次，不打折。 */
+  const BL = (b.scopeLabel || '全部赛事 · 全部地图');
 
   const fbRate  = a.n ? 100*a.fbFor/a.n : null;
   const fbConv  = a.fbFor ? 100*a.fbWon/a.fbFor : null;
@@ -768,9 +774,9 @@ function renderVerdict(a, b, t, ps){
   const list = all.picked;
   const box = document.getElementById('verdictBody');
   const title = document.getElementById('verdictTitle');
-  // 标题写明对比范围，读者一眼知道这些数和谁比
+  // 标题写明对比范围和口径，读者一眼知道这些数和谁比
   const bl = b.scopeLabel || '全部赛事 · 全部地图';
-  if(title) title.textContent = `对比 ${bl} 的平均`;
+  if(title) title.textContent = `对比 ${bl} 的回合加权平均`;
   if(!list.length){
     box.innerHTML = '<div class="vnone">这个范围里没有可比的指标。</div>';
     return;
@@ -784,22 +790,26 @@ function renderVerdict(a, b, t, ps){
 }
 
 function renderKpis(a, b, t){
+  // [标签, 值, 基准值, 样本量, 基准说明]
   const items = [
-    // 回合胜率、首杀率、Meta Fit 没有「同范围平均」这一说，用对峙基准（50%）
-    ['回合胜率', a.n ? 100*a.won/a.n : null, 50, a.n],
-    ['首杀率', a.n ? 100*a.fbFor/a.n : null, 50, a.n],
-    ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor],
-    ['首杀被补率', (a.traded+a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null, b.tradePct, a.traded+a.untraded],
+    // 回合胜率、首杀率是「零和」指标：每回合必然一方赢、一方拿到首杀，
+    // 所以同范围加权平均恒为 50%，跟谁比都是 50%。
+    ['回合胜率', a.n ? 100*a.won/a.n : null, 50, a.n, '对峙 50%'],
+    ['首杀率', a.n ? 100*a.fbFor/a.n : null, 50, a.n, '对峙 50%'],
+    ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor, '加权'],
+    ['首杀被补率', (a.traded+a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null,
+      b.tradePct, a.traded+a.untraded, '加权'],
+    // 集中度用「队内平分」当参照：n 个人平均分，每人 100/n
     ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null, 20,
-      (b.conc.get(t)||{}).tot],
-    ['Meta Fit', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN]
+      (b.conc.get(t)||{}).tot, '平分 20%'],
+    ['Meta Fit', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN, null]
   ];
-  document.getElementById('kpis').innerHTML = items.map(([lab, v, base, n]) => {
+  document.getElementById('kpis').innerHTML = items.map(([lab, v, base, n, bl]) => {
     let cmp = '';
     if(v != null && base != null){
       const d = v - base;
       const cls = d >= 0 ? 'up' : 'dn';
-      cmp += `vs 基准 <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
+      cmp += `vs ${bl||'基准'} <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
     }
     if(n != null) cmp += `${cmp?' · ':''}n=${fmt(n)}`;
     const small = (n != null && n < 40) ? ' <span style="color:var(--amber)">小样本</span>' : '';
@@ -812,7 +822,7 @@ function renderKpis(a, b, t){
 /* 术语卡片：指标名后面的小问号，点开就地显示解释，不另开版面 */
 const TERMS = {
   '首杀被补率': '本队拿到首杀的回合里，那个首杀者被对方队友在 5 秒内反杀的比例。'
-    + '越高说明打完首杀容易被换掉。',
+    + '越高说明打完首杀容易被换掉。基准是当前筛选范围的回合加权平均。',
   '首杀集中度': '本队拿到的首杀里，队内拿得最多的那个人占了多大比例。'
     + '它不等于首杀率——首杀率是「这队抢到多少首杀」，集中度是「抢到的首杀由谁拿」。'
     + '5 个人平分的话每人 20%，换过人的队伍人数更多，平分就更低。',
@@ -821,8 +831,9 @@ const TERMS = {
   '首杀率': '本队拿到首杀的回合占它总回合的比例。反映打法激进还是保守，不反映强弱。'
     + '基准取 50%——每个回合总有一方拿到首杀，两支队伍的平均必然是 50%。',
   '首杀→胜': '拿到首杀的回合里，最后赢下来的比例。'
-    + '对比对象是当前筛选范围（同一赛事 / 同一地图）的平均。'
-    + '全部赛事 + 全部地图时是 71%，不是 50%。',
+    + '对比对象是当前筛选范围（同一赛事 / 同一地图）的回合加权平均：'
+    + '把该范围所有回合放一起算一个率，不是先算每队的率再平均。'
+    + '全部赛事 + 全部地图时是 71%。',
 };
 
 function termBtn(lab){
