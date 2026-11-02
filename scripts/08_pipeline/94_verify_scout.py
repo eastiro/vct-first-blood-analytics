@@ -53,6 +53,7 @@ def offline(team: str, map_name: str | None, event: str | None = None) -> dict:
         "fbFor": len(fb),
         "fbConv": 100 * fbw / len(fb) if fb else None,
         "traded": len(tr),
+        "tradedPct": 100 * len(tr) / len(fb) if fb else None,
         "tradedWin": 100 * sum(1 for r in tr if r[4] == t) / len(tr) if tr else None,
         "untraded": len(ut),
         "untradedWin": 100 * sum(1 for r in ut if r[4] == t) / len(ut) if ut else None,
@@ -109,32 +110,37 @@ def main() -> None:
         pg.wait_for_timeout(700)
 
         off = offline("Paper Rex", "Sunset")
+        # 「首杀后能不能赢」面板已删除（那个 18.8pp 是人数差不是补枪技巧）。
+        # 同一组数字现在只剩「首杀未被补」一张卡片，按标签定位而不是按下标，
+        # 卡片顺序以后再变也不会误报。
         got = pg.evaluate("""() => {
-          const k = [...document.querySelectorAll('#kpis .kpi')];
-          const txt = i => k[i].querySelector('b').textContent;
-          return {win: txt(0), fbConv: txt(2),
-                  traded: document.querySelectorAll('#tradeBlock .kpi b')[0].textContent,
-                  untraded: document.querySelectorAll('#tradeBlock .kpi b')[1].textContent,
-                  gap: document.querySelectorAll('#tradeBlock .kpi b')[2].textContent,
+          const cards = [...document.querySelectorAll('#kpis .kpi')];
+          const byLabel = {};
+          for(const c of cards){
+            const lab = (c.querySelector('.klab')?.textContent || '').replace('?','').trim();
+            byLabel[lab] = c.querySelector('b').textContent;
+          }
+          const txt = i => cards[i].querySelector('b').textContent;
+          return {win: txt(0),
+                  fbConv: byLabel['首杀→胜'] || '',
+                  untradedRate: byLabel['首杀未被补'] || '',
+                  labels: Object.keys(byLabel),
                   scope: document.getElementById('teamMeta').textContent};
         }""")
         print(f"  offline PRX/Sunset: n={off['n']} win={off['win']:.1f} "
-              f"fbConv={off['fbConv']:.1f} traded={off['tradedWin']:.1f} "
-              f"untraded={off['untradedWin']:.1f}")
+              f"fbConv={off['fbConv']:.1f} untraded={off['untradedWin']:.1f}")
         check("round count matches", str(off["n"]) in got["scope"].replace(",", ""),
               got["scope"])
         check("win rate matches", got["win"] == f"{off['win']:.1f}%", got["win"])
         check("fb conversion matches", got["fbConv"] == f"{off['fbConv']:.1f}%",
               got["fbConv"])
 
-        # the trade block must be conditioned on this team owning the first blood
-        check("trade panel uses fb-owner trades only",
-              got["traded"] == f"{off['tradedWin']:.1f}%", got["traded"])
-        check("untraded conversion matches",
-              got["untraded"] == f"{off['untradedWin']:.1f}%", got["untraded"])
-        gap = off["untradedWin"] - off["tradedWin"]
-        check("gap is positive (untraded > traded)", gap > 0 and float(got["gap"]) > 0,
-              f"offline {gap:+.1f}, page {got['gap']}")
+        # 「首杀未被补」= 1 - 被补率，必须等于离线算的 untraded 胜率口径
+        check("untraded share matches offline",
+              got["untradedRate"] == f"{100 - off['tradedPct']:.1f}%",
+              f"page={got['untradedRate']} want={100 - off['tradedPct']:.1f}%")
+        check("trade panel is gone", pg.evaluate(
+            "() => document.querySelectorAll('#tradeBlock').length") == 0)
 
         # ---------- economy ----------
         # 「经济结构」面板已按用户要求删除，这里改为验证它确实不在 DOM 里，
@@ -230,7 +236,7 @@ def main() -> None:
                          main: x.querySelector('.vmain').textContent,
                          cmp: x.querySelector('.vcmp').textContent }))""")
         check("every finding carries a baseline", len(items) > 0 and all(
-            ("赛事" in o["cmp"] or "基准" in o["cmp"] or "占队内" in o["cmp"]
+            ("平均" in o["cmp"] or "50%" in o["cmp"] or "占队内" in o["cmp"]
              or "占 " in o["cmp"]) for o in items), str(items[:2]))
         check("findings do not contain coaching verbs",
               not any(w in (o["main"] + o["cmp"]) for o in items
@@ -310,15 +316,17 @@ def main() -> None:
                 num: e.querySelector('.cnum').textContent.trim(),
                 color: e.querySelector('.csw').style.background }))""")
             comps = [l for l in leg if len(l["name"].split(" · ")) == 5]
-            others = [l for l in leg if l not in comps]
             shares = [float(l["num"].split("%")[0]) for l in comps]
-            check(f"[{team}] legend lists {NTOP} comps (+ optional 'other'), unique colours",
+            check(f"[{team}] legend lists {NTOP} comps, unique colours",
                   len(comps) == NTOP and len({l["color"] for l in leg}) == len(leg),
                   f"{len(leg)} rows")
             check(f"[{team}] legend shares are sorted",
                   all(shares[i] >= shares[i+1] for i in range(len(shares)-1)), str(shares))
-            check(f"[{team}] legend shares add up to ~100%",
-                  abs(sum(float(l["num"].split("%")[0]) for l in leg) - 100) < 0.6)
+            # 图例现在只列该队全局最常用的 NTOP 套，不含「其他」，
+            # 所以合计必然小于 100%（剩下的散在长尾里）。
+            check(f"[{team}] legend shares are a proper subset of the total",
+                  0 < sum(shares) <= 100.01,
+                  f"{sum(shares):.1f}%")
 
         # 锁定单个赛事 → 行维度切到地图
         pg.evaluate("""() => {
