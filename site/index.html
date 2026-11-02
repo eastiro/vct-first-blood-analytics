@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>首杀 · 无畏契约 2026 赛事分析</title>
+<title>总览 · 无畏契约 2026 首杀</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
   :root{
@@ -25,7 +25,7 @@
   h1 span{color:var(--red)}
   .sub{color:var(--dim); font-size:12px; margin-top:4px}
 
-  main{padding:18px 26px 50px; max-width:1760px; margin:0 auto}
+  main{padding:18px 28px 50px; max-width:1760px; margin:0 auto}
 
   /* ---------- filters ---------- */
   .filters{background:var(--panel); border:1px solid var(--line);
@@ -243,11 +243,16 @@ td.num, th.num, .stat .big, .num{
 }
 
 /* ---------- 页头 ---------- */
+/* 三页共用同一套页头：白底、同样的内距、页签贴底边。
+   各页自己别再覆盖这些值，否则切换页签时整条会跳。 */
 header{
   padding:24px 28px 20px; border-bottom:1px solid var(--line);
   background:#FFFFFF;
+  display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
+  justify-content:space-between;
 }
-h1{font-size:19px; font-weight:600; letter-spacing:-.01em; line-height:1.2; color:var(--fg)}
+h1{margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em;
+   line-height:1.2; color:var(--fg)}
 h1 span{color:var(--red); font-weight:400; margin:0 1px}
 .sub{font-size:12px; color:var(--dim2); margin-top:6px}
 .ghostlink{
@@ -418,7 +423,7 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
 
 <header>
   <div>
-    <h1>首杀 <span>/</span> 无畏契约 2026</h1>
+    <h1>总览 <span>/</span> 无畏契约 2026 首杀</h1>
     <div class="sub" id="sub">加载中…</div>
   </div>
   <nav class="tabs" role="tablist">
@@ -1147,8 +1152,8 @@ function renderAll(){
   renderTeams(a);
 
   document.getElementById('foot').textContent =
-    `数据抓取自 vlr.gg 2D 回放 · ${S.D.events.length} 个赛事 · ${fmt(S.M.rounds)} 回合`
-    + ` · 补枪 = 首杀后 ${S.M.trade_window_sec} 秒内死者的队友击杀首杀者`;
+    `数据抓取自 vlr.gg 2D 回放 · ${S.D.events.length} 个赛事`
+    + ` · ${fmt(S.M.rounds)} 回合 · ${S.M.maps_played} 张地图`;
 }
 
 /* ---------------------------- map ---------------------------------- */

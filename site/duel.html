@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>选手对比 · 无畏契约 2026</title>
+<title>选手对比 · 无畏契约 2026 首杀</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
   :root{
@@ -16,15 +16,18 @@
     margin:0; background:var(--bg); color:var(--fg); line-height:1.55;
     font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
   }
+  /* 页头与另外两页完全一致：白底、同样的内距、页签贴在底边上 */
   header{
-    padding:20px 26px 0; border-bottom:1px solid var(--line);
+    padding:24px 28px 20px; border-bottom:1px solid var(--line);
+    background:#FFFFFF;
     display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
     justify-content:space-between;
   }
-  h1{margin:0; font-size:19px; letter-spacing:.5px; font-weight:600}
-  h1 span{color:var(--red)}
-  .sub{color:var(--dim); font-size:12px; margin-top:4px}
-  .tabs{display:flex; gap:2px; align-items:center}
+  h1{margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em;
+     line-height:1.2; color:var(--fg)}
+  h1 span{color:var(--red); font-weight:400; margin:0 1px}
+  .sub{font-size:12px; color:var(--dim2); margin-top:6px}
+  .tabs{display:flex; gap:2px; align-items:flex-end}
   .tab{
     display:inline-block; padding:7px 14px 8px; font-size:13px;
     color:var(--dim); text-decoration:none; border-bottom:2px solid transparent;
@@ -34,7 +37,7 @@
   /* 选中态用墨黑不用红：红只留给数据 */
   .tab.on{color:var(--fg); border-bottom-color:var(--fg); font-weight:600}
 
-  main{padding:18px 26px 50px; max-width:1760px; margin:0 auto}
+  main{padding:18px 28px 50px; max-width:1760px; margin:0 auto}
 
   .bar{
     background:var(--panel); border:1px solid var(--line); border-radius:6px;
@@ -78,10 +81,13 @@
 
   .note{margin-top:10px; font-size:12px; color:var(--dim2); line-height:1.6}
 
+  /* 页脚与另外两页一致 */
+  footer{padding:18px 28px; border-top:1px solid var(--line); color:var(--dim2);
+         font-size:10px; background:#FFFFFF}
+
   @media (max-width:760px){
-    header{padding:16px 14px 0}
-    main{padding:14px 14px 40px}
-    h1{font-size:19px}
+    header{padding:18px 16px 14px}
+    main{padding:14px 16px 40px}
     .bar{padding:11px 12px; gap:10px}
     select{min-width:0; width:100%}
     .hint{margin-left:0; width:100%}
@@ -97,7 +103,7 @@
 <header>
   <div>
     <h1>选手对比 <span>/</span> 无畏契约 2026</h1>
-    <div class="sub" id="sub">首杀对决</div>
+    <div class="sub" id="sub">首杀尝试</div>
   </div>
   <nav class="tabs" role="tablist">
     <a class="tab" href="index.html" role="tab" aria-selected="false">总览</a>
@@ -115,7 +121,7 @@
 
   <div class="panel">
     <div class="charthead">
-      <h2>首杀对决</h2>
+      <h2>首杀尝试</h2>
     </div>
     <div class="duelwrap">
       <canvas id="duelCanvas" width="1200" height="760"></canvas>
@@ -125,18 +131,20 @@
   </div>
 </main>
 
+<footer id="foot"></footer>
+
 <script>
 /* ================================================================== */
-/* 首杀对决散点图                                                      */
+/* 首杀尝试散点图                                                      */
 /*                                                                    */
-/* X = 每 100 回合参与的首杀对决次数（越多越常冲在开局第一线）          */
-/* Y = 这些对决里赢下来的比例                                          */
+/* X = 每 100 回合参与的首杀尝试次数（越多越常冲在开局第一线）          */
+/* Y = 这些尝试里赢下来的比例                                          */
 /*                                                                    */
-/* 一次首杀对决必定一对一，输的那方也是一次尝试，所以：                 */
+/* 一次首杀尝试必定一对一，输的那方也计一次尝试，所以：                 */
 /*   尝试 = 拿到的首杀 + 被别人首杀                                    */
 /* 这样两个轴都能从击杀流直接量出来，不需要猜测。                       */
 /* ================================================================== */
-const MIN_TRIES = 20;      // 至少参与过这么多次首杀对决
+const MIN_TRIES = 20;      // 至少参与过这么多次首杀尝试
 const MIN_SHARE = 25;      // 且队内首杀占比至少这么高
 
 /* 颜色不编码角色。
@@ -152,7 +160,7 @@ let state = { ev: 0 };
 const $ = id => document.getElementById(id);
 
 /* ---------------- 数据 ---------------- */
-/* 每名选手在某个赛事里的首杀对决记录。
+/* 每名选手在某个赛事里的首杀尝试记录。
    teamOf 用的是「他拿首杀时的队伍」，因为首杀受害者那边可能拿不到队名。 */
 function build(evIdx){
   const per = new Map();          // pid -> {win, lose, team, agents}
@@ -217,7 +225,7 @@ function median(a){
   return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
 }
 
-/* 点半径只表示样本量（参与过的首杀对决次数 n）。
+/* 点半径只表示样本量（参与过的首杀尝试次数 n）。
    用 sqrt 缩面积而不是缩直径：面积正比于 n，读者对「面积大 = 数量多」的直觉才成立。
    最小 4px 保证 n 很小的点也看得见，最大 10px 不让大点盖住邻居。 */
 const R_MIN = 4, R_MAX = 10;
@@ -243,7 +251,7 @@ function renderDotLegend(pts, maxN){
       </span>`;
   }).join('');
 
-  box.innerHTML = `<span class="lg-cap">点的大小<span class="lg-u"> = 参与过的首杀对决次数</span></span>
+  box.innerHTML = `<span class="lg-cap">点的大小<span class="lg-u"> = 参与过的首杀尝试次数</span></span>
     <span class="lg-items">${items}<span class="lg-u">次</span></span>`;
 }
 
@@ -325,7 +333,7 @@ function draw(){
   ctx.moveTo(L, T); ctx.lineTo(L, T + ph); ctx.lineTo(L + pw, T + ph);
   ctx.stroke();
 
-  // 点：半径 = 样本量（参与过多少次首杀对决）
+  // 点：半径 = 样本量（参与过多少次首杀尝试）
   const maxN = Math.max(...pts.map(p => p.n));
   for(const p of pts){
     const r = radiusOf(p.n, maxN);
@@ -365,15 +373,15 @@ function draw(){
 
   // 轴标题
   ctx.fillStyle = '#4A463F'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
-  ctx.fillText('首杀对决 / 每 100 回合', L + pw/2, ch - 18);
+  ctx.fillText('首杀尝试 / 每 100 回合', L + pw/2, ch - 18);
   ctx.save(); ctx.translate(18, T + ph/2); ctx.rotate(-Math.PI/2);
   ctx.fillText('首杀成功率', 0, 0); ctx.restore();
 
   renderDotLegend(pts, maxN);
 
   $('caption').textContent =
-    `队内首杀占比 ≥${MIN_SHARE}% 且参与 ≥${MIN_TRIES} 次首杀对决的选手`
-    + ` · 对决次数 = 拿到的首杀 + 被别人首杀`;
+    `队内首杀占比 ≥${MIN_SHARE}% 且参与 ≥${MIN_TRIES} 次首杀尝试的选手`
+    + ` · 尝试次数 = 拿到的首杀 + 被别人首杀`;
 }
 
 /* ---------------- 交互 ---------------- */
@@ -403,6 +411,9 @@ async function boot(){
 
   $('sub').textContent =
     `${S.D.events.length} 个赛事 · ${S.M.rounds.toLocaleString('en-US')} 回合 · 数据源 vlr.gg 2D 回放`;
+  $('foot').textContent =
+    `数据抓取自 vlr.gg 2D 回放 · ${S.D.events.length} 个赛事`
+    + ` · ${S.M.rounds.toLocaleString('en-US')} 回合 · ${S.M.maps_played} 张地图`;
 
   fillEvents();
   draw();

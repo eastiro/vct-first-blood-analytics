@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>队伍报告 · 无畏契约 2026</title>
+<title>队伍简报 · 无畏契约 2026 首杀</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
   :root{
@@ -24,14 +24,15 @@
   a{color:var(--cyan); text-decoration:none}
   a:hover{text-decoration:underline}
   header{
-    padding:16px 26px 13px; border-bottom:1px solid var(--line);
+    padding:24px 28px 20px; border-bottom:1px solid var(--line);
     display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
     justify-content:space-between; position:sticky; top:0; z-index:20;
     background:#FFFFFF;
   }
-  h1{margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em}
-  h1 span{color:var(--red); font-weight:400}
-  .sub{color:var(--dim2); font-size:12px; margin-top:3px}
+  h1{margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em;
+     line-height:1.2; color:var(--fg)}
+  h1 span{color:var(--red); font-weight:400; margin:0 1px}
+  .sub{color:var(--dim2); font-size:12px; margin-top:6px}
   .navbtn{
     background:none; border:0; border-bottom:1px solid var(--line2); color:var(--dim);
     padding:2px 0; border-radius:0; font-size:12px; font-family:inherit;
@@ -50,7 +51,7 @@
   /* 选中态用墨黑不用红：红只留给数据 */
   .tab.on{color:var(--fg); border-bottom-color:var(--fg); font-weight:600}
 
-  main{padding:18px 26px 60px; max-width:1560px; margin:0 auto}
+  main{padding:18px 28px 60px; max-width:1760px; margin:0 auto}
 
   /* controls */
   .controls{
@@ -211,7 +212,8 @@
   .legend{display:flex; gap:14px; font-size:12px; color:var(--dim); margin-top:8px; flex-wrap:wrap}
   .legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px}
 
-  footer{padding:20px 26px 40px; color:var(--dim); font-size:12px; border-top:1px solid var(--line); margin-top:20px}
+  footer{padding:18px 28px; border-top:1px solid var(--line); color:var(--dim2);
+         font-size:10px; background:#FFFFFF; margin-top:20px}
 
   @media print{
     body{background:#fff; color:#111}
@@ -257,7 +259,7 @@
 
 <header>
   <div>
-    <h1>队伍报告 <span>/</span> 无畏契约 2026</h1>
+    <h1>队伍简报 <span>/</span> 无畏契约 2026</h1>
     <div class="sub">赛前对手准备 · 基于 vlr.gg 2D 回放的回合级数据</div>
   </div>
   <nav class="tabs" role="tablist">
@@ -310,8 +312,9 @@
       <div class="kpis" id="kpis"></div>
     </div>
 
-    <div class="panel">
-      <h3 id="compTitle">阵容 · 按赛事</h3>
+    <!-- 阵容占全宽：按地图拆之后行数多，半宽放不下 -->
+    <div class="panel full">
+      <h3 id="compTitle">阵容 · 按地图</h3>
       <div class="note" id="compNote"></div>
       <div id="compLegend" class="clegend"></div>
       <div id="compList"></div>
@@ -342,16 +345,11 @@
       </table>
     </div>
 
-    <div class="panel">
+    <div class="panel full">
       <h3>首杀时刻</h3>
       <div class="note" id="timeNote"></div>
       <div class="hist" id="timeHist"></div>
       <div class="hist-x" id="timeHistX"></div>
-    </div>
-
-    <div class="panel">
-      <h3>首杀后能不能赢</h3>
-      <div id="tradeBlock"></div>
     </div>
   </div>
 
@@ -615,10 +613,6 @@ function insights(a, b, t, ps){
   const pp  = d => (d >= 0 ? '+' : '') + d.toFixed(1) + 'pp';
   const push = (sev, tag, main, cmp, key) =>
     out.push({sev: Math.abs(sev), tag, main, cmp, key: key || tag});
-  /* 基准标签跟着筛选走。写「回合加权」是为了不让人误解——同一个范围里
-     也可以用「队伍等权」算（每队先各自出一个率再平均），两者不等。
-     我们统一用回合加权：一个回合算一次，不打折。 */
-  const BL = (b.scopeLabel || '全部赛事 · 全部地图');
 
   const fbRate  = a.n ? 100*a.fbFor/a.n : null;
   const fbConv  = a.fbFor ? 100*a.fbWon/a.fbFor : null;
@@ -631,45 +625,49 @@ function insights(a, b, t, ps){
   const conc    = b.conc.get(t);
   const secMed  = median(a.secs);
 
-  /* 全部候选都列出来，不设阈值门槛。
-     页面存在的意义是让读者看到差距，不是替他判断哪个差距「够大」——
-     阈值只会把差异藏起来。每条后面都带基准值和差额，大小自己看。 */
+  /* 全部候选都列出来，不设阈值门槛——页面存在的意义是让人看到差距，
+     不是替他判断哪个差距「够大」。
+
+     基准范围不在这里重复写：面板标题已经写明「对比 XXX 的回合加权平均」，
+     每行只给基准数值和差额。原来每条都缀一遍「上海冠军赛 2026 · 全部地图」，
+     一屏下来同一句话重复八次。 */
 
   if(fbConv != null && b.fbConv != null){
     const d = fbConv - b.fbConv;
     push(d*2.2, '首杀转化',
       `拿了首杀后赢下 ${fbConv.toFixed(1)}% 的回合`,
-      `${BL} ${b.fbConv.toFixed(1)}% · ${pp(d)}`);
+      `平均 ${b.fbConv.toFixed(1)}% · ${pp(d)}`);
   }
 
   if(tradePct != null && b.tradePct != null){
     const d = tradePct - b.tradePct;
     push(d*1.5, '被补率',
       `首杀被补掉 ${tradePct.toFixed(1)}%`,
-      `${BL} ${b.tradePct.toFixed(1)}% · ${pp(d)}`);
+      `平均 ${b.tradePct.toFixed(1)}% · ${pp(d)}`);
   }
 
   if(defWin != null && baseDef != null){
     const d = defWin - baseDef;
     push(Math.abs(d)*1.5, '防守端',
       `防守方胜率 ${defWin.toFixed(1)}%`,
-      `${BL} ${baseDef.toFixed(1)}% · ${pp(d)}`);
+      `平均 ${baseDef.toFixed(1)}% · ${pp(d)}`);
   }
 
   if(atkWin != null && b.atkWin != null){
     const d = atkWin - b.atkWin;
     push(Math.abs(d)*1.4, '进攻端',
       `进攻方胜率 ${atkWin.toFixed(1)}%`,
-      `${BL} ${b.atkWin.toFixed(1)}% · ${pp(d)}`);
+      `平均 ${b.atkWin.toFixed(1)}% · ${pp(d)}`);
   }
 
-  // 开火点集中度：跟「队内平分」和「同范围的中位数」两个参照比
+  /* 开火点：这个人拿了多少首杀，占队内多大比例。
+     参照有两个——队内人数平摊（100/人数），以及同范围里各队最高者的中位数。 */
   if(conc && conc.tot >= 40){
     const teamAvg = 100 / Math.max(1, conc.players);
     push(Math.abs(conc.share - teamAvg)*0.9, '开火点',
       `${S.players[conc.pid].n} 拿了 ${conc.top} 次首杀`,
-      `占队内 ${conc.share.toFixed(0)}% · ${conc.players} 人平分 ${teamAvg.toFixed(0)}%`
-        + (b.concMed != null ? ` · 同范围中位 ${b.concMed.toFixed(0)}%` : ''),
+      `占队内 ${conc.share.toFixed(0)}% · 队内 ${conc.players} 人平摊各 ${teamAvg.toFixed(0)}%`
+        + (b.concMed != null ? ` · 各队头名中位 ${b.concMed.toFixed(0)}%` : ''),
       'player:' + conc.pid);
   }
 
@@ -677,35 +675,33 @@ function insights(a, b, t, ps){
     const d = fullWin - b.econWin[2];
     push(Math.abs(d)*1.2, '全买局',
       `全买局胜率 ${fullWin.toFixed(1)}%`,
-      `${BL} ${b.econWin[2].toFixed(1)}% · ${pp(d)}`);
+      `平均 ${b.econWin[2].toFixed(1)}% · ${pp(d)}`);
   }
 
   if(ecoWin != null && b.econWin[0] != null){
     const d = ecoWin - b.econWin[0];
     push(Math.abs(d)*1.1, 'eco 局',
       `eco 局胜率 ${ecoWin.toFixed(1)}%`,
-      `${BL} ${b.econWin[0].toFixed(1)}% · ${pp(d)}`);
+      `平均 ${b.econWin[0].toFixed(1)}% · ${pp(d)}`);
   }
 
   if(secMed != null && b.secMed != null){
     const d = secMed - b.secMed;
     push(Math.abs(d)*1.2, '开局时机',
       `首杀中位时刻 ${secMed.toFixed(0)} 秒`,
-      `${BL} ${b.secMed.toFixed(0)} 秒 · ${d>=0?'+':''}${d.toFixed(0)} 秒`, 'time');
+      `平均 ${b.secMed.toFixed(0)} 秒 · ${d>=0?'+':''}${d.toFixed(0)} 秒`, 'time');
   }
 
+  /* 首杀率和手枪局不带基准：这两个都是零和指标，两方平均必然是 50%，
+     写「比 50% 高 2.8pp」等于说「比必然值高」，没有信息量。 */
   if(fbRate != null){
-    const d = fbRate - 50;
-    push(Math.abs(d)*1.2, '首杀率',
-      `首杀率 ${fbRate.toFixed(1)}%`,
-      `对峙基准 50% · ${pp(d)}`);
+    push(0, '首杀率', `首杀率 ${fbRate.toFixed(1)}%`, '每回合必有一方拿到首杀，两队平均 50%');
   }
 
   if(ps && ps.n >= 8){
-    const pw = 100*ps.won/ps.n, d = pw - 50;
-    push(Math.abs(d)*0.55, '手枪局',
-      `手枪局 ${ps.won}/${ps.n}（${pw.toFixed(0)}%）`,
-      `对峙基准 50% · ${pp(d)}`);
+    const pw = 100*ps.won/ps.n;
+    push(0, '手枪局', `手枪局 ${ps.won}/${ps.n}（${pw.toFixed(0)}%）`,
+      '每局必有一方赢，两队平均 50%');
   }
 
   // 「输掉手枪局后第 2 局的买法」已删除：分档用长枪数，而手枪局后几乎没有长枪，
@@ -774,9 +770,9 @@ function renderVerdict(a, b, t, ps){
   const list = all.picked;
   const box = document.getElementById('verdictBody');
   const title = document.getElementById('verdictTitle');
-  // 标题写明对比范围和口径，读者一眼知道这些数和谁比
+  // 范围只在这里说一次，下面每行不再重复
   const bl = b.scopeLabel || '全部赛事 · 全部地图';
-  if(title) title.textContent = `对比 ${bl} 的回合加权平均`;
+  if(title) title.textContent = `对比 ${bl} 的平均`;
   if(!list.length){
     box.innerHTML = '<div class="vnone">这个范围里没有可比的指标。</div>';
     return;
@@ -791,17 +787,17 @@ function renderVerdict(a, b, t, ps){
 
 function renderKpis(a, b, t){
   // [标签, 值, 基准值, 样本量, 基准说明]
+  // 零和指标（回合胜率、首杀率）两方平均必然是 50%，所以基准固定写 50%。
   const items = [
-    // 回合胜率、首杀率是「零和」指标：每回合必然一方赢、一方拿到首杀，
-    // 所以同范围加权平均恒为 50%，跟谁比都是 50%。
-    ['回合胜率', a.n ? 100*a.won/a.n : null, 50, a.n, '对峙 50%'],
-    ['首杀率', a.n ? 100*a.fbFor/a.n : null, 50, a.n, '对峙 50%'],
-    ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor, '加权'],
-    ['首杀被补率', (a.traded+a.untraded) ? 100*a.traded/(a.traded+a.untraded) : null,
-      b.tradePct, a.traded+a.untraded, '加权'],
-    // 集中度用「队内平分」当参照：n 个人平均分，每人 100/n
-    ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null, 20,
-      (b.conc.get(t)||{}).tot, '平分 20%'],
+    ['回合胜率', a.n ? 100*a.won/a.n : null, 50, a.n, '50%'],
+    ['首杀率', a.n ? 100*a.fbFor/a.n : null, 50, a.n, '50%'],
+    ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor, '平均'],
+    ['首杀未被补', (a.traded+a.untraded) ? 100*a.untraded/(a.traded+a.untraded) : null,
+      b.tradePct != null ? 100 - b.tradePct : null, a.traded+a.untraded, '平均'],
+    // 集中度用「队内平摊」当参照：n 个人平均分，每人 100/n
+    ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null,
+      (b.conc.get(t)||{}).players ? 100/(b.conc.get(t)||{}).players : null,
+      (b.conc.get(t)||{}).tot, '平摊'],
     ['Meta Fit', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN, null]
   ];
   document.getElementById('kpis').innerHTML = items.map(([lab, v, base, n, bl]) => {
@@ -809,31 +805,42 @@ function renderKpis(a, b, t){
     if(v != null && base != null){
       const d = v - base;
       const cls = d >= 0 ? 'up' : 'dn';
-      cmp += `vs ${bl||'基准'} <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
+      cmp += `vs ${bl||'基准'} ${base.toFixed(1)}% <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
     }
     if(n != null) cmp += `${cmp?' · ':''}n=${fmt(n)}`;
     const small = (n != null && n < 40) ? ' <span style="color:var(--amber)">小样本</span>' : '';
     const tip = TERMS[lab] ? `<span class="termtip">${esc(TERMS[lab])}</span>` : '';
     return `<div class="kpi"><b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b>
-      <i>${termBtn(lab)}${tip}</i><div class="cmp">${cmp}${small}</div></div>`;
+      <i><span class="klab">${termBtn(lab)}</span>${tip}</i><div class="cmp">${cmp}${small}</div></div>`;
   }).join('');
 }
 
 /* 术语卡片：指标名后面的小问号，点开就地显示解释，不另开版面 */
 const TERMS = {
+  '首杀未被补': '本队拿到首杀之后，那个首杀者没有被对方队友在 5 秒内反杀的比例。'
+    + '「被补枪」= 首杀者在 5 秒内被死者的队友击杀，也就是 1 换 1 回到 4v4。'
+    + '这个 5 秒窗口不是官方规则，是本站自己定的口径，写死在数据里。',
   '首杀被补率': '本队拿到首杀的回合里，那个首杀者被对方队友在 5 秒内反杀的比例。'
-    + '越高说明打完首杀容易被换掉。基准是当前筛选范围的回合加权平均。',
+    + '越高说明打完首杀容易被换掉。',
   '首杀集中度': '本队拿到的首杀里，队内拿得最多的那个人占了多大比例。'
-    + '它不等于首杀率——首杀率是「这队抢到多少首杀」，集中度是「抢到的首杀由谁拿」。'
-    + '5 个人平分的话每人 20%，换过人的队伍人数更多，平分就更低。',
+    + '跟「队内平摊」比：5 个人平分是每人 20%，人数更多平分就更低。'
+    + '注意它和「开火点」报的是同一个数，只是一个放卡片一个放对比列表。',
   'Meta Fit': '阵容里有多少个属于该图的版本英雄（每图全球选取率前 7）。'
     + '衡量这支队伍跟不跟版本，不衡量强弱。',
   '首杀率': '本队拿到首杀的回合占它总回合的比例。反映打法激进还是保守，不反映强弱。'
-    + '基准取 50%——每个回合总有一方拿到首杀，两支队伍的平均必然是 50%。',
+    + '每回合总有一方拿到首杀，两队平均必然是 50%，所以这个数不用跟谁比。',
   '首杀→胜': '拿到首杀的回合里，最后赢下来的比例。'
     + '对比对象是当前筛选范围（同一赛事 / 同一地图）的回合加权平均：'
     + '把该范围所有回合放一起算一个率，不是先算每队的率再平均。'
     + '全部赛事 + 全部地图时是 71%。',
+  'eco 局': '按本回合实际持有的长枪数分档：≤1 把长枪算 eco 局，'
+    + '2–3 把算半买，≥4 把算全买。'
+    + '不用「花费」是因为留枪会污染它——上回合保下来的枪记 0 花费，'
+    + '但那把枪照样能打。',
+  '全买局': '本回合队里持有 ≥4 把长枪的回合，也就是正常买枪的回合。'
+    + 'eco 局是 ≤1 把，中间那档是半买。',
+  '手枪局': '每张图的上半场第 1 回合和下半场第 13 回合，双方都只能用手枪和基础装备。'
+    + '共 2 个，样本天然很小。',
 };
 
 function termBtn(lab){
@@ -851,7 +858,10 @@ document.addEventListener('click', e => {
 
 function agentName(i){ return S.Z.agents[S.D.agents[i]] || S.D.agents[i]; }
 
-/* 阵容时间轴：行 = 赛事（锁定单个赛事时改为地图），条 = 该行里各阵容的份额 */
+/* 阵容时间轴：行 = 地图，条 = 该图里各阵容的份额 */
+/* 6 个颜色按「每张图的前几套」分配。同一套阵容在不同图上是同一个颜色，
+   但不同阵容可能撞色——这是可接受的，因为每行的图例顺序就是它自己的前几套，
+   而悬停能看到完整阵容名。 */
 const COMP_COLORS = ['#DE3B49','#0E7C74','#A5741C','#4C6A8E','#157F3B','#6D5A8A'];
 const COMP_OTHER  = '#C6C0B3';
 
@@ -860,16 +870,13 @@ function compName(cid){ return S.raw.comps[cid].map(agentName).join(' · '); }
 function evShort(i){ return S.Z.events[S.D.events[i]] || S.D.events[i]; }
 
 function renderComps(a, rows, t){
-  /* 阵容永远按地图看。
+  /* 阵容按地图看。
      原因：阵容就是按地图选的——PRX 最常用的 5 套里 4 套只出现在单一地图上。
      把不同地图的阵容混在一起算「默认阵容占比」，那个数字没有意义。
 
-     维度规则：
-       锁定一张图          → 只有一行，直接列
-       锁定赛事、未锁图    → 按地图拆（这才是能比的东西）
-       都没锁              → 按地图拆，全季合计
-     赛事维度仍然保留在右侧的胜率列里，只是不再拿它当阵容的分组。 */
-  const dim = 'map';
+     配色按「每张图自己的前 N 套」分配，不是全局前 6 套。
+     原来是全局取前 6，结果每张图都只有一两套能上色，其余全塞进灰色，
+     等于看了半天什么也没看出来。 */
   const keyOf = r => r[1];
   const groups = new Map();
   for(const r of rows){
@@ -882,28 +889,50 @@ function renderComps(a, rows, t){
   }
   const keys = [...groups.keys()].sort((x,y) => groups.get(y).n - groups.get(x).n);
 
-  const NTOP = COMP_COLORS.length;
-  const top = [...a.comps.entries()].sort((x,y)=>y[1]-x[1]).slice(0, NTOP);
-  const colorOf = new Map(top.map(([cid], i) => [cid, COMP_COLORS[i]]));
+  const NTOP = 4;   // 每张图最多给 4 套上色，再多图例会失控
+  /* 每张图取自己的前 N 套上色。
+     颜色按「该阵容在全范围的回合数」排序后依次分配，
+     保证图例里那 6 套（全局最常用）一定拿到 6 个不同的颜色；
+     其余阵容再按需取色，允许撞色——它们只出现在条上，靠悬停看名字。 */
+  const byTotal = [...a.comps.entries()].sort((x,y) => y[1] - x[1]).map(([cid]) => cid);
+  const colorOf = new Map();
+  const used = new Set();
+  // 先给全局最常用的 6 套分配唯一色
+  for(const cid of byTotal.slice(0, COMP_COLORS.length)){
+    colorOf.set(cid, COMP_COLORS[colorOf.size]);
+  }
+  // 其余按图分配，颜色不够时回绕（允许撞色）
+  let cursor = 0;
+  for(const k of keys){
+    const g = groups.get(k);
+    const own = [...g.comps.entries()].sort((x,y)=>y[1]-x[1]).slice(0, NTOP);
+    for(const [cid] of own){
+      if(colorOf.has(cid)) continue;
+      colorOf.set(cid, COMP_COLORS[cursor % COMP_COLORS.length]);
+      cursor++;
+    }
+  }
 
   document.getElementById('compTitle').textContent = '阵容 · 按地图';
   document.getElementById('compNote').innerHTML = a.compN
-    ? `每行一张图，按该队在这张图上的回合数排序。色块宽度 = 这套阵容在这张图上的份额，灰 = 没进前 6 的其余阵容。悬停看阵容与占比。`
-      + `阵容本来就是按地图选的，跨地图合并没有意义。`
+    ? `每行一张图，按该队在这张图上的回合数排序。色块 = 该图最常用的几套阵容，`
+      + `灰 = 这张图上其余的阵容。悬停看具体阵容与占比。`
     : '这个范围没有阵容数据（中国赛区不提供）';
 
-  const otherN = a.compN - top.reduce((s, x) => s + x[1], 0);
-  document.getElementById('compLegend').innerHTML = top.map(([cid, n]) => `
-    <div class="ci">
-      <span class="csw" style="background:${colorOf.get(cid)}"></span>
+  /* 图例只列全局最常用的 6 套（按该队全范围回合数），
+     其余阵容在条上仍是彩色（按图分配），靠悬停看名字——
+     否则 12 张图各自的前 4 套加起来四十多条，图例比表还长。 */
+  const legendCids = [...a.comps.entries()]
+    .sort((x,y) => y[1] - x[1]).slice(0, COMP_COLORS.length).map(([cid]) => cid);
+  document.getElementById('compLegend').innerHTML = legendCids.map(cid => {
+    const n = a.comps.get(cid) || 0;
+    const c = colorOf.get(cid) || COMP_OTHER;
+    return `<div class="ci">
+      <span class="csw" style="background:${c}"></span>
       <span class="cname">${esc(compName(cid))}</span>
       <span class="cnum">${pct(n, a.compN)}% · ${n} 回合</span>
-    </div>`).join('') + (otherN > 0 ? `
-    <div class="ci">
-      <span class="csw" style="background:${COMP_OTHER}"></span>
-      <span class="cname" style="color:var(--dim)">其他 ${a.comps.size - top.length} 套</span>
-      <span class="cnum">${pct(otherN, a.compN)}%</span>
-    </div>` : '');
+    </div>`;
+  }).join('');
 
   document.getElementById('compList').innerHTML = keys.map(k => {
     const g = groups.get(k);
@@ -937,8 +966,12 @@ function renderComps(a, rows, t){
 function renderPistol(a, b, rows, t){
   const st = pistolStats(rows, t);
   const note = document.getElementById('pistolNote');
+  // 进攻方拿手枪的基准随范围变（不同赛事/地图的攻防强度不一样），
+  // 所以这里比的是「同范围进攻方拿手枪的比例」，不是固定的 50%。
+  const baseAtk = b.pistolAtkWin;
   note.textContent = st.n
-    ? `${st.n} 个手枪局（每张图 2 个）· 进攻方拿手枪的基准 50.0%`
+    ? `${st.n} 个手枪局（每张图 2 个）`
+      + (baseAtk != null ? ` · 同范围进攻方拿手枪 ${baseAtk.toFixed(1)}%` : '')
     : '这个范围没有手枪局数据';
 
   const cell = (lab, v, sub, warn) => `<div class="kpi">
@@ -946,8 +979,16 @@ function renderPistol(a, b, rows, t){
     ${sub?`<div class="cmp">${sub}${warn?' <span style="color:var(--amber)">小样本</span>':''}</div>`:''}</div>`;
   document.getElementById('pistolKpis').innerHTML = [
     cell('手枪局胜率', st.n ? 100*st.won/st.n : null, `${st.won}/${st.n}`),
-    cell('进攻手枪', st.atkN ? 100*st.atkWon/st.atkN : null, `${st.atkWon}/${st.atkN}`, st.atkN < 5),
-    cell('防守手枪', st.defN ? 100*st.defWon/st.defN : null, `${st.defWon}/${st.defN}`, st.defN < 5)
+    cell('进攻手枪', st.atkN ? 100*st.atkWon/st.atkN : null,
+      `${st.atkWon}/${st.atkN}`
+        + (baseAtk != null && st.atkN >= 5
+            ? ` · vs ${baseAtk.toFixed(1)}%` : ''),
+      st.atkN < 5),
+    cell('防守手枪', st.defN ? 100*st.defWon/st.defN : null,
+      `${st.defWon}/${st.defN}`
+        + (baseAtk != null && st.defN >= 5
+            ? ` · vs ${(100-baseAtk).toFixed(1)}%` : ''),
+      st.defN < 5)
   ].join('');
 }
 
@@ -1003,27 +1044,11 @@ function renderTime(a){
   document.getElementById('timeHistX').innerHTML = labels.map(l=>`<div>${l}</div>`).join('');
 }
 
-function renderTrade(a, b){
-  const tw = a.traded ? 100*a.tradedWon/a.traded : null;
-  const uw = a.untraded ? 100*a.untradedWon/a.untraded : null;
-  const gap = (tw!=null && uw!=null) ? uw-tw : null;
-  const box = document.getElementById('tradeBlock');
-  if(gap == null){ box.innerHTML = '<div class="small">样本不足</div>'; return; }
-  const delta = (b.tradeGap != null) ? gap - b.tradeGap : null;
-  const small = (a.traded < 25 || a.untraded < 25)
-    ? '<div class="legend" style="color:var(--amber)">样本偏小，差值仅供参考</div>' : '';
-  const bl = b.scopeLabel || '全部赛事 · 全部地图';
-  box.innerHTML = `
-    <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-      <div class="kpi"><b>${tw.toFixed(1)}%</b><i>首杀被补后</i><div class="cmp">n=${a.traded}</div></div>
-      <div class="kpi"><b>${uw.toFixed(1)}%</b><i>首杀没被补</i><div class="cmp">n=${a.untraded}</div></div>
-      <div class="kpi"><b>${gap.toFixed(1)}</b><i>差值 pp</i>
-        <div class="cmp">${delta==null?'—':`vs ${b.tradeGap.toFixed(1)} · <span class="${delta>=0?'up':'dn'}">${delta>=0?'+':''}${delta.toFixed(1)}</span>`}</div></div>
-    </div>
-    <div class="legend">
-      <span>${bl}：被补 ${b.tradedWin!=null?b.tradedWin.toFixed(1):'—'}% vs 没被补 ${b.untradedWin!=null?b.untradedWin.toFixed(1):'—'}%，差 ${b.tradeGap!=null?b.tradeGap.toFixed(1):'—'}pp</span>
-    </div>${small}`;
-}
+/* 原「首杀后能不能赢」面板已删除。
+   它把「被补 56.9% vs 没被补 75.7%」的 18.8pp 摆在最显眼处，
+   但那个差距其实是 4v4 和 5v4 的人数差，不是补枪技巧——
+   单看两个胜率差，读者一定会往「会不会补枪」上理解。
+   「首杀未被补」已经作为一张卡片留在核心指标里，信息没丢。 */
 
 /* ---------------------------------------------------------------- */
 /* wiring                                                           */
@@ -1153,10 +1178,10 @@ function recompute(){
   renderVerdict(a, b, t, ps);
   renderKpis(a, b, t);
   renderComps(a, view, t);
-  renderPistol(a, b, view, t);  renderSides(a);
+  renderPistol(a, b, view, t);
+  renderSides(a);
   renderPlayers(a);
   renderTime(a);
-  renderTrade(a, b);
   syncURL();
 }
 
@@ -1168,9 +1193,9 @@ async function boot(){
   S.baseKey = '-1|-1';
 
   document.getElementById('footNote').innerHTML =
-    `${raw.meta.rounds.toLocaleString('en-US')} 回合 / ${raw.meta.maps_played} 张地图 / `
-    + `${raw.meta.teams_shown} 支队伍 · 首杀 ${raw.meta.first_bloods.toLocaleString('en-US')} 次`
-    + ` · 中国赛区无 2D 回放，因此没有坐标与经济数据`;
+    `数据抓取自 vlr.gg 2D 回放 · ${S.D.events.length} 个赛事`
+    + ` · ${raw.meta.rounds.toLocaleString('en-US')} 回合`
+    + ` · ${raw.meta.maps_played} 张地图`;
 
   fillSelects();
   document.getElementById('teamSel').addEventListener('change', e => {
