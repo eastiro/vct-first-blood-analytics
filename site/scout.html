@@ -177,6 +177,11 @@
   .cname{flex:1; min-width:0; color:var(--fg)}
   .cnum{font-family:var(--mono); font-size:10px; color:var(--dim); white-space:nowrap;
         font-variant-numeric:tabular-nums}
+  /* 图例右边现在有三段（份额 / 回合 / 胜率），窄屏会挤得阵容名换行两三次。
+     手机上省掉「回合」二字，只留数字，宽度能省下约 20%。 */
+  @media (max-width:760px){
+    .cnum .u{display:none}
+  }
   .tlrow{display:flex; align-items:center; gap:10px; margin-bottom:6px}
   .tlrow .k{flex:0 0 150px; font-size:12px; color:var(--dim); white-space:nowrap;
             overflow:hidden; text-overflow:ellipsis}
@@ -583,7 +588,10 @@ function aggregate(rows, t){
 
     const mc = myCompOf(r, t);
     if(mc >= 0){
-      a.comps.set(mc, (a.comps.get(mc)||0)+1);
+      // 每套阵容记回合数 + 胜场：面板里悬停要报这套自己的胜率
+      let c = a.comps.get(mc);
+      if(!c){ c = {n:0, won:0}; a.comps.set(mc, c); }
+      c.n++; if(won) c.won++;
       a.compN++;
       const top = S.raw.metaTop[String(r[1])];
       if(top){
@@ -888,7 +896,13 @@ function renderComps(a, rows, t){
     if(!g){ g = {n:0, won:0, comps:new Map(), compN:0}; groups.set(k, g); }
     g.n++; if(r[4] === t) g.won++;
     const mc = myCompOf(r, t);
-    if(mc >= 0){ g.comps.set(mc, (g.comps.get(mc)||0)+1); g.compN++; }
+    if(mc >= 0){
+      // 每套阵容单独记回合数和胜场，悬停时才能报这套自己的胜率
+      let c = g.comps.get(mc);
+      if(!c){ c = {n:0, won:0}; g.comps.set(mc, c); }
+      c.n++; if(r[4] === t) c.won++;
+      g.compN++;
+    }
   }
   /* 行序：时间轴按赛事先后（EVENT_ORDER 本身就是时间序），
      按地图时按回合数多少。 */
@@ -901,7 +915,7 @@ function renderComps(a, rows, t){
      颜色按「该阵容在全范围的回合数」排序后依次分配，
      保证图例里那 6 套（全局最常用）一定拿到 6 个不同的颜色；
      其余阵容再按需取色，允许撞色——它们只出现在条上，靠悬停看名字。 */
-  const byTotal = [...a.comps.entries()].sort((x,y) => y[1] - x[1]).map(([cid]) => cid);
+  const byTotal = [...a.comps.entries()].sort((x,y) => y[1].n - x[1].n).map(([cid]) => cid);
   const colorOf = new Map();
   // 先给全局最常用的 6 套分配唯一色
   for(const cid of byTotal.slice(0, COMP_COLORS.length)){
@@ -913,7 +927,7 @@ function renderComps(a, rows, t){
     let cursor = 0;
     for(const k of keys){
       const g = groups.get(k);
-      const own = [...g.comps.entries()].sort((x,y)=>y[1]-x[1]).slice(0, NTOP);
+      const own = [...g.comps.entries()].sort((x,y)=>y[1].n-x[1].n).slice(0, NTOP);
       for(const [cid] of own){
         if(colorOf.has(cid)) continue;
         colorOf.set(cid, COMP_COLORS[cursor % COMP_COLORS.length]);
@@ -925,9 +939,9 @@ function renderComps(a, rows, t){
   document.getElementById('compTitle').textContent = byTime ? '阵容 · 按时间' : '阵容 · 按地图';
   document.getElementById('compNote').innerHTML = a.compN
     ? (byTime
-        ? `同一张图上按赛事先后排，条 = 该赛事里各阵容的份额。悬停看具体阵容。`
+        ? `同一张图上按赛事先后排，条 = 该赛事里各阵容的份额。悬停看阵容、份额与胜负。`
         : `每行一张图，按该队在这张图上的回合数排序。色块 = 该图最常用的几套阵容，`
-          + `灰 = 这张图上其余的阵容。悬停看具体阵容与占比。选一张地图可改看时间轴。`)
+          + `灰 = 这张图上其余的阵容。悬停看阵容、份额与胜负。选一张地图可改看时间轴。`)
     : '这个范围没有阵容数据（中国赛区不提供）';
   document.getElementById('compList').classList.toggle('time', byTime);
 
@@ -935,14 +949,15 @@ function renderComps(a, rows, t){
      其余阵容在条上仍是彩色（按图分配），靠悬停看名字——
      否则 12 张图各自的前 4 套加起来四十多条，图例比表还长。 */
   const legendCids = [...a.comps.entries()]
-    .sort((x,y) => y[1] - x[1]).slice(0, COMP_COLORS.length).map(([cid]) => cid);
+    .sort((x,y) => y[1].n - x[1].n).slice(0, COMP_COLORS.length).map(([cid]) => cid);
   document.getElementById('compLegend').innerHTML = legendCids.map(cid => {
-    const n = a.comps.get(cid) || 0;
-    const c = colorOf.get(cid) || COMP_OTHER;
+    const c = a.comps.get(cid);
+    const col = colorOf.get(cid) || COMP_OTHER;
     return `<div class="ci">
-      <span class="csw" style="background:${c}"></span>
+      <span class="csw" style="background:${col}"></span>
       <span class="cname">${esc(compName(cid))}</span>
-      <span class="cnum">${pct(n, a.compN)}% · ${n} 回合</span>
+      <span class="cnum">${pct(c.n, a.compN)}% · ${c.n}<span class="u"> 回合</span> · 胜率 ${
+        (100*c.won/c.n).toFixed(1)}%</span>
     </div>`;
   }).join('');
 
@@ -959,13 +974,23 @@ function renderComps(a, rows, t){
     }else{
       const segs = [];
       let otherN = 0, otherC = 0;
-      for(const [cid, n] of [...g.comps.entries()].sort((x,y)=>y[1]-x[1])){
-        if(colorOf.has(cid)) segs.push([colorOf.get(cid), n, compName(cid)]);
-        else { otherN += n; otherC++; }
+      const nf = v => v.toFixed(1) + '%';
+      for(const [cid, c] of [...g.comps.entries()].sort((x,y)=>y[1].n-x[1].n)){
+        if(colorOf.has(cid)) segs.push([colorOf.get(cid), c, compName(cid), true]);
+        else { otherN += c.n; otherC++; }
       }
-      if(otherN) segs.push([COMP_OTHER, otherN, `其他 ${otherC} 套`]);
-      bar = `<div class="tlbar">` + segs.map(([c, n, nm]) =>
-        `<i style="width:${100*n/g.compN}%;background:${c}" title="${esc(nm)} · ${pct(n,g.compN)}%"></i>`
+      /* 灰条是「其他 N 套」拼起来的，不报胜率。
+         把 5 套不同阵容的回合合成一个率，报出来的是「这些阵容混在一起赢了
+         多少」，没有哪套阵容对应这个数——和当初删掉的 eco 档是同一种毛病。
+         真要看长尾，把那张图/那个赛事单独选出来，它们会各自变成彩色。 */
+      if(otherN) segs.push([COMP_OTHER, {n:otherN, won:0}, `其他 ${otherC} 套`, false]);
+      /* 悬停报这套阵容自己的胜率，不是整行的胜率——一行里几套阵容的胜率
+         可以差很远（PRX 莲华古城 S1 是 68.4% vs 45.7%），整行那个数是它们
+         混在一起的，看不出哪套好用。
+         回合数一起给：小样本的 100% 和 60 回合的 100% 不是一回事。 */
+      bar = `<div class="tlbar">` + segs.map(([c, seg, nm, solo]) =>
+        `<i style="width:${100*seg.n/g.compN}%;background:${c}" title="${esc(nm)} · ${
+          pct(seg.n, g.compN)}% · ${seg.n} 回合${solo ? ` · 胜率 ${nf(100*seg.won/seg.n)}` : ''}"></i>`
       ).join('') + `</div>`;
     }
     return `<div class="tlrow">

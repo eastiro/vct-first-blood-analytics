@@ -98,6 +98,27 @@ def offline_tl_events(team: str, map_name: str) -> list[tuple[int, int, int, int
     return [(ei, *out[ei]) for ei in sorted(out)]
 
 
+def offline_comp_cells(team: str, map_name: str) -> dict[tuple[int, int], list[int]]:
+    """(eventIdx, compId) -> [rounds, wins] for one team on one map.
+
+    阵容条上的悬停要报「这套阵容在这个赛事里的胜率」，不是整行的胜率。
+    """
+    t = D["teams"].index(team)
+    mi = D["maps"].index(map_name)
+    out: dict[tuple[int, int], list[int]] = defaultdict(lambda: [0, 0])
+    for r in R:
+        if (r[2] != t and r[3] != t) or r[1] != mi:
+            continue
+        mc = r[12] if r[5] == t else r[13]
+        if mc < 0:
+            continue
+        cell = out[(r[0], mc)]
+        cell[0] += 1
+        if r[4] == t:
+            cell[1] += 1
+    return out
+
+
 def main() -> None:
     with sync_playwright() as p:
         b = p.chromium.launch()
@@ -418,7 +439,8 @@ def main() -> None:
             rows = pg.eval_on_selector_all("#compList .tlrow:not(.tlhead)", """els => els.map(e => ({
                 k: e.querySelector('.k').textContent.trim(),
                 v: e.querySelector('.v').textContent.trim(),
-                segs: [...e.querySelectorAll('.tlbar i')].map(i => i.style.width)
+                segs: [...e.querySelectorAll('.tlbar i')].map(i => ({
+                  w: i.style.width, t: i.getAttribute('title') || '' }))
             }))""")
             exp = offline_tl_events(team, map_name)
             check(f"[{team}/{map_name}] one row per event played",
@@ -437,9 +459,57 @@ def main() -> None:
             check(f"[{team}/{map_name}] time-axis n / win rate match offline",
                   not bad, str(bad[:2]))
 
-            sums = [abs(sum(float(w.rstrip('%')) for w in r["segs"]) - 100) for r in rows]
+            sums = [abs(sum(float(s["w"].rstrip('%')) for s in r["segs"]) - 100)
+                    for r in rows]
             check(f"[{team}/{map_name}] every time row sums to 100%",
                   all(s < 0.6 for s in sums), f"max diff {max(sums) if sums else 0:.2f}")
+
+            # 悬停要报这套阵容自己的胜率，不是整行胜率。一行里几套阵容的胜率
+            # 可以差 20pp 以上（PRX 莲华古城 S1 是 68.4% vs 45.7%），
+            # 报整行那个数等于没回答「哪套好用」。
+            want = offline_comp_cells(team, map_name)
+            # 页面上只有该范围前 6 套上色，其余并进灰色的「其他 N 套」。
+            # 这里按同样的规则算出哪些套会有独立的悬停文案。
+            scope_n: dict[int, int] = defaultdict(int)
+            for (ev, cid), (cn, _cw) in want.items():
+                scope_n[cid] += cn
+            visible = {cid for cid, _ in
+                       sorted(scope_n.items(), key=lambda kv: -kv[1])[:6]}
+            bad = []
+            for row, (ei, *_rest) in zip(rows, exp):
+                got = {}
+                for s in row["segs"]:
+                    parts = s["t"].split(" · ")
+                    # 「其他 N 套」是灰色长尾，没有单一胜率可报，跳过
+                    if parts[0].startswith("其他"):
+                        # 但也不能报一个合并后的胜率，那等于给一堆阵容编一个数
+                        if "胜率" in s["t"]:
+                            bad.append(f"ev{ei} merged tail must not carry a win rate: "
+                                       f"{s['t']!r}")
+                        continue
+                    # 阵容名占 5 段，后面是 份额 / 回合 / 胜率
+                    if len(parts) < 8:
+                        bad.append(f"ev{ei} tooltip too short: {s['t']!r}")
+                        continue
+                    n = int(parts[6].replace("回合", "").strip())
+                    wr = float(parts[7].replace("胜率", "").replace("%", "").strip())
+                    got[tuple(parts[:5])] = (n, wr)
+                for (ev, cid), (cn, cw) in want.items():
+                    if ev != ei or cid not in visible:
+                        continue
+                    name = tuple(DATA["zh"]["agents"][D["agents"][a]]
+                                 for a in DATA["comps"][cid])
+                    if name not in got:
+                        bad.append(f"ev{ei} comp{cid} missing from tooltips")
+                        continue
+                    gn, gwr = got[name]
+                    # 页面按 1 位小数显示，3/16 = 18.75% 会写成 18.8%，
+                    # 所以比四舍五入后的字符串，不要比浮点差
+                    if gn != cn or f"{gwr:.1f}" != f"{100*cw/cn:.1f}":
+                        bad.append(f"ev{ei} comp{cid} page={gn}/{gwr:.1f}% "
+                                   f"want={cn}/{100*cw/cn:.1f}%")
+            check(f"[{team}/{map_name}] tooltip carries each comp's own win rate",
+                  not bad, str(bad[:3]))
 
             # 同一套阵容在所有行必须同色，否则看不出走势
             colors = pg.evaluate("""() => {
