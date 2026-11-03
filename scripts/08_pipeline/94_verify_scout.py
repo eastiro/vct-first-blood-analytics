@@ -144,16 +144,16 @@ def main() -> None:
 
         # ---------- economy ----------
         # 「经济结构」面板已按用户要求删除，这里改为验证它确实不在 DOM 里，
-        # 并且底层 econ 统计仍然可用（insights 还在用，不能顺手删坏）。
+        # 并且底层 econ 统计仍然可用（全买局那条判断还在用，不能顺手删坏）。
         econ_bars = pg.evaluate("""() => document.querySelectorAll('#econList .bar').length""")
         check("economy panel removed from DOM", econ_bars == 0, str(econ_bars))
         econ_ok = pg.evaluate("""() => {
           const i = S.D.teams.indexOf('Paper Rex');
           const a = aggregate(view, i);
-          const tot = a.econ[0][0]+a.econ[1][0]+a.econ[2][0];
-          return tot > 0;
+          const b = buildBaselines(F.ev, F.map);
+          return a.econ[2][0] > 0 && b.fullWin != null;
         }""")
-        check("econ stats still computed under the hood", econ_ok is True)
+        check("full-buy stats still computed under the hood", econ_ok is True)
 
         # ---------- player level ----------
         players = pg.evaluate("""() => [...document.querySelectorAll('#playerRows tr')]
@@ -241,6 +241,17 @@ def main() -> None:
         check("findings do not contain coaching verbs",
               not any(w in (o["main"] + o["cmp"]) for o in items
                       for w in ("建议", "应该", "别指望", "惩罚", "准备")), str(items[:2]))
+
+        # eco 局胜率已删除：那一档是「≤1 把长枪」，12% 是冲锋枪强起，
+        # 6.9% 花了 8000 以上，胜率说不出「省钱的回合有多难赢」。
+        check("eco-round win rate removed from findings",
+              not any(o["tag"] == "eco 局" for o in items),
+              str([o["tag"] for o in items]))
+        check("eco term dropped from glossary",
+              pg.evaluate("() => !('eco 局' in TERMS)") is True)
+        check("full-buy finding still present",
+              any(o["tag"] == "全买局" for o in items),
+              str([o["tag"] for o in items]))
 
         # ---------- 联动的回合数 ----------
         cascade = pg.evaluate("""() => {
