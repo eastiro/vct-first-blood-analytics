@@ -464,11 +464,7 @@ function buildBaselines(ev, map){
   b.untradedWin = untradedN ? 100*untradedWon/untradedN : null;
   b.tradeGap = (b.tradedWin != null && b.untradedWin != null)
     ? b.untradedWin - b.tradedWin : null;
-  b.econShare = {}; b.econWin = {};
-  for(const k of [0,1,2]){
-    b.econWin[k] = econ[k][0] ? 100*econ[k][1]/econ[k][0] : null;
-    b.econShare[k] = 100*econ[k][0]/(econ[0][0]+econ[1][0]+econ[2][0]);
-  }
+  b.fullWin = econ[2][0] ? 100*econ[2][1]/econ[2][0] : null;
 
   // pistol rounds + round-2 buy after losing the pistol
   const games = new Map();
@@ -621,7 +617,6 @@ function insights(a, b, t, ps){
   const atkWin  = a.atk.n ? 100*a.atk.won/a.atk.n : null;
   const baseDef = b.atkWin != null ? 100 - b.atkWin : null;
   const fullWin = a.econ[2][0] ? 100*a.econ[2][1]/a.econ[2][0] : null;
-  const ecoWin  = a.econ[0][0] ? 100*a.econ[0][1]/a.econ[0][0] : null;
   const conc    = b.conc.get(t);
   const secMed  = median(a.secs);
 
@@ -671,19 +666,16 @@ function insights(a, b, t, ps){
       'player:' + conc.pid);
   }
 
-  if(fullWin != null && b.econWin[2] != null){
-    const d = fullWin - b.econWin[2];
+  if(fullWin != null && b.fullWin != null){
+    const d = fullWin - b.fullWin;
     push(Math.abs(d)*1.2, '全买局',
       `全买局胜率 ${fullWin.toFixed(1)}%`,
-      `平均 ${b.econWin[2].toFixed(1)}% · ${pp(d)}`);
+      `平均 ${b.fullWin.toFixed(1)}% · ${pp(d)}`);
   }
 
-  if(ecoWin != null && b.econWin[0] != null){
-    const d = ecoWin - b.econWin[0];
-    push(Math.abs(d)*1.1, 'eco 局',
-      `eco 局胜率 ${ecoWin.toFixed(1)}%`,
-      `平均 ${b.econWin[0].toFixed(1)}% · ${pp(d)}`);
-  }
+  /* eco 局胜率不报。这个档是「队里 ≤1 把长枪」，不是「存钱」——
+     实测 12% 是 4 把以上 Stinger / Spectre 的强起，另有 6.9% 花了 8000 以上。
+     一个把强起也算进去的档，它的胜率说不出「省钱的回合有多难赢」。 */
 
   if(secMed != null && b.secMed != null){
     const d = secMed - b.secMed;
@@ -719,7 +711,7 @@ function insights(a, b, t, ps){
   const CAT_ORDER = {
     '首杀率': 1, '首杀转化': 2, '被补率': 3, '开火点': 4,
     '防守端': 5, '进攻端': 6, '开局时机': 7,
-    '全买局': 8, 'eco 局': 9, '手枪局': 10,
+    '全买局': 8, '手枪局': 10,
   };
   out.sort((x,y) => {
     const cx = CAT_ORDER[x.tag] ?? 99, cy = CAT_ORDER[y.tag] ?? 99;
@@ -833,12 +825,9 @@ const TERMS = {
     + '对比对象是当前筛选范围（同一赛事 / 同一地图）的回合加权平均：'
     + '把该范围所有回合放一起算一个率，不是先算每队的率再平均。'
     + '全部赛事 + 全部地图时是 71%。',
-  'eco 局': '按本回合实际持有的长枪数分档：≤1 把长枪算 eco 局，'
-    + '2–3 把算半买，≥4 把算全买。'
-    + '不用「花费」是因为留枪会污染它——上回合保下来的枪记 0 花费，'
-    + '但那把枪照样能打。',
   '全买局': '本回合队里持有 ≥4 把长枪的回合，也就是正常买枪的回合。'
-    + 'eco 局是 ≤1 把，中间那档是半买。',
+    + '长枪指 Vandal / Phantom / Guardian / Bulldog / Odin / Operator / Outlaw / Marshal。'
+    + '不用「花了多少钱」是因为留枪会污染它：上回合保下来的枪记 0 花费，但照样能打。',
   '手枪局': '每张图的上半场第 1 回合和下半场第 13 回合，双方都只能用手枪和基础装备。'
     + '共 2 个，样本天然很小。',
 };
