@@ -190,6 +190,12 @@
             font-size:10px; color:var(--dim); font-variant-numeric:tabular-nums}
   .tlrow .v b{font-weight:500; color:var(--fg)}
   .tlrow .v.mute b{color:var(--dim2)}
+  /* 没有列头的话，行尾的「54.2% · 59」和图例的「11.2% · 269 回合」长得一样，
+     一个是胜率一个是阵容占比，分不出来 */
+  .tlhead{font-size:10px; margin-bottom:3px}
+  .tlhead .k{font-size:10px; color:var(--dim2)}
+  .tlhead .b{flex:1; min-width:0}
+  .tlhead .v{font-size:10px; color:var(--dim2)}
 
   /* table */
   table{width:100%; border-collapse:collapse; font-size:13px}
@@ -940,7 +946,7 @@ function renderComps(a, rows, t){
     </div>`;
   }).join('');
 
-  document.getElementById('compList').innerHTML = keys.map(k => {
+  const items = keys.map(k => {
     const g = groups.get(k);
     const label = byTime ? evShort(k) : (S.Z.maps[S.D.maps[k]] || S.D.maps[k]);
     const wr = g.n ? 100*g.won/g.n : null;
@@ -967,7 +973,15 @@ function renderComps(a, rows, t){
       ${bar}
       <div class="v${thin?' mute':''}"><b>${wr==null?'—':wr.toFixed(1)+'%'}</b> · ${fmt(g.n)}</div>
     </div>`;
-  }).join('') || '<div class="small">无数据</div>';
+  });
+
+  const head = `<div class="tlrow tlhead">
+    <div class="k">${byTime ? '赛事' : '地图'}</div>
+    <div class="b"></div>
+    <div class="v">胜率 · 回合</div>
+  </div>`;
+  document.getElementById('compList').innerHTML =
+    items.length ? head + items.join('') : '<div class="small">无数据</div>';
 }
 
 function renderPistol(a, b, rows, t){

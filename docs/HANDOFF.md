@@ -287,7 +287,7 @@ python 35_download_fonts.py    # 拉 Inter / JetBrains Mono 的 latin 子集到 
 python 65_ui_regress.py        # 43 项：UI 交互 + 队标 + 下拉联动 + 链接恢复 + 排序动画
 python 92_verify_champions.py  # 17 项：冠军赛数据 + 术语表 + 15 个赛事下拉项
 python 91_verify_metrics.py    # 11 项：指标数值与离线分析一致
-python 94_verify_scout.py      # 60 项：队伍报告数值 + 阵容时间轴与离线重算一致
+python 94_verify_scout.py      # 64 项：队伍报告数值 + 阵容时间轴与离线重算一致
 ```
 
 `94_verify_scout.py` 会重算 PRX / 日落之城的每一个数字并和页面比对，
