@@ -63,8 +63,9 @@ def offline(team: str, map_name: str | None, event: str | None = None) -> dict:
 def offline_tl(team: str) -> dict:
     """Per-map (n, won, compN) straight from the raw rows.
 
-    阵容时间轴现在固定按地图分组：阵容是按地图选的，把不同地图的阵容
-    混在一起算份额没有意义（PRX 最常用的 5 套里 4 套只出现在单一地图上）。
+    阵容面板的行维度跟着地图选择器走：全部地图时按地图分组（阵容是按地图选的，
+    把不同地图的阵容混在一起算份额没有意义——PRX 最常用的 5 套里 4 套只出现在
+    单一地图上），选定一张图时按赛事排成时间轴。
     """
     t = D["teams"].index(team)
     out = defaultdict(lambda: [0, 0, 0])
@@ -78,6 +79,23 @@ def offline_tl(team: str) -> dict:
         if (r[12] if r[5] == t else r[13]) >= 0:
             g[2] += 1
     return out
+
+
+def offline_tl_events(team: str, map_name: str) -> list[tuple[int, int, int, int]]:
+    """(eventIdx, n, won, compN) for one map, in event order."""
+    t = D["teams"].index(team)
+    mi = D["maps"].index(map_name)
+    out = defaultdict(lambda: [0, 0, 0])
+    for r in R:
+        if (r[2] != t and r[3] != t) or r[1] != mi:
+            continue
+        g = out[r[0]]
+        g[0] += 1
+        if r[4] == t:
+            g[1] += 1
+        if (r[12] if r[5] == t else r[13]) >= 0:
+            g[2] += 1
+    return [(ei, *out[ei]) for ei in sorted(out)]
 
 
 def main() -> None:
@@ -339,7 +357,7 @@ def main() -> None:
                   0 < sum(shares) <= 100.01,
                   f"{sum(shares):.1f}%")
 
-        # 锁定单个赛事 → 行维度切到地图
+        # 锁定单个赛事 → 行维度仍是地图
         pg.evaluate("""() => {
           const i = [...document.querySelectorAll('#teamSel option')]
             .findIndex(o => o.textContent.includes('Paper Rex'));
@@ -350,12 +368,77 @@ def main() -> None:
           F.ev = +ev.value; fillScopeSelects(); recompute();
         }""")
         pg.wait_for_timeout(450)
-        check("timeline is always grouped by map",
+        check("all-maps scope groups rows by map",
               pg.text_content("#compTitle").strip() == "阵容 · 按地图",
               pg.text_content("#compTitle"))
         nmap = pg.eval_on_selector_all("#compList .tlrow", "e => e.length")
         check("locking one event narrows the map rows",
               1 <= nmap <= len(D["maps"]), f"rows={nmap}")
+
+        # ---------- 选定一张地图 → 行维度切到赛事（时间轴） ----------
+        # 阵容是按地图选的，所以「版本变化」只有在同一张图上才看得出来。
+        # 在全部地图下按赛事排，一套只打某张图的阵容会在没打这张图的赛事里
+        # 显示 0%，看上去像换阵容，其实是赛程里没有这张图。
+        for team, map_name, map_zh in (("Paper Rex", "Lotus", "莲华古城"),
+                                       ("EDward Gaming", "Lotus", "莲华古城")):
+            pg.evaluate("""([name, mp]) => {
+              const ti = [...document.querySelectorAll('#teamSel option')]
+                .findIndex(o => o.textContent.includes(name));
+              F.team = +document.querySelectorAll('#teamSel option')[ti].value;
+              F.ev = -1; F.map = -1; fillScopeSelects();
+              const mi = [...document.querySelectorAll('#mapSel option')]
+                .findIndex(o => o.textContent.includes(mp));
+              F.map = +document.querySelectorAll('#mapSel option')[mi].value;
+              fillScopeSelects(); recompute();
+            }""", [team, map_zh])
+            pg.wait_for_timeout(500)
+
+            check(f"[{team}/{map_name}] single map switches to the time axis",
+                  pg.text_content("#compTitle").strip() == "阵容 · 按时间",
+                  pg.text_content("#compTitle"))
+
+            rows = pg.eval_on_selector_all("#compList .tlrow", """els => els.map(e => ({
+                k: e.querySelector('.k').textContent.trim(),
+                v: e.querySelector('.v').textContent.trim(),
+                segs: [...e.querySelectorAll('.tlbar i')].map(i => i.style.width)
+            }))""")
+            exp = offline_tl_events(team, map_name)
+            check(f"[{team}/{map_name}] one row per event played",
+                  len(rows) == len(exp), f"page={len(rows)} offline={len(exp)}")
+
+            # 行必须按赛事先后排，标签也要对得上
+            want_labels = [DATA["zh"]["events"][D["events"][ei]] for ei, *_ in exp]
+            check(f"[{team}/{map_name}] rows are in event order",
+                  [r["k"] for r in rows] == want_labels,
+                  f"page={[r['k'] for r in rows]}")
+
+            bad = []
+            for row, (ei, n, won, cn) in zip(rows, exp):
+                if f"{100*won/n:.1f}%" not in row["v"] or f"{n:,}" not in row["v"]:
+                    bad.append(f"ev{ei} page='{row['v']}' want {100*won/n:.1f}%/{n:,}")
+            check(f"[{team}/{map_name}] time-axis n / win rate match offline",
+                  not bad, str(bad[:2]))
+
+            sums = [abs(sum(float(w.rstrip('%')) for w in r["segs"]) - 100) for r in rows]
+            check(f"[{team}/{map_name}] every time row sums to 100%",
+                  all(s < 0.6 for s in sums), f"max diff {max(sums) if sums else 0:.2f}")
+
+            # 同一套阵容在所有行必须同色，否则看不出走势
+            colors = pg.evaluate("""() => {
+              const m = new Map();
+              let clash = 0;
+              for(const i of document.querySelectorAll('#compList .tlbar i')){
+                const t = i.getAttribute('title') || '';
+                const name = t.split(' · ').slice(0, 5).join(' · ');
+                const c = i.style.background;
+                if(!name || name.startsWith('其他')) continue;
+                if(m.has(name) && m.get(name) !== c) clash++;
+                m.set(name, c);
+              }
+              return { comps: m.size, clash };
+            }""")
+            check(f"[{team}/{map_name}] a comp keeps one colour across events",
+                  colors["clash"] == 0, str(colors))
 
         check("no js errors", not errs, str(errs[:2]))
 
