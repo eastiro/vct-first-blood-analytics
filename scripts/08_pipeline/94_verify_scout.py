@@ -315,7 +315,7 @@ def main() -> None:
             }""", team)
             pg.wait_for_timeout(450)
 
-            rows = pg.eval_on_selector_all("#compList .tlrow", """els => els.map(e => ({
+            rows = pg.eval_on_selector_all("#compList .tlrow:not(.tlhead)", """els => els.map(e => ({
                 k: e.querySelector('.k').textContent.trim(),
                 v: e.querySelector('.v').textContent.trim(),
                 segs: [...e.querySelectorAll('.tlbar i')].map(i => i.style.width),
@@ -371,9 +371,22 @@ def main() -> None:
         check("all-maps scope groups rows by map",
               pg.text_content("#compTitle").strip() == "阵容 · 按地图",
               pg.text_content("#compTitle"))
-        nmap = pg.eval_on_selector_all("#compList .tlrow", "e => e.length")
+        nmap = pg.eval_on_selector_all("#compList .tlrow:not(.tlhead)", "e => e.length")
         check("locking one event narrows the map rows",
               1 <= nmap <= len(D["maps"]), f"rows={nmap}")
+
+        # 行尾那个「53.8% · 461」没有列头的话，和图例的「11.2% · 269 回合」
+        # 长得一样，一个是胜率一个是阵容占比，读者分不出来。
+        head = pg.evaluate("""() => {
+          const h = document.querySelector('#compList .tlhead');
+          if(!h) return null;
+          return { k: h.querySelector('.k').textContent.trim(),
+                   v: h.querySelector('.v').textContent.trim() };
+        }""")
+        check("comp rows carry a column header",
+              head is not None and head["v"] == "胜率 · 回合", str(head))
+        check("header names the row dimension",
+              head is not None and head["k"] == "地图", str(head))
 
         # ---------- 选定一张地图 → 行维度切到赛事（时间轴） ----------
         # 阵容是按地图选的，所以「版本变化」只有在同一张图上才看得出来。
@@ -397,7 +410,12 @@ def main() -> None:
                   pg.text_content("#compTitle").strip() == "阵容 · 按时间",
                   pg.text_content("#compTitle"))
 
-            rows = pg.eval_on_selector_all("#compList .tlrow", """els => els.map(e => ({
+            head_k = pg.evaluate(
+                "() => document.querySelector('#compList .tlhead .k').textContent.trim()")
+            check(f"[{team}/{map_name}] header relabels the row dimension",
+                  head_k == "赛事", head_k)
+
+            rows = pg.eval_on_selector_all("#compList .tlrow:not(.tlhead)", """els => els.map(e => ({
                 k: e.querySelector('.k').textContent.trim(),
                 v: e.querySelector('.v').textContent.trim(),
                 segs: [...e.querySelectorAll('.tlbar i')].map(i => i.style.width)
