@@ -127,6 +127,8 @@
     .panel{min-width:0; overflow-x:auto}
     .vitem{grid-template-columns:70px minmax(0,1fr); gap:9px}
     .vmain{font-size:13px}
+    /* 基准那行是 nowrap 的等宽字，窄屏放不下会把整页顶出去 29px */
+    .vcmp{white-space:normal}
   }
 
   .panel{background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px 16px}
@@ -178,6 +180,8 @@
   .tlrow{display:flex; align-items:center; gap:10px; margin-bottom:6px}
   .tlrow .k{flex:0 0 150px; font-size:12px; color:var(--dim); white-space:nowrap;
             overflow:hidden; text-overflow:ellipsis}
+  /* 时间轴的行标签是赛事名，比地图名长 */
+  #compList.time .tlrow .k{flex-basis:176px}
   .tlbar{flex:1; min-width:0; height:16px; display:flex; border-radius:2px; overflow:hidden;
          background:rgba(27,26,23,.06)}
   .tlbar.nodata{background:repeating-linear-gradient(45deg,rgba(27,26,23,.05) 0 4px,transparent 4px 8px)}
@@ -312,7 +316,7 @@
       <div class="kpis" id="kpis"></div>
     </div>
 
-    <!-- 阵容占全宽：按地图拆之后行数多，半宽放不下 -->
+    <!-- 阵容占全宽：按地图拆时一行一张图，按赛事拆时一行一个赛事 -->
     <div class="panel full">
       <h3 id="compTitle">阵容 · 按地图</h3>
       <div class="note" id="compNote"></div>
@@ -703,8 +707,8 @@ function insights(a, b, t, ps){
   /* 阵容不在这里报。
      阵容是按地图选的：PRX 最常用的 5 套里有 4 套只出现在单一地图上。
      在「全部地图」下说「默认阵容占 11%」是把不同地图的阵容混在一起算，
-     那个数字没有意义。阵容完整地放在下面的「阵容 · 按赛事」时间轴里，
-     按赛事（或地图）分开看。 */
+     那个数字没有意义。阵容完整地放在下面的阵容面板里，
+     全部地图时按地图拆，选定一张图时按赛事排成时间轴。 */
 
   // 类别固定顺序：先首杀本身，再攻防，再经济，最后对峙基准。
   // 同类内按偏离幅度降序。
@@ -847,10 +851,11 @@ document.addEventListener('click', e => {
 
 function agentName(i){ return S.Z.agents[S.D.agents[i]] || S.D.agents[i]; }
 
-/* 阵容时间轴：行 = 地图，条 = 该图里各阵容的份额 */
+/* 阵容时间轴：行 = 地图（全部地图时）或赛事（选定一张图时），条 = 各阵容的份额 */
 /* 6 个颜色按「每张图的前几套」分配。同一套阵容在不同图上是同一个颜色，
    但不同阵容可能撞色——这是可接受的，因为每行的图例顺序就是它自己的前几套，
-   而悬停能看到完整阵容名。 */
+   而悬停能看到完整阵容名。时间轴模式下只按全局前 6 套上色，保证同一套阵容
+   在所有行同色，否则看不出走势。 */
 const COMP_COLORS = ['#DE3B49','#0E7C74','#A5741C','#4C6A8E','#157F3B','#6D5A8A'];
 const COMP_OTHER  = '#C6C0B3';
 
@@ -859,14 +864,17 @@ function compName(cid){ return S.raw.comps[cid].map(agentName).join(' · '); }
 function evShort(i){ return S.Z.events[S.D.events[i]] || S.D.events[i]; }
 
 function renderComps(a, rows, t){
-  /* 阵容按地图看。
-     原因：阵容就是按地图选的——PRX 最常用的 5 套里 4 套只出现在单一地图上。
-     把不同地图的阵容混在一起算「默认阵容占比」，那个数字没有意义。
+  /* 行维度跟着地图选择器走。
 
-     配色按「每张图自己的前 N 套」分配，不是全局前 6 套。
-     原来是全局取前 6，结果每张图都只有一两套能上色，其余全塞进灰色，
-     等于看了半天什么也没看出来。 */
-  const keyOf = r => r[1];
+     全部地图 → 按地图。阵容就是按地图选的（PRX 最常用的 5 套里 4 套只出现在
+     单一地图上），把不同地图混在一起算份额，那个数字没有意义。
+
+     单张地图 → 按赛事（时间轴）。同一张图上按时间排，才看得出换版本之后
+     阵容怎么换的。反过来在「全部地图」下按赛事排会骗人：一套只打某张图的阵容，
+     在没打这张图的赛事里自然显示 0%，看上去像「阵容大换血」，
+     其实是赛程里没有这张图（实测 PRX 前 6 套在相邻赛事之间整段跳到 0.0%）。*/
+  const byTime = F.map >= 0;
+  const keyOf = r => byTime ? r[0] : r[1];
   const groups = new Map();
   for(const r of rows){
     const k = keyOf(r);
@@ -876,7 +884,11 @@ function renderComps(a, rows, t){
     const mc = myCompOf(r, t);
     if(mc >= 0){ g.comps.set(mc, (g.comps.get(mc)||0)+1); g.compN++; }
   }
-  const keys = [...groups.keys()].sort((x,y) => groups.get(y).n - groups.get(x).n);
+  /* 行序：时间轴按赛事先后（EVENT_ORDER 本身就是时间序），
+     按地图时按回合数多少。 */
+  const keys = [...groups.keys()].sort(byTime
+    ? (x, y) => x - y
+    : (x, y) => groups.get(y).n - groups.get(x).n);
 
   const NTOP = 4;   // 每张图最多给 4 套上色，再多图例会失控
   /* 每张图取自己的前 N 套上色。
@@ -885,28 +897,33 @@ function renderComps(a, rows, t){
      其余阵容再按需取色，允许撞色——它们只出现在条上，靠悬停看名字。 */
   const byTotal = [...a.comps.entries()].sort((x,y) => y[1] - x[1]).map(([cid]) => cid);
   const colorOf = new Map();
-  const used = new Set();
   // 先给全局最常用的 6 套分配唯一色
   for(const cid of byTotal.slice(0, COMP_COLORS.length)){
     colorOf.set(cid, COMP_COLORS[colorOf.size]);
   }
-  // 其余按图分配，颜色不够时回绕（允许撞色）
-  let cursor = 0;
-  for(const k of keys){
-    const g = groups.get(k);
-    const own = [...g.comps.entries()].sort((x,y)=>y[1]-x[1]).slice(0, NTOP);
-    for(const [cid] of own){
-      if(colorOf.has(cid)) continue;
-      colorOf.set(cid, COMP_COLORS[cursor % COMP_COLORS.length]);
-      cursor++;
+  /* 时间轴到此为止：同一套阵容在所有行必须是同一个颜色，否则看不出走势。
+     按地图时再给每张图自己的前几套补色，颜色不够时回绕（允许撞色）。 */
+  if(!byTime){
+    let cursor = 0;
+    for(const k of keys){
+      const g = groups.get(k);
+      const own = [...g.comps.entries()].sort((x,y)=>y[1]-x[1]).slice(0, NTOP);
+      for(const [cid] of own){
+        if(colorOf.has(cid)) continue;
+        colorOf.set(cid, COMP_COLORS[cursor % COMP_COLORS.length]);
+        cursor++;
+      }
     }
   }
 
-  document.getElementById('compTitle').textContent = '阵容 · 按地图';
+  document.getElementById('compTitle').textContent = byTime ? '阵容 · 按时间' : '阵容 · 按地图';
   document.getElementById('compNote').innerHTML = a.compN
-    ? `每行一张图，按该队在这张图上的回合数排序。色块 = 该图最常用的几套阵容，`
-      + `灰 = 这张图上其余的阵容。悬停看具体阵容与占比。`
+    ? (byTime
+        ? `同一张图上按赛事先后排，条 = 该赛事里各阵容的份额。悬停看具体阵容。`
+        : `每行一张图，按该队在这张图上的回合数排序。色块 = 该图最常用的几套阵容，`
+          + `灰 = 这张图上其余的阵容。悬停看具体阵容与占比。选一张地图可改看时间轴。`)
     : '这个范围没有阵容数据（中国赛区不提供）';
+  document.getElementById('compList').classList.toggle('time', byTime);
 
   /* 图例只列全局最常用的 6 套（按该队全范围回合数），
      其余阵容在条上仍是彩色（按图分配），靠悬停看名字——
@@ -925,13 +942,14 @@ function renderComps(a, rows, t){
 
   document.getElementById('compList').innerHTML = keys.map(k => {
     const g = groups.get(k);
-    const label = S.Z.maps[S.D.maps[k]] || S.D.maps[k];
+    const label = byTime ? evShort(k) : (S.Z.maps[S.D.maps[k]] || S.D.maps[k]);
     const wr = g.n ? 100*g.won/g.n : null;
     const thin = g.n < 20;
 
     let bar;
     if(!g.compN){
-      bar = `<div class="tlbar nodata" title="这张图没有阵容数据（中国赛区不提供）"></div>`;
+      const why = byTime ? '这个赛事没有阵容数据' : '这张图没有阵容数据（中国赛区不提供）';
+      bar = `<div class="tlbar nodata" title="${why}"></div>`;
     }else{
       const segs = [];
       let otherN = 0, otherC = 0;

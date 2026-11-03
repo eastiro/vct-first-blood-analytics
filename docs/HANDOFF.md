@@ -287,11 +287,16 @@ python 35_download_fonts.py    # 拉 Inter / JetBrains Mono 的 latin 子集到 
 python 65_ui_regress.py        # 43 项：UI 交互 + 队标 + 下拉联动 + 链接恢复 + 排序动画
 python 92_verify_champions.py  # 17 项：冠军赛数据 + 术语表 + 15 个赛事下拉项
 python 91_verify_metrics.py    # 11 项：指标数值与离线分析一致
-python 94_verify_scout.py      # 46 项：队伍报告数值 + 阵容时间轴与离线重算一致
+python 94_verify_scout.py      # 60 项：队伍报告数值 + 阵容时间轴与离线重算一致
 ```
 
 `94_verify_scout.py` 会重算 PRX / 日落之城的每一个数字并和页面比对，
 包括补枪面板（**必须只用「本队拿到首杀」的回合**，否则差值会算成负数）。
+
+阵容面板的行维度是跟着地图选择器变的（2026-11-03）：
+「全部地图」→ 一行一张图；选定一张图 → 一行一个赛事，按时间先后排。
+`94` 里两组断言分别校验这两个维度，还额外校验「同一套阵容在所有行同色」
+（时间轴靠颜色认走势，撞色就看不出变化了）。
 
 改了统计逻辑的话，`91_verify_metrics.py` 会检查前端算出来的
 57.0% / 75.6% / 18.7pp 是否还和离线 `85_trade_sensitivity.py` 对得上。
