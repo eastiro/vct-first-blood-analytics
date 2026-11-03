@@ -1,5 +1,7 @@
 # 无畏契约 2026 · 首杀分析
 
+**线上站点 → https://eastiro.github.io/vct-first-blood-analytics/**
+
 从 [vlr.gg](https://www.vlr.gg) 的 2D 回放里提取 **32,786 个回合**的首杀事件，
 做成一个只讲首杀的静态站点：首杀发生在哪、谁拿的、用什么拿的、拿到之后赢不赢。
 
@@ -9,13 +11,17 @@
 
 ## 跑起来
 
-站点是纯静态的，无框架、无构建、无 CDN 依赖（字体已自托管）。
+线上版由 GitHub Pages 从 `site/` 直接发布，纯静态、无构建步骤。
+
+本地跑：
 
 ```bash
 cd site
 python -m http.server 8777 --bind 127.0.0.1
 # 打开 http://127.0.0.1:8777/
 ```
+
+推送 `site/` 的改动到 `master` 会自动重新部署（见 `.github/workflows/pages.yml`）。
 
 三个页面：
 
@@ -33,9 +39,12 @@ python -m http.server 8777 --bind 127.0.0.1
 ## 目录
 
 ```
-site/               静态站点（直接部署这个目录）
+site/               静态站点（GitHub Pages 发布的就是这个目录）
   data/             站点读的数据（派生结果）
   fonts/ maps/ logos/
+
+.github/workflows/
+  pages.yml         推送 site/ 后自动部署到 Pages
 
 data/               分析用的数据
   site_v3.json      站点主数据
