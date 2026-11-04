@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>队伍简报 · 无畏契约 2026 首杀</title>
+<title data-i18n="scout.title">队伍简报 · 无畏契约 2026 首杀</title>
 <link rel="stylesheet" href="fonts/fonts.css">
+<script src="i18n.js"></script>
 <style>
   :root{
     --bg:#EAE7E0; --panel:#FFFFFF; --panel2:#F5F2EC; --panel3:#E9E5DC;
@@ -103,9 +104,14 @@
   }
   .verdict h2{
     margin:0 0 12px; font-size:12px; letter-spacing:1.6px; color:var(--red);
-    text-transform:uppercase; font-weight:600;
+    font-weight:600;
   }
-  .vitem{display:grid; grid-template-columns:74px minmax(0,1fr);
+  /* 大写只对中文无害（汉字没有大小写）；英文整句大写读起来像大喊，
+     是 DESIGN.md 里明令避免的「AI 味」。 */
+  html[lang="zh-CN"] .verdict h2{text-transform:uppercase}
+  /* 标签列用 minmax(74px, auto)：中文标签四个字够用，英文标签更长
+   （Opening concentration），写死 74px 会溢出压到正文上。 */
+  .vitem{display:grid; grid-template-columns:minmax(74px, max-content) minmax(0,1fr);
          gap:11px; align-items:baseline; padding:7px 0;
          border-top:1px solid rgba(27,26,23,.07)}
   .vitem:first-of-type{border-top:none; padding-top:2px}
@@ -125,7 +131,7 @@
   /* 窄屏：宽表会把 panel 撑破，让面板自己横向滚，别把整页推出去 */
   @media (max-width:760px){
     .panel{min-width:0; overflow-x:auto}
-    .vitem{grid-template-columns:70px minmax(0,1fr); gap:9px}
+    .vitem{grid-template-columns:minmax(70px, max-content) minmax(0,1fr); gap:9px}
     .vmain{font-size:13px}
     /* 基准那行是 nowrap 的等宽字，窄屏放不下会把整页顶出去 29px */
     .vcmp{white-space:normal}
@@ -274,33 +280,34 @@
 
 <header>
   <div>
-    <h1>队伍简报 <span>/</span> 无畏契约 2026</h1>
-    <div class="sub">赛前对手准备 · 基于 vlr.gg 2D 回放的回合级数据</div>
+    <h1><span data-i18n="scout.h1">队伍简报</span> <span>/</span> <span data-i18n="site">无畏契约 2026</span></h1>
+    <div class="sub" data-i18n="scout.sub">赛前对手准备 · 基于 vlr.gg 2D 回放的回合级数据</div>
   </div>
   <nav class="tabs" role="tablist">
-    <a class="tab" href="index.html" role="tab" aria-selected="false">总览</a>
-    <a class="tab on" href="scout.html" role="tab" aria-selected="true">队伍简报</a>
-    <a class="tab" href="duel.html" role="tab" aria-selected="false">选手对比</a>
+    <a class="tab" href="index.html" role="tab" aria-selected="false" data-i18n="nav.overview">总览</a>
+    <a class="tab on" href="scout.html" role="tab" aria-selected="true" data-i18n="nav.scout">队伍简报</a>
+    <a class="tab" href="duel.html" role="tab" aria-selected="false" data-i18n="nav.duel">选手对比</a>
   </nav>
+  <div id="langSlot"></div>
 </header>
 
 <main>
   <div class="controls">
     <div class="ctl">
-      <label>目标队伍</label>
+      <label data-i18n="ctl.target">目标队伍</label>
       <select id="teamSel"></select>
     </div>
     <div class="ctl">
-      <label>地图</label>
+      <label data-i18n="ctl.map">地图</label>
       <select id="mapSel"></select>
     </div>
     <div class="ctl">
-      <label>赛事</label>
+      <label data-i18n="ctl.event">赛事</label>
       <select id="evSel"></select>
     </div>
     <div style="display:flex;gap:8px;margin-left:auto">
-      <button class="navbtn" id="shareBtn">复制链接</button>
-      <button class="navbtn" onclick="window.print()">导出 PDF</button>
+      <button class="navbtn" id="shareBtn" data-i18n="ctl.share">复制链接</button>
+      <button class="navbtn" onclick="window.print()" data-i18n="ctl.pdf">导出 PDF</button>
     </div>
     <div class="scope" id="scopeInfo"></div>
   </div>
@@ -317,51 +324,55 @@
   </div>
 
   <div class="verdict">
-    <h2 id="verdictTitle">与当前范围的平均对比</h2>
+    <h2 id="verdictTitle" data-i18n="scout.verdict">与当前范围的平均对比</h2>
     <div id="verdictBody"></div>
   </div>
 
   <div class="grid">
     <div class="panel full">
-      <h3>核心指标</h3>
+      <h3 data-i18n="scout.kpi">核心指标</h3>
       <div class="kpis" id="kpis"></div>
     </div>
 
     <!-- 阵容占全宽：按地图拆时一行一张图，按赛事拆时一行一个赛事 -->
     <div class="panel full">
-      <h3 id="compTitle">阵容 · 按地图</h3>
+      <h3 id="compTitle" data-i18n="comp.bymap">阵容 · 按地图</h3>
       <div class="note" id="compNote"></div>
       <div id="compLegend" class="clegend"></div>
       <div id="compList"></div>
     </div>
 
     <div class="panel">
-      <h3>手枪局</h3>
+      <h3 data-i18n="scout.pistol">手枪局</h3>
       <div class="note" id="pistolNote"></div>
       <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))" id="pistolKpis"></div>
     </div>
 
     <div class="panel">
-      <h3>攻防分侧</h3>
+      <h3 data-i18n="scout.sides">攻防分侧</h3>
       <table>
-        <thead><tr><th>位置</th><th>回合</th><th>胜率</th><th>首杀率</th><th>首杀→胜</th></tr></thead>
+        <thead><tr>
+          <th data-i18n="th.side">位置</th><th data-i18n="th.rounds">回合</th><th data-i18n="th.winrate">胜率</th>
+          <th data-i18n="th.fbrate">首杀率</th><th data-i18n="th.fbconv">首杀→胜</th>
+        </tr></thead>
         <tbody id="sideRows"></tbody>
       </table>
     </div>
 
     <div class="panel full">
-      <h3>谁在开火</h3>
+      <h3 data-i18n="scout.who">谁在开火</h3>
       <table>
         <thead><tr>
-          <th>选手</th><th>首杀</th><th>占队内</th><th>每 10 回合</th>
-          <th>主用英雄</th>
+          <th data-i18n="th.player">选手</th><th data-i18n="th.fb">首杀</th>
+          <th data-i18n="th.share">占队内</th><th data-i18n="th.per10">每 10 回合</th>
+          <th data-i18n="th.agent">主用英雄</th>
         </tr></thead>
         <tbody id="playerRows"></tbody>
       </table>
     </div>
 
     <div class="panel full">
-      <h3>首杀时刻</h3>
+      <h3 data-i18n="scout.timing">首杀时刻</h3>
       <div class="note" id="timeNote"></div>
       <div class="hist" id="timeHist"></div>
       <div class="hist-x" id="timeHistX"></div>
@@ -388,8 +399,8 @@ const median = arr => {
 /* ---------------------------------------------------------------- */
 /* helpers: flatten a round row for one team                        */
 /* ---------------------------------------------------------------- */
-function sideOf(r, t){
-  const isAtk = (r[2] === t);
+function sideOf(r, ti){
+  const isAtk = (r[2] === ti);
   return {
     mine:  isAtk ? r[14] : r[15],
     their: isAtk ? r[15] : r[14],
@@ -398,20 +409,20 @@ function sideOf(r, t){
     isAtk
   };
 }
-function myCompOf(r, t){
-  return (r[5] === t) ? r[12] : r[13];
+function myCompOf(r, ti){
+  return (r[5] === ti) ? r[12] : r[13];
 }
 
 /* pistol rounds + what the team does on round 2 after losing one */
-function pistolStats(rows, t){
+function pistolStats(rows, ti){
   const pist = rows.filter(r => r[18] === 1 || r[18] === 13);
   const st = {
     n: pist.length,
-    won: pist.filter(r => r[4] === t).length,
-    atkN: pist.filter(r => r[2] === t).length,
-    atkWon: pist.filter(r => r[2] === t && r[4] === t).length,
-    defN: pist.filter(r => r[3] === t).length,
-    defWon: pist.filter(r => r[3] === t && r[4] === t).length,
+    won: pist.filter(r => r[4] === ti).length,
+    atkN: pist.filter(r => r[2] === ti).length,
+    atkWon: pist.filter(r => r[2] === ti && r[4] === ti).length,
+    defN: pist.filter(r => r[3] === ti).length,
+    defWon: pist.filter(r => r[3] === ti && r[4] === ti).length,
     r2N: 0, r2Save: 0, r2Spend: []
   };
   const byG = new Map();
@@ -424,10 +435,10 @@ function pistolStats(rows, t){
     for(const r of rs) if(r[18] === 1 || r[18] === 13) pm.set(r[18], r);
     for(const [pno, rno2] of [[1,2],[13,14]]){
       const p = pm.get(pno);
-      if(!p || p[4] === t) continue;
+      if(!p || p[4] === ti) continue;
       const r2 = rs.find(x => x[18] === rno2);
       if(!r2) continue;
-      const sp = (r2[2] === t) ? r2[14] : r2[15];
+      const sp = (r2[2] === ti) ? r2[14] : r2[15];
       if(sp < 0) continue;
       st.r2N++; st.r2Spend.push(sp);
       if(sp < 3000) st.r2Save++;
@@ -551,9 +562,9 @@ function buildBaselines(ev, map){
      （另一种算法是「队伍等权」，先算每队各自的率再对队伍取平均。
        两者在本赛季差约 1.2pp，差异全部来自赛程不平衡：PRX 2,396 回合
        而 ONSIDE 只有 234 回合。回合加权不给小样本队伍同等的发言权。） */
-  b.weighting = '回合加权';
-  b.scopeLabel = (ev < 0 ? '全部赛事' : S.Z.events[S.D.events[ev]])
-    + ' · ' + (map < 0 ? '全部地图' : S.Z.maps[S.D.maps[map]]);
+  b.weighting = t('w.roundweighted');
+  b.scopeLabel = (ev < 0 ? t('w.allevents') : evName(ev))
+    + ' · ' + (map < 0 ? t('w.allmaps') : mapLabel(map));
 
   return b;
 }
@@ -561,7 +572,7 @@ function buildBaselines(ev, map){
 /* ---------------------------------------------------------------- */
 /* scope aggregation                                                */
 /* ---------------------------------------------------------------- */
-function aggregate(rows, t){
+function aggregate(rows, ti){
   const a = {
     n:0, won:0, fbFor:0, fbAgainst:0, fbWon:0,
     traded:0, untraded:0, tradedWon:0, untradedWon:0,
@@ -572,9 +583,9 @@ function aggregate(rows, t){
     secs:[], xs:[], ys:[]
   };
   for(const r of rows){
-    const s = sideOf(r, t);
-    const won = (r[4] === t);
-    const fbFor = (r[5] === t);
+    const s = sideOf(r, ti);
+    const won = (r[4] === ti);
+    const fbFor = (r[5] === ti);
     const sd = s.isAtk ? a.atk : a.def;
     a.n++; if(won) a.won++;
     sd.n++; if(won) sd.won++;
@@ -586,7 +597,7 @@ function aggregate(rows, t){
       else if(r[11] === 0){ a.untraded++; if(won) a.untradedWon++; }
     }
 
-    const mc = myCompOf(r, t);
+    const mc = myCompOf(r, ti);
     if(mc >= 0){
       // 每套阵容记回合数 + 胜场：面板里悬停要报这套自己的胜率
       let c = a.comps.get(mc);
@@ -622,11 +633,13 @@ function aggregate(rows, t){
 /* ---------------------------------------------------------------- */
 /* insight engine                                                   */
 /* ---------------------------------------------------------------- */
-function insights(a, b, t, ps){
+function insights(a, b, ti, ps){
   const out = [];
   const pp  = d => (d >= 0 ? '+' : '') + d.toFixed(1) + 'pp';
-  const push = (sev, tag, main, cmp, key) =>
-    out.push({sev: Math.abs(sev), tag, main, cmp, key: key || tag});
+  /* cat 是稳定的类别键（不随语言变），tag 是显示用的译名。
+     排序按 cat，显示按 tag。 */
+  const push = (sev, tag, main, cmp, key, cat) =>
+    out.push({sev: Math.abs(sev), tag, main, cmp, key: key || tag, cat: cat || tag});
 
   const fbRate  = a.n ? 100*a.fbFor/a.n : null;
   const fbConv  = a.fbFor ? 100*a.fbWon/a.fbFor : null;
@@ -635,7 +648,7 @@ function insights(a, b, t, ps){
   const atkWin  = a.atk.n ? 100*a.atk.won/a.atk.n : null;
   const baseDef = b.atkWin != null ? 100 - b.atkWin : null;
   const fullWin = a.econ[2][0] ? 100*a.econ[2][1]/a.econ[2][0] : null;
-  const conc    = b.conc.get(t);
+  const conc    = b.conc.get(ti);
   const secMed  = median(a.secs);
 
   /* 全部候选都列出来，不设阈值门槛——页面存在的意义是让人看到差距，
@@ -647,48 +660,48 @@ function insights(a, b, t, ps){
 
   if(fbConv != null && b.fbConv != null){
     const d = fbConv - b.fbConv;
-    push(d*2.2, '首杀转化',
-      `拿了首杀后赢下 ${fbConv.toFixed(1)}% 的回合`,
-      `平均 ${b.fbConv.toFixed(1)}% · ${pp(d)}`);
+    push(d*2.2, t('t.fbconv'),
+      t('c.fbconv.main', {v: fbConv.toFixed(1)}),
+      t('c.avg.cmp', {v: b.fbConv.toFixed(1), d: pp(d)}), null, 't.fbconv');
   }
 
   if(tradePct != null && b.tradePct != null){
     const d = tradePct - b.tradePct;
-    push(d*1.5, '被补率',
-      `首杀被补掉 ${tradePct.toFixed(1)}%`,
-      `平均 ${b.tradePct.toFixed(1)}% · ${pp(d)}`);
+    push(d*1.5, t('m.traded'),
+      t('c.traded.main', {v: tradePct.toFixed(1)}),
+      t('c.avg.cmp2', {v: b.tradePct.toFixed(1), d: pp(d)}), null, 'm.traded');
   }
 
   if(defWin != null && baseDef != null){
     const d = defWin - baseDef;
-    push(Math.abs(d)*1.5, '防守端',
-      `防守方胜率 ${defWin.toFixed(1)}%`,
-      `平均 ${baseDef.toFixed(1)}% · ${pp(d)}`);
+    push(Math.abs(d)*1.5, t('m.def'),
+      t('c.def.main', {v: defWin.toFixed(1)}),
+      t('c.avg.cmp3', {v: baseDef.toFixed(1), d: pp(d)}), null, 'm.def');
   }
 
   if(atkWin != null && b.atkWin != null){
     const d = atkWin - b.atkWin;
-    push(Math.abs(d)*1.4, '进攻端',
-      `进攻方胜率 ${atkWin.toFixed(1)}%`,
-      `平均 ${b.atkWin.toFixed(1)}% · ${pp(d)}`);
+    push(Math.abs(d)*1.4, t('m.atk'),
+      t('c.atk.main', {v: atkWin.toFixed(1)}),
+      t('c.avg.cmp4', {v: b.atkWin.toFixed(1), d: pp(d)}), null, 'm.atk');
   }
 
   /* 开火点：这个人拿了多少首杀，占队内多大比例。
      参照有两个——队内人数平摊（100/人数），以及同范围里各队最高者的中位数。 */
   if(conc && conc.tot >= 40){
     const teamAvg = 100 / Math.max(1, conc.players);
-    push(Math.abs(conc.share - teamAvg)*0.9, '开火点',
-      `${S.players[conc.pid].n} 拿了 ${conc.top} 次首杀`,
-      `占队内 ${conc.share.toFixed(0)}% · 队内 ${conc.players} 人平摊各 ${teamAvg.toFixed(0)}%`
-        + (b.concMed != null ? ` · 各队头名中位 ${b.concMed.toFixed(0)}%` : ''),
-      'player:' + conc.pid);
+    push(Math.abs(conc.share - teamAvg)*0.9, t('m.conc'),
+      t('c.conc.main', {name: S.players[conc.pid].n, n: conc.top}),
+      t('c.conc.cmp', {share: conc.share.toFixed(0), players: conc.players, avg: teamAvg.toFixed(0)})
+        + (b.concMed != null ? t('c.conc.med', {v: b.concMed.toFixed(0)}) : ''),
+      'player:' + conc.pid, 'm.conc');
   }
 
   if(fullWin != null && b.fullWin != null){
     const d = fullWin - b.fullWin;
-    push(Math.abs(d)*1.2, '全买局',
-      `全买局胜率 ${fullWin.toFixed(1)}%`,
-      `平均 ${b.fullWin.toFixed(1)}% · ${pp(d)}`);
+    push(Math.abs(d)*1.2, t('t.full'),
+      t('c.full.main', {v: fullWin.toFixed(1)}),
+      t('c.avg.cmp5', {v: b.fullWin.toFixed(1), d: pp(d)}), null, 't.full');
   }
 
   /* eco 局胜率不报。这个档是「队里 ≤1 把长枪」，不是「存钱」——
@@ -697,21 +710,21 @@ function insights(a, b, t, ps){
 
   if(secMed != null && b.secMed != null){
     const d = secMed - b.secMed;
-    push(Math.abs(d)*1.2, '开局时机',
-      `首杀中位时刻 ${secMed.toFixed(0)} 秒`,
-      `平均 ${b.secMed.toFixed(0)} 秒 · ${d>=0?'+':''}${d.toFixed(0)} 秒`, 'time');
+    push(Math.abs(d)*1.2, t('m.pace'),
+      t('c.pace.main', {v: secMed.toFixed(0)}),
+      t('c.pace.cmp', {v: b.secMed.toFixed(0), d: (d>=0?'+':'') + d.toFixed(0)}), 'time', 'm.pace');
   }
 
   /* 首杀率和手枪局不带基准：这两个都是零和指标，两方平均必然是 50%，
      写「比 50% 高 2.8pp」等于说「比必然值高」，没有信息量。 */
   if(fbRate != null){
-    push(0, '首杀率', `首杀率 ${fbRate.toFixed(1)}%`, '每回合必有一方拿到首杀，两队平均 50%');
+    push(0, t('t.fbrate'), t('c.fbrate.main', {v: fbRate.toFixed(1)}), t('c.fbrate.cmp'), null, 't.fbrate');
   }
 
   if(ps && ps.n >= 8){
     const pw = 100*ps.won/ps.n;
-    push(0, '手枪局', `手枪局 ${ps.won}/${ps.n}（${pw.toFixed(0)}%）`,
-      '每局必有一方赢，两队平均 50%');
+    push(0, t('t.pistol'), t('c.pistol.main', {won: ps.won, n: ps.n, v: pw.toFixed(0)}),
+      t('c.pistol.cmp'), null, 't.pistol');
   }
 
   // 「输掉手枪局后第 2 局的买法」已删除：分档用长枪数，而手枪局后几乎没有长枪，
@@ -724,15 +737,16 @@ function insights(a, b, t, ps){
      那个数字没有意义。阵容完整地放在下面的阵容面板里，
      全部地图时按地图拆，选定一张图时按赛事排成时间轴。 */
 
-  // 类别固定顺序：先首杀本身，再攻防，再经济，最后对峙基准。
-  // 同类内按偏离幅度降序。
+  /* 类别顺序按「键名」而不是译名排。
+     早先这里用译名当对象键（{ '首杀率': 1, ... }），换语言时译名一变，
+     排序就整组掉到 99，面板顺序会随语言乱掉。改成用稳定的键。 */
   const CAT_ORDER = {
-    '首杀率': 1, '首杀转化': 2, '被补率': 3, '开火点': 4,
-    '防守端': 5, '进攻端': 6, '开局时机': 7,
-    '全买局': 8, '手枪局': 10,
+    't.fbrate': 1, 't.fbconv': 2, 'm.traded': 3, 'm.conc': 4,
+    'm.def': 5, 'm.atk': 6, 'm.pace': 7,
+    't.full': 8, 't.pistol': 10,
   };
   out.sort((x,y) => {
-    const cx = CAT_ORDER[x.tag] ?? 99, cy = CAT_ORDER[y.tag] ?? 99;
+    const cx = CAT_ORDER[x.cat] ?? 99, cy = CAT_ORDER[y.cat] ?? 99;
     if(cx !== cy) return cx - cy;
     return y.sev - x.sev;
   });
@@ -744,9 +758,9 @@ function insights(a, b, t, ps){
 /* ---------------------------------------------------------------- */
 /* rendering                                                        */
 /* ---------------------------------------------------------------- */
-function renderHead(a, t){
-  const name = S.D.teams[t];
-  const meta = (S.TM && S.TM[t]) || null;
+function renderHead(a, ti){
+  const name = S.D.teams[ti];
+  const meta = (S.TM && S.TM[ti]) || null;
   document.getElementById('teamName').innerHTML =
     esc(name) + (meta && meta.tag ? `<span class="ttag">${esc(meta.tag)}</span>` : '');
   const lg = document.getElementById('teamLogo');
@@ -759,32 +773,32 @@ function renderHead(a, t){
   const evs = new Set(view.map(r => S.D.events[r[0]]));
   const maps = new Set(view.map(r => S.D.maps[r[1]]));
   document.getElementById('teamMeta').textContent =
-    `${fmt(a.n)} 回合 · ${maps.size} 张图 · ${evs.size} 个赛事`;
+    t('h.meta', {r: fmt(a.n), m: maps.size, e: evs.size});
 
   const badges = [];
   const geoN = view.filter(r => r[9] >= 0).length;
   const econN = view.filter(r => r[16] >= 0).length;
   const geoPct = a.n ? 100*geoN/a.n : 0;
   const econPct = a.n ? 100*econN/a.n : 0;
-  if(geoPct < 1) badges.push(['无坐标数据', 'warn']);
-  else if(geoPct < 95) badges.push([`坐标覆盖 ${geoPct.toFixed(0)}%`, 'warn']);
-  if(econPct < 1) badges.push(['无经济数据', 'warn']);
-  else if(econPct < 95) badges.push([`经济覆盖 ${econPct.toFixed(0)}%`, 'warn']);
-  if(a.n < 60) badges.push([`样本偏小（${a.n} 回合）`, 'warn']);
+  if(geoPct < 1) badges.push([t('w.nocoord'), 'warn']);
+  else if(geoPct < 95) badges.push([t('h.geo', {v: geoPct.toFixed(0)}), 'warn']);
+  if(econPct < 1) badges.push([t('w.noecon'), 'warn']);
+  else if(econPct < 95) badges.push([t('h.econ', {v: econPct.toFixed(0)}), 'warn']);
+  if(a.n < 60) badges.push([t('h.small', {n: a.n}), 'warn']);
   document.getElementById('teamBadges').innerHTML =
     badges.map(([txt, cls]) => `<span class="badge ${cls}">${esc(txt)}</span>`).join('');
 }
 
-function renderVerdict(a, b, t, ps){
-  const all = insights(a, b, t, ps);
+function renderVerdict(a, b, ti, ps){
+  const all = insights(a, b, ti, ps);
   const list = all.picked;
   const box = document.getElementById('verdictBody');
   const title = document.getElementById('verdictTitle');
   // 范围只在这里说一次，下面每行不再重复
-  const bl = b.scopeLabel || '全部赛事 · 全部地图';
-  if(title) title.textContent = `对比 ${bl} 的平均`;
+  const bl = b.scopeLabel || t('w.allscope');
+  if(title) title.textContent = t('v.title', {scope: bl});
   if(!list.length){
-    box.innerHTML = '<div class="vnone">这个范围里没有可比的指标。</div>';
+    box.innerHTML = t('v.empty');
     return;
   }
   // 全部候选直接列出，不再折叠——折叠里放的和上面是同一批，等于打印两遍
@@ -795,64 +809,60 @@ function renderVerdict(a, b, t, ps){
     </div>`).join('');
 }
 
-function renderKpis(a, b, t){
+function renderKpis(a, b, ti){
   // [标签, 值, 基准值, 样本量, 基准说明]
   // 零和指标（回合胜率、首杀率）两方平均必然是 50%，所以基准固定写 50%。
   const items = [
-    ['回合胜率', a.n ? 100*a.won/a.n : null, 50, a.n, '50%'],
-    ['首杀率', a.n ? 100*a.fbFor/a.n : null, 50, a.n, '50%'],
-    ['首杀→胜', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor, '平均'],
-    ['首杀未被补', (a.traded+a.untraded) ? 100*a.untraded/(a.traded+a.untraded) : null,
-      b.tradePct != null ? 100 - b.tradePct : null, a.traded+a.untraded, '平均'],
+    ['k.roundwin', a.n ? 100*a.won/a.n : null, 50, a.n, '50%'],
+    ['t.fbrate', a.n ? 100*a.fbFor/a.n : null, 50, a.n, '50%'],
+    ['th.fbconv', a.fbFor ? 100*a.fbWon/a.fbFor : null, b.fbConv, a.fbFor, t('w.avg')],
+    ['k.untraded', (a.traded+a.untraded) ? 100*a.untraded/(a.traded+a.untraded) : null,
+      b.tradePct != null ? 100 - b.tradePct : null, a.traded+a.untraded, t('w.avg')],
     // 集中度用「队内平摊」当参照：n 个人平均分，每人 100/n
-    ['首杀集中度', (b.conc.get(t) && b.conc.get(t).tot >= 40) ? b.conc.get(t).share : null,
-      (b.conc.get(t)||{}).players ? 100/(b.conc.get(t)||{}).players : null,
-      (b.conc.get(t)||{}).tot, '平摊'],
-    ['Meta Fit', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN, null]
+    ['t.conc', (b.conc.get(ti) && b.conc.get(ti).tot >= 40) ? b.conc.get(ti).share : null,
+      (b.conc.get(ti)||{}).players ? 100/(b.conc.get(ti)||{}).players : null,
+      (b.conc.get(ti)||{}).tot, t('w.flat')],
+    ['meta', a.metaN ? 100*a.metaHit/a.metaN : null, null, a.metaN, null]
   ];
-  document.getElementById('kpis').innerHTML = items.map(([lab, v, base, n, bl]) => {
+  /* lab 是稳定键，显示时再翻译。TERMS 也用同一套键查。 */
+  document.getElementById('kpis').innerHTML = items.map(([labKey, v, base, n, bl]) => {
+    const lab = t(labKey);
     let cmp = '';
     if(v != null && base != null){
       const d = v - base;
       const cls = d >= 0 ? 'up' : 'dn';
-      cmp += `vs ${bl||'基准'} ${base.toFixed(1)}% <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
+      cmp += `vs ${bl||t('w.bench')} ${base.toFixed(1)}% <span class="${cls}">${d>=0?'+':''}${d.toFixed(1)}pp</span>`;
     }
     if(n != null) cmp += `${cmp?' · ':''}n=${fmt(n)}`;
-    const small = (n != null && n < 40) ? ' <span style="color:var(--amber)">小样本</span>' : '';
-    const tip = TERMS[lab] ? `<span class="termtip">${esc(TERMS[lab])}</span>` : '';
+    const small = (n != null && n < 40) ? t('h.smallbadge') : '';
+    const tt = termText(labKey);
+    const tip = tt ? `<span class="termtip">${esc(tt)}</span>` : '';
     return `<div class="kpi"><b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b>
-      <i><span class="klab">${termBtn(lab)}</span>${tip}</i><div class="cmp">${cmp}${small}</div></div>`;
+      <i><span class="klab">${termBtn(labKey, lab)}</span>${tip}</i><div class="cmp">${cmp}${small}</div></div>`;
   }).join('');
 }
 
-/* 术语卡片：指标名后面的小问号，点开就地显示解释，不另开版面 */
-const TERMS = {
-  '首杀未被补': '本队拿到首杀之后，那个首杀者没有被对方队友在 5 秒内反杀的比例。'
-    + '「被补枪」= 首杀者在 5 秒内被死者的队友击杀，也就是 1 换 1 回到 4v4。'
-    + '这个 5 秒窗口不是官方规则，是本站自己定的口径，写死在数据里。',
-  '首杀被补率': '本队拿到首杀的回合里，那个首杀者被对方队友在 5 秒内反杀的比例。'
-    + '越高说明打完首杀容易被换掉。',
-  '首杀集中度': '本队拿到的首杀里，队内拿得最多的那个人占了多大比例。'
-    + '跟「队内平摊」比：5 个人平分是每人 20%，人数更多平分就更低。'
-    + '注意它和「开火点」报的是同一个数，只是一个放卡片一个放对比列表。',
-  'Meta Fit': '阵容里有多少个属于该图的版本英雄（每图全球选取率前 7）。'
-    + '衡量这支队伍跟不跟版本，不衡量强弱。',
-  '首杀率': '本队拿到首杀的回合占它总回合的比例。反映打法激进还是保守，不反映强弱。'
-    + '每回合总有一方拿到首杀，两队平均必然是 50%，所以这个数不用跟谁比。',
-  '首杀→胜': '拿到首杀的回合里，最后赢下来的比例。'
-    + '对比对象是当前筛选范围（同一赛事 / 同一地图）的回合加权平均：'
-    + '把该范围所有回合放一起算一个率，不是先算每队的率再平均。'
-    + '全部赛事 + 全部地图时是 71%。',
-  '全买局': '本回合队里持有 ≥4 把长枪的回合，也就是正常买枪的回合。'
-    + '长枪指 Vandal / Phantom / Guardian / Bulldog / Odin / Operator / Outlaw / Marshal。'
-    + '不用「花了多少钱」是因为留枪会污染它：上回合保下来的枪记 0 花费，但照样能打。',
-  '手枪局': '每张图的上半场第 1 回合和下半场第 13 回合，双方都只能用手枪和基础装备。'
-    + '共 2 个，样本天然很小。',
+/* 术语卡片：指标名后面的小问号，点开就地显示解释，不另开版面。
+   键用稳定键（同 KPI 的 lab key），不用译名——译名会随语言变，
+   用译名当键的话切到英文整块就失效了。 */
+const TERM_KEYS = {
+  'k.untraded': ['d.untraded1', 'd.untraded2', 'd.untraded3'],
+  't.traded':   ['d.traded1', 'd.traded2'],
+  't.conc':     ['d.conc1', 'd.conc2', 'd.conc3'],
+  'meta':       ['d.meta1', 'd.meta2'],
+  't.fbrate':   ['d.fbrate1', 'd.fbrate2'],
+  'th.fbconv':  ['d.fbconv1', 'd.fbconv2', 'd.fbconv3', 'd.fbconv4'],
+  't.full':     ['d.full1', 'd.full2', 'd.full3'],
+  't.pistol':   ['d.pistol1', 'd.pistol2'],
 };
+function termText(key){
+  const ks = TERM_KEYS[key];
+  return ks ? ks.map(k => t(k)).join('') : null;
+}
 
-function termBtn(lab){
-  if(!TERMS[lab]) return esc(lab);
-  return `<span class="termq" data-term="${esc(lab)}">${esc(lab)}<i>?</i></span>`;
+function termBtn(key, label){
+  if(!TERM_KEYS[key]) return esc(label);
+  return `<span class="termq" data-key="${esc(key)}">${esc(label)}<i>?</i></span>`;
 }
 
 document.addEventListener('click', e => {
@@ -863,7 +873,24 @@ document.addEventListener('click', e => {
   if(btn) btn.classList.toggle('open');
 });
 
-function agentName(i){ return S.Z.agents[S.D.agents[i]] || S.D.agents[i]; }
+/* 专名：中文查表，英文用原名。英雄名字在数据里是英文小写键。 */
+function agentName(i){
+  const k = S.D.agents[i];
+  return pick(S.Z.agents[k] || k, prettify(k));
+}
+function mapLabel(i){
+  const k = S.D.maps[i];
+  return pick(S.Z.maps[k] || k, prettify(k));
+}
+function evName(i){
+  const k = S.D.events[i];
+  return pick(S.Z.events[k] || k, k);
+}
+/* 英文没有中文表可查，把键名首字母大写即可（jett -> Jett, kay/o -> Kay/o） */
+function prettify(k){
+  if(!k) return '';
+  return String(k).replace(/(^|[\s\/-])([a-z])/g, (m, a, b) => a + b.toUpperCase());
+}
 
 /* 阵容时间轴：行 = 地图（全部地图时）或赛事（选定一张图时），条 = 各阵容的份额 */
 /* 6 个颜色按「每张图的前几套」分配。同一套阵容在不同图上是同一个颜色，
@@ -875,9 +902,9 @@ const COMP_OTHER  = '#C6C0B3';
 
 function compName(cid){ return S.raw.comps[cid].map(agentName).join(' · '); }
 
-function evShort(i){ return S.Z.events[S.D.events[i]] || S.D.events[i]; }
+function evShort(i){ return evName(i); }
 
-function renderComps(a, rows, t){
+function renderComps(a, rows, ti){
   /* 行维度跟着地图选择器走。
 
      全部地图 → 按地图。阵容就是按地图选的（PRX 最常用的 5 套里 4 套只出现在
@@ -894,13 +921,13 @@ function renderComps(a, rows, t){
     const k = keyOf(r);
     let g = groups.get(k);
     if(!g){ g = {n:0, won:0, comps:new Map(), compN:0}; groups.set(k, g); }
-    g.n++; if(r[4] === t) g.won++;
-    const mc = myCompOf(r, t);
+    g.n++; if(r[4] === ti) g.won++;
+    const mc = myCompOf(r, ti);
     if(mc >= 0){
       // 每套阵容单独记回合数和胜场，悬停时才能报这套自己的胜率
       let c = g.comps.get(mc);
       if(!c){ c = {n:0, won:0}; g.comps.set(mc, c); }
-      c.n++; if(r[4] === t) c.won++;
+      c.n++; if(r[4] === ti) c.won++;
       g.compN++;
     }
   }
@@ -936,13 +963,13 @@ function renderComps(a, rows, t){
     }
   }
 
-  document.getElementById('compTitle').textContent = byTime ? '阵容 · 按时间' : '阵容 · 按地图';
+  document.getElementById('compTitle').textContent = byTime ? t('comp.bytime') : t('comp.bymap');
   document.getElementById('compNote').innerHTML = a.compN
     ? (byTime
-        ? `同一张图上按赛事先后排，条 = 该赛事里各阵容的份额。悬停看阵容、份额与胜负。`
-        : `每行一张图，按该队在这张图上的回合数排序。色块 = 该图最常用的几套阵容，`
-          + `灰 = 这张图上其余的阵容。悬停看阵容、份额与胜负。选一张地图可改看时间轴。`)
-    : '这个范围没有阵容数据（中国赛区不提供）';
+        ? t('d.comp.time')
+        : t('d.comp.map1')
+          + t('d.comp.map2'))
+    : t('w.nocompscope');
   document.getElementById('compList').classList.toggle('time', byTime);
 
   /* 图例只列全局最常用的 6 套（按该队全范围回合数），
@@ -956,20 +983,20 @@ function renderComps(a, rows, t){
     return `<div class="ci">
       <span class="csw" style="background:${col}"></span>
       <span class="cname">${esc(compName(cid))}</span>
-      <span class="cnum">${pct(c.n, a.compN)}% · ${c.n}<span class="u"> 回合</span> · 胜率 ${
+      <span class="cnum">${pct(c.n, a.compN)}% · ${c.n}<span class="u"> ${t('unit.round')}</span> · ${t('comp.wr')} ${
         (100*c.won/c.n).toFixed(1)}%</span>
     </div>`;
   }).join('');
 
   const items = keys.map(k => {
     const g = groups.get(k);
-    const label = byTime ? evShort(k) : (S.Z.maps[S.D.maps[k]] || S.D.maps[k]);
+    const label = byTime ? evShort(k) : mapLabel(k);
     const wr = g.n ? 100*g.won/g.n : null;
     const thin = g.n < 20;
 
     let bar;
     if(!g.compN){
-      const why = byTime ? '这个赛事没有阵容数据' : '这张图没有阵容数据（中国赛区不提供）';
+      const why = byTime ? t('w.nocomp') : t('w.nocompmap');
       bar = `<div class="tlbar nodata" title="${why}"></div>`;
     }else{
       const segs = [];
@@ -983,14 +1010,14 @@ function renderComps(a, rows, t){
          把 5 套不同阵容的回合合成一个率，报出来的是「这些阵容混在一起赢了
          多少」，没有哪套阵容对应这个数——和当初删掉的 eco 档是同一种毛病。
          真要看长尾，把那张图/那个赛事单独选出来，它们会各自变成彩色。 */
-      if(otherN) segs.push([COMP_OTHER, {n:otherN, won:0}, `其他 ${otherC} 套`, false]);
+      if(otherN) segs.push([COMP_OTHER, {n:otherN, won:0}, t('comp.other2', {n: otherC}), false]);
       /* 悬停报这套阵容自己的胜率，不是整行的胜率——一行里几套阵容的胜率
          可以差很远（PRX 莲华古城 S1 是 68.4% vs 45.7%），整行那个数是它们
          混在一起的，看不出哪套好用。
          回合数一起给：小样本的 100% 和 60 回合的 100% 不是一回事。 */
       bar = `<div class="tlbar">` + segs.map(([c, seg, nm, solo]) =>
         `<i style="width:${100*seg.n/g.compN}%;background:${c}" title="${esc(nm)} · ${
-          pct(seg.n, g.compN)}% · ${seg.n} 回合${solo ? ` · 胜率 ${nf(100*seg.won/seg.n)}` : ''}"></i>`
+          pct(seg.n, g.compN)}% · ${t('comp.tip.rounds', {n: seg.n})}${solo ? ' · ' + t('comp.tip.wr', {v: nf(100*seg.won/seg.n)}) : ''}"></i>`
       ).join('') + `</div>`;
     }
     return `<div class="tlrow">
@@ -1001,36 +1028,36 @@ function renderComps(a, rows, t){
   });
 
   const head = `<div class="tlrow tlhead">
-    <div class="k">${byTime ? '赛事' : '地图'}</div>
+    <div class="k">${byTime ? t('comp.col.event') : t('comp.col.map')}</div>
     <div class="b"></div>
-    <div class="v">胜率 · 回合</div>
+    <div class="v">${t('comp.col.vr')}</div>
   </div>`;
   document.getElementById('compList').innerHTML =
-    items.length ? head + items.join('') : '<div class="small">无数据</div>';
+    items.length ? head + items.join('') : t('comp.nodata');
 }
 
-function renderPistol(a, b, rows, t){
-  const st = pistolStats(rows, t);
+function renderPistol(a, b, rows, ti){
+  const st = pistolStats(rows, ti);
   const note = document.getElementById('pistolNote');
   // 进攻方拿手枪的基准随范围变（不同赛事/地图的攻防强度不一样），
   // 所以这里比的是「同范围进攻方拿手枪的比例」，不是固定的 50%。
   const baseAtk = b.pistolAtkWin;
   note.textContent = st.n
-    ? `${st.n} 个手枪局（每张图 2 个）`
-      + (baseAtk != null ? ` · 同范围进攻方拿手枪 ${baseAtk.toFixed(1)}%` : '')
-    : '这个范围没有手枪局数据';
+    ? t('p.n', {n: st.n})
+      + (baseAtk != null ? t('p.base', {v: baseAtk.toFixed(1)}) : '')
+    : t('w.nopistol');
 
   const cell = (lab, v, sub, warn) => `<div class="kpi">
     <b class="${v==null?'dim2':''}">${v==null?'—':v.toFixed(1)+'%'}</b><i>${lab}</i>
-    ${sub?`<div class="cmp">${sub}${warn?' <span style="color:var(--amber)">小样本</span>':''}</div>`:''}</div>`;
+    ${sub?`<div class="cmp">${sub}${warn?t('h.smallbadge'):''}</div>`:''}</div>`;
   document.getElementById('pistolKpis').innerHTML = [
-    cell('手枪局胜率', st.n ? 100*st.won/st.n : null, `${st.won}/${st.n}`),
-    cell('进攻手枪', st.atkN ? 100*st.atkWon/st.atkN : null,
+    cell(t('p.winrate'), st.n ? 100*st.won/st.n : null, `${st.won}/${st.n}`),
+    cell(t('p.atk'), st.atkN ? 100*st.atkWon/st.atkN : null,
       `${st.atkWon}/${st.atkN}`
         + (baseAtk != null && st.atkN >= 5
             ? ` · vs ${baseAtk.toFixed(1)}%` : ''),
       st.atkN < 5),
-    cell('防守手枪', st.defN ? 100*st.defWon/st.defN : null,
+    cell(t('p.def'), st.defN ? 100*st.defWon/st.defN : null,
       `${st.defWon}/${st.defN}`
         + (baseAtk != null && st.defN >= 5
             ? ` · vs ${(100-baseAtk).toFixed(1)}%` : ''),
@@ -1041,8 +1068,8 @@ function renderPistol(a, b, rows, t){
 function renderSides(a){
   // 颜色沿用全站那套：进攻 = 红、防守 = 青，不再用 Valorant 品牌色 #ff4655 / #22d3ee
   const rows = [
-    ['进攻', a.atk, 'var(--red)'],
-    ['防守', a.def, 'var(--cyan)']
+    [t('w.attacker'), a.atk, 'var(--red)'],
+    [t('w.defender'), a.def, 'var(--cyan)']
   ];
   document.getElementById('sideRows').innerHTML = rows.map(([lab, s, color]) => `
     <tr>
@@ -1068,14 +1095,14 @@ function renderPlayers(a){
       <td>${a.n?(10*p.n/a.n).toFixed(1):'—'}</td>
       <td class="small">${ags}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="5" class="small">这个范围没有首杀记录</td></tr>';
+  }).join('') || t('w.nofbrows');
 }
 
 function renderTime(a){
   const secs = a.secs;
   document.getElementById('timeNote').textContent = secs.length
-    ? `中位 ${median(secs).toFixed(0)} 秒 · ${fmt(secs.length)} 次有记录`
-    : '没有时刻数据';
+    ? t('tm.note', {v: median(secs).toFixed(0), n: fmt(secs.length)})
+    : t('w.notiming');
   const edges = [0,10,20,30,45,999];
   const labels = ['0–10s','11–20s','21–30s','31–45s','46s+'];
   const bins = labels.map(()=>0);
@@ -1142,20 +1169,20 @@ function fillScopeSelects(){
 
   const evIdx = [...evC.keys()].filter(i => evC.get(i) > 0).sort((a,b) => a - b);
   const es = document.getElementById('evSel');
-  es.innerHTML = `<option value="-1">全部赛事（${evIdx.length} 个）</option>` +
+  es.innerHTML = `<option value="-1">${esc(t('sel.allEvents'))}${esc(t('sel.nEvents', {n: evIdx.length}))}</option>` +
     evIdx.map(i => {
-      const name = S.Z.events[S.D.events[i]] || S.D.events[i];
-      return `<option value="${i}">${esc(name)} · ${evC.get(i)} 回合</option>`;
+      const name = evName(i);
+      return t('sel.event', {i: i, name: esc(name), n: evC.get(i)});
     }).join('');
   es.value = String(F.ev);
 
   const mapIdx = [...mapC.keys()].filter(i => mapC.get(i) > 0)
     .sort((a,b) => S.D.maps[a].localeCompare(S.D.maps[b]));
   const ms = document.getElementById('mapSel');
-  ms.innerHTML = `<option value="-1">全部地图（${mapIdx.length} 张）</option>` +
+  ms.innerHTML = `<option value="-1">${esc(t('sel.allMaps'))}${esc(t('sel.nMaps', {n: mapIdx.length}))}</option>` +
     mapIdx.map(i => {
-      const name = S.Z.maps[S.D.maps[i]] || S.D.maps[i];
-      return `<option value="${i}">${esc(name)} · ${mapC.get(i)} 回合</option>`;
+      const name = mapLabel(i);
+      return t('sel.map', {i: i, name: esc(name), n: mapC.get(i)});
     }).join('');
   ms.value = String(F.map);
 }
@@ -1166,6 +1193,8 @@ function syncURL(){
   q.set('team', S.D.teams[F.team]);
   if(F.map >= 0) q.set('map', S.D.maps[F.map]);
   if(F.ev  >= 0) q.set('ev',  S.D.events[F.ev]);
+  // lang 一起写进去，分享出去的简报能保持对方打开时的语言
+  q.set('lang', I18N.lang());
   history.replaceState(null, '', '?' + q.toString());
 }
 
@@ -1199,14 +1228,14 @@ function toast(msg){
 }
 
 function recompute(){
-  const t = F.team;
+  const ti = F.team;
   view = S.raw.rounds.filter(r => {
-    if(r[2] !== t && r[3] !== t) return false;
+    if(r[2] !== ti && r[3] !== ti) return false;
     if(F.map >= 0 && r[1] !== F.map) return false;
     if(F.ev >= 0 && r[0] !== F.ev) return false;
     return true;
   });
-  const a = aggregate(view, t);
+  const a = aggregate(view, ti);
 
   // 基准只在 赛事/地图 变化时重算（换队伍不影响基准，因为基准不含队伍筛选）
   const key = `${F.ev}|${F.map}`;
@@ -1215,16 +1244,16 @@ function recompute(){
     S.baseKey = key;
   }
   const b = S.base;
-  const ps = pistolStats(view, t);
+  const ps = pistolStats(view, ti);
 
   document.getElementById('scopeInfo').innerHTML =
-    `当前范围 <b>${fmt(a.n)}</b> 回合<br>${F.map<0?'全部地图':esc(S.Z.maps[S.D.maps[F.map]])}`;
+    t('sc.scope', {n: fmt(a.n), map: F.map<0 ? t('w.allmaps') : esc(mapLabel(F.map))});
 
-  renderHead(a, t);
-  renderVerdict(a, b, t, ps);
-  renderKpis(a, b, t);
-  renderComps(a, view, t);
-  renderPistol(a, b, view, t);
+  renderHead(a, ti);
+  renderVerdict(a, b, ti, ps);
+  renderKpis(a, b, ti);
+  renderComps(a, view, ti);
+  renderPistol(a, b, view, ti);
   renderSides(a);
   renderPlayers(a);
   renderTime(a);
@@ -1239,9 +1268,26 @@ async function boot(){
   S.baseKey = '-1|-1';
 
   document.getElementById('footNote').innerHTML =
-    `数据抓取自 vlr.gg 2D 回放 · ${S.D.events.length} 个赛事`
-    + ` · ${raw.meta.rounds.toLocaleString('en-US')} 回合`
-    + ` · ${raw.meta.maps_played} 张地图`;
+    t('foot.a', {n: S.D.events.length})
+    + t('foot.b', {n: raw.meta.rounds.toLocaleString('en-US')})
+    + t('foot.c', {n: raw.meta.maps_played});
+
+  /* 切语言：下拉框、徽标、对照列表、阵容图例都是 JS 拼的，必须整体重跑；
+     static 的 data-i18n 由 i18n.js 负责。 */
+  window.addEventListener('langchange', () => {
+    const tst = document.getElementById('toast');
+    if(tst){ tst.textContent = ''; tst.classList.remove('show'); }
+    /* 基准里缓存了 scopeLabel / weighting 这些译好的文案，
+       换语言必须让它们失效，否则面板标题会一直停在旧语言。 */
+    S.baseKey = null;
+    document.getElementById('footNote').innerHTML =
+      t('foot.a', {n: S.D.events.length})
+      + t('foot.b', {n: raw.meta.rounds.toLocaleString('en-US')})
+      + t('foot.c', {n: raw.meta.maps_played});
+    fillSelects();
+    fillScopeSelects();
+    recompute();
+  });
 
   fillSelects();
   document.getElementById('teamSel').addEventListener('change', e => {
@@ -1266,13 +1312,13 @@ async function boot(){
   document.getElementById('shareBtn').onclick = async () => {
     try{
       await navigator.clipboard.writeText(location.href);
-      toast('链接已复制，可以直接发给教练');
+      toast(t('toast.copied'));
     }catch(e){
-      toast('浏览器不允许自动复制，请从地址栏复制');
+      toast(t('toast.nocopy'));
     }
   };
   recompute();
-  if(fromURL) toast('已按链接恢复筛选');
+  if(fromURL) toast(t('toast.restored'));
 }
 
 boot();

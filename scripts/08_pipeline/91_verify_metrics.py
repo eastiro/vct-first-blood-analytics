@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-URL = "http://127.0.0.1:8777/"
+URL = "http://127.0.0.1:8777/?lang=zh"
 
 ok = fail = 0
 

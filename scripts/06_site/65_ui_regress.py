@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-URL = "http://127.0.0.1:8777/"
+URL = "http://127.0.0.1:8777/?lang=zh"
 FIG = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics\figures")
 
 ok = fail = 0
@@ -197,7 +197,7 @@ def main() -> None:
         check("EDG tag is EDG", known == "EDG", str(known))
 
         # 12. 筛选写进地址栏（走下拉框，不依赖任何搜索组件）
-        pg.goto(URL + "?ev=VCT+Pacific+Stage+2", wait_until="networkidle")
+        pg.goto(URL + "&ev=VCT+Pacific+Stage+2", wait_until="networkidle")
         pg.wait_for_timeout(900)
         # 选项文案带回合数（"Paper Rex  ·  415 回合"），按索引选
         idx = pg.evaluate("""() => [...document.querySelectorAll('#teamSelect option')]
@@ -210,7 +210,7 @@ def main() -> None:
               pg.evaluate("() => S.D.teams[F.team]") == "Paper Rex")
 
         # 13. 从链接恢复筛选
-        pg.goto(URL + "?ev=VCT+Pacific+Stage+2&map=Sunset", wait_until="networkidle")
+        pg.goto(URL + "&ev=VCT+Pacific+Stage+2&map=Sunset", wait_until="networkidle")
         pg.wait_for_timeout(900)
         check("link restores the event",
               pg.evaluate("() => S.D.events[F.ev]") == "VCT Pacific Stage 2")

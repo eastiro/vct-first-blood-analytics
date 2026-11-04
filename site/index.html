@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>总览 · 无畏契约 2026 首杀</title>
+<title data-i18n="ovw.title">总览 · 无畏契约 2026 首杀</title>
 <link rel="stylesheet" href="fonts/fonts.css">
+<script src="i18n.js"></script>
 <style>
   :root{
     --bg:#EAE7E0; --panel:#FFFFFF; --panel2:#F5F2EC; --line:#DBD5C9;
@@ -32,8 +33,8 @@
            border-radius:6px; padding:14px 16px; margin-bottom:16px}
   .frow{display:flex; gap:12px; align-items:flex-start; margin-bottom:9px}
   .frow:last-child{margin-bottom:0}
-  .flabel{flex:0 0 56px; color:var(--dim); font-size:10px; letter-spacing:1px;
-          text-transform:uppercase; padding-top:7px}
+  .flabel{flex:0 0 56px; color:var(--dim); font-size:10px; letter-spacing:1px; padding-top:7px}
+  html[lang="zh-CN"] .flabel{text-transform:uppercase}
   .chips{display:flex; flex-wrap:wrap; gap:2px 4px; flex:1}
 
 
@@ -105,7 +106,10 @@
   .panel{background:var(--panel); border:1px solid var(--line);
          border-radius:6px; padding:14px}
   .panel h2{margin:0 0 10px; font-size:12px; color:var(--dim);
-            letter-spacing:1px; font-weight:600; text-transform:uppercase}
+            letter-spacing:1px; font-weight:600}
+  /* 大写只对中文无害（汉字没有大小写）。英文整句大写读着像喊，
+     而且 This Long Title 的字母间距会被拉得很怪。 */
+  html[lang="zh-CN"] .panel h2{text-transform:uppercase}
   .paneltitle{display:flex; align-items:baseline; gap:9px; margin:0 0 10px}
   .paneltitle h2{margin:0}
   .paneltitle .aside{font-size:12px; color:var(--dim)}
@@ -148,7 +152,8 @@
   table{width:100%; border-collapse:collapse; font-size:12px}
   th,td{text-align:right; padding:5px 5px; border-bottom:1px solid var(--line)}
   th{color:var(--dim); font-weight:500; font-size:10px; letter-spacing:.6px;
-     text-transform:uppercase; position:sticky; top:0; background:var(--panel); z-index:1}
+     position:sticky; top:0; background:var(--panel); z-index:1}
+  html[lang="zh-CN"] th{text-transform:uppercase}
   th:first-child,td:first-child{text-align:left}
   tbody tr:hover{background:var(--panel2)}
   td.num{font-variant-numeric:tabular-nums}
@@ -178,7 +183,9 @@
   /* 队伍表不再限高：12 支队整表展开，读者不用去猜下面还有没有行。
      窄屏放不下 8 列时让表格自己横向滚（overflow-x:auto 会把 y 也变成 auto，
      所以不限 max-height，纵向不会出现滚动条）。 */
-  .tblscroll{max-width:100%; overflow-x:auto}
+  /* 横向滚动容器：min-width:0 让它在 grid/flex 里能被压缩，
+   否则表头 nowrap 会把容器顶宽，整页跟着溢出（430px 英文下实测 +8px）。 */
+  .tblscroll{max-width:100%; min-width:0; overflow-x:auto; -webkit-overflow-scrolling:touch}
   .tblscroll::-webkit-scrollbar{width:6px}
   .tblscroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:2px}
   /* 队伍表可排序：点表头切换，箭头标出当前排序键 */
@@ -290,7 +297,7 @@ select.teamsel{border-radius:4px; font-size:12px; padding:6px 10px;
                   background:none; padding:10px 14px 0 0}
 
   /* ---------- 顶部三个页签 ---------- */
-  .tabs{display:flex; gap:2px; align-items:center}
+  .tabs{display:flex; gap:2px; align-items:center; flex-wrap:wrap; min-width:0}
   .tabs .ghostlink{margin-left:12px}
   .tab{
     display:inline-block; padding:7px 14px 8px; font-size:13px;
@@ -410,6 +417,9 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
   .filters.open #fbody{display:block; margin-top:11px}
 }
 @media (max-width:760px){
+  /* 英文页签比中文长（Player Comparison），360px 下三个并排会顶出屏幕 */
+  .tab{padding:6px 9px 7px; font-size:12px}
+  .ghostlink{display:none}
   header{padding:18px 16px 14px}
   main{padding:14px 16px 40px}
   .filters{padding:10px 11px}
@@ -419,39 +429,40 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
 </head>
 <body>
 
-<a class="skip" href="#main">跳到主内容</a>
+<a class="skip" href="#main" data-i18n="skip">跳到主内容</a>
 
 <header>
   <div>
-    <h1>总览 <span>/</span> 无畏契约 2026 首杀</h1>
-    <div class="sub" id="sub">加载中…</div>
+    <h1><span data-i18n="nav.overview">总览</span> <span>/</span> <span data-i18n="ovw.site">无畏契约 2026 首杀</span></h1>
+    <div class="sub" id="sub" data-i18n="loading">加载中…</div>
   </div>
   <nav class="tabs" role="tablist">
-    <a class="tab on" href="index.html" role="tab" aria-selected="true">总览</a>
-    <a class="tab" href="scout.html" role="tab" aria-selected="false">队伍简报</a>
-    <a class="tab" href="duel.html" role="tab" aria-selected="false">选手对比</a>
-    <button class="ghostlink" id="shareBtn" title="复制当前筛选的链接">复制链接</button>
+    <a class="tab on" href="index.html" role="tab" aria-selected="true" data-i18n="nav.overview">总览</a>
+    <a class="tab" href="scout.html" role="tab" aria-selected="false" data-i18n="nav.scout">队伍简报</a>
+    <a class="tab" href="duel.html" role="tab" aria-selected="false" data-i18n="nav.duel">选手对比</a>
+    <button class="ghostlink" id="shareBtn" data-i18n-title="ovw.shareTitle" data-i18n="ctl.share">复制链接</button>
   </nav>
+  <div id="langSlot"></div>
 </header>
 
 <main id="main">
 
   <div class="filters" id="filters">
     <button class="ftoggle" id="ftoggle" aria-expanded="false" aria-controls="fbody">
-      <span class="ftk">筛选</span><span class="ftv" id="ftoggleText"></span>
+      <span class="ftk" data-i18n="ovw.filters">筛选</span><span class="ftv" id="ftoggleText"></span>
     </button>
     <div class="fbody" id="fbody">
     <div class="frow" id="frowAll" style="margin-bottom:0">
-      <div class="flabel">赛事</div>
+      <div class="flabel" data-i18n="ctl.event">赛事</div>
       <select class="teamsel" id="eventSelect"></select>
-      <div class="flabel flabel-inline">地图</div>
+      <div class="flabel flabel-inline" data-i18n="ctl.map">地图</div>
       <select class="teamsel" id="mapSelect"></select>
-      <div class="flabel flabel-inline">队伍</div>
+      <div class="flabel flabel-inline" data-i18n="ctl.team">队伍</div>
       <select class="teamsel" id="teamSelect"></select>
-      <div class="flabel flabel-inline">英雄</div>
+      <div class="flabel flabel-inline" data-i18n="ctl.agent">英雄</div>
       <select class="teamsel" id="agentSelect"></select>
       <span class="selhint" id="teamHint"></span>
-      <button class="glossbtn" id="glossBtn">指标说明</button>
+      <button class="glossbtn" id="glossBtn" data-i18n="gl.btn">指标说明</button>
     </div>
     </div>
     <div id="gloss"></div>
@@ -463,7 +474,7 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
     <!-- left: map + stats -->
     <div class="panel">
       <div class="paneltitle">
-        <h2 id="mapPanelTitle">首杀位置分布</h2>
+        <h2 id="mapPanelTitle" data-i18n="ovw.mapTitle">首杀位置分布</h2>
         <span class="aside" id="mapMeta"></span>
       </div>
       <div class="mapwrap">
@@ -473,8 +484,8 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
         <div id="emptyState"></div>
       </div>
       <div class="legend">
-        <span><i class="dot" style="background:#DE3B49"></i>进攻方首杀</span>
-        <span><i class="sq" style="background:#0E7C74"></i>防守方首杀</span>
+        <span><i class="dot" style="background:#DE3B49"></i><span data-i18n="ovw.legendAtk">进攻方首杀</span></span>
+        <span><i class="sq" style="background:#0E7C74"></i><span data-i18n="ovw.legendDef">防守方首杀</span></span>
       </div>
       <div class="stats4" id="mapCards"></div>
     </div>
@@ -483,11 +494,11 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
     <div class="stack">
         <div class="panel" id="agentPanel">
           <div class="paneltitle">
-            <h2 id="agentPanelTitle">谁在拿首杀 · 英雄</h2>
+            <h2 id="agentPanelTitle" data-i18n="ovw.agentTitle">谁在拿首杀 · 英雄</h2>
             <span class="aside" id="agentPanelNote"></span>
           </div>
           <table>
-            <thead><tr><th>英雄</th><th>首杀</th><th style="width:34%">占比</th></tr></thead>
+            <thead><tr><th data-i18n="th.agent">英雄</th><th data-i18n="th.fb">首杀</th><th style="width:34%" data-i18n="th.share">占比</th></tr></thead>
             <tbody id="agentRows"></tbody>
           </table>
           <button class="more" id="agentMore" hidden></button>
@@ -495,11 +506,11 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
 
         <div class="panel">
           <div class="paneltitle">
-            <h2>用什么拿的首杀</h2>
-            <span class="aside" id="weaponNote">前 5 名</span>
+            <h2 data-i18n="ovw.weaponTitle">用什么拿的首杀</h2>
+            <span class="aside" id="weaponNote" data-i18n="ovw.top5">前 5 名</span>
           </div>
           <table>
-            <thead><tr><th>武器 / 技能</th><th>首杀</th><th style="width:34%">占比</th></tr></thead>
+            <thead><tr><th data-i18n="th.weapon">武器 / 技能</th><th data-i18n="th.fb">首杀</th><th style="width:34%" data-i18n="th.share">占比</th></tr></thead>
             <tbody id="weaponRows"></tbody>
           </table>
           <button class="more" id="weaponMore" hidden></button>
@@ -507,20 +518,20 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
     </div>
   </div>
 
-  <div class="sectitle"><h2>队伍对比</h2><span id="teamCompareNote"></span>
-        <button class="scopebtn" id="teamScopeBtn" title="切换：只看当前筛选 / 整季全样本">本赛事</button></div>
+  <div class="sectitle"><h2 data-i18n="ovw.teamCompare">队伍对比</h2><span id="teamCompareNote"></span>
+        <button class="scopebtn" id="teamScopeBtn" data-i18n-title="ovw.scopeTitle" data-i18n="ovw.thisEvent">本赛事</button></div>
       <div class="panel reveal" style="animation-delay:.06s">
         <div class="tblscroll">
           <table>
             <thead><tr>
-            <th class="sortable" data-sort="name">队伍</th>
-            <th class="sortable" data-sort="n">回合</th>
-            <th class="gloss sortable" data-key="fbrate" data-sort="fbRate">首杀率</th>
-            <th class="gloss sortable" data-key="fbconv" data-sort="convFb">首杀→胜</th>
-            <th class="gloss sortable" data-key="recovery" data-sort="convNo">丢首杀→胜</th>
-            <th class="gloss sortable" data-key="gone" data-sort="fbSurvive">首杀未被补</th>
-            <th class="gloss sortable" data-key="metafit" data-sort="metaFit">Meta Fit</th>
-            <th class="gloss sortable" data-key="snipe" data-sort="snipe">狙击首杀</th>
+            <th class="sortable" data-sort="name" data-i18n="th.team">队伍</th>
+            <th class="sortable" data-sort="n" data-i18n="th.rounds">回合</th>
+            <th class="gloss sortable" data-key="fbrate" data-sort="fbRate" data-i18n="th.fbrate">首杀率</th>
+            <th class="gloss sortable" data-key="fbconv" data-sort="convFb" data-i18n="th.fbconv">首杀→胜</th>
+            <th class="gloss sortable" data-key="recovery" data-sort="convNo" data-i18n="th.recovery">丢首杀→胜</th>
+            <th class="gloss sortable" data-key="gone" data-sort="fbSurvive" data-i18n="th.untraded">首杀未被补</th>
+            <th class="gloss sortable" data-key="metafit" data-sort="metaFit" data-i18n="th.metafit">Meta Fit</th>
+            <th class="gloss sortable" data-key="snipe" data-sort="snipe" data-i18n="th.snipe">狙击首杀</th>
           </tr></thead>
           <tbody id="teamRows"></tbody>
           </table>
@@ -528,16 +539,19 @@ kbd{font-family:var(--mono); font-size:10px; line-height:1; border:1px solid var
   </div>
 
   <div class="sectitle">
-    <h2>各赛事对比 · 固定基准</h2><span id="eventCompareNote"></span>
+    <h2 data-i18n="ovw.eventCompare">各赛事对比 · 固定基准</h2><span id="eventCompareNote"></span>
   </div>
   <div class="panel reveal">
+      <!-- 和队伍表一样要能横向滚：英文表头比中文长，430px 下会顶出页面 -->
+      <div class="tblscroll">
         <table>
           <thead><tr>
-            <th>赛事</th><th>回合</th><th>攻方占比</th>
-            <th>首杀→胜</th><th>被补枪率</th><th>未补→胜</th><th>中位时刻</th>
+            <th data-i18n="th.event">赛事</th><th data-i18n="th.rounds">回合</th><th data-i18n="th.atkShare">攻方占比</th>
+            <th data-i18n="th.fbconv">首杀→胜</th><th data-i18n="th.tradedRate">被补枪率</th><th data-i18n="th.untradedWin">未补→胜</th><th data-i18n="th.medianTime">中位时刻</th>
           </tr></thead>
         <tbody id="eventRows"></tbody>
       </table>
+      </div>
   </div>
 </main>
 
@@ -554,81 +568,117 @@ const GLOSSARY = [
   {
     key: 'trade',
     zh: '首杀被补枪 / 没有被补',
-    en: 'Traded / Untraded First Blood',
-    text: '看首杀之后队友有没有立刻报仇。首杀者在击杀后 5 秒内被死者的队友反杀，'
+    en: 'Traded / Untraded first blood',
+    textZh: '看首杀之后队友有没有立刻报仇。首杀者在击杀后 5 秒内被死者的队友反杀，'
         + '这个首杀就叫「被补掉」。被补掉等于 1 换 1，双方回到 4v4。'
         + '注意：这两种情况确实差 18.7 个百分点，但它比的其实是「5v4 还是 4v4」，'
         + '也就是人数差，不是补枪这个动作本身——数据里 4v4 的胜率恰好是 49.9%。'
         + '补枪真正有信息量的是时机：补得越快，首杀方越吃亏（0 秒补 53.4% → 5 秒补 61.3%）。',
-    formula: '被补 = 首杀者被死者队友在 ≤5 秒内击杀',
+    textEn: 'Whether the victim’s teammate avenged the first blood right away. If the first-blood '
+        + 'killer is killed by a teammate of the victim within 5 seconds, that first blood is “traded”. '
+        + 'A trade is a 1-for-1 back to 4v4. Note that the 18.7-point gap between the two cases is '
+        + 'really comparing 5v4 with 4v4 — a man advantage, not the act of trading; the win rate at '
+        + '4v4 happens to be 49.9%. What is informative about a trade is its timing: the faster the '
+        + 'trade, the worse for the side that got the first blood (53.4% traded at 0s → 61.3% at 5s).',
+    formulaZh: '被补 = 首杀者被死者队友在 ≤5 秒内击杀',
+    formulaEn: 'Traded = the first-blood killer is killed by a teammate of the victim within ≤5s',
   },
   {
     key: 'metafit',
     zh: 'Meta Fit',
-    en: 'Meta Fit / 版本契合度',
-    text: '衡量一支队伍「跟不跟版本」。先找出每张图上全球选取率最高的 7 个英雄，'
+    en: 'Meta fit',
+    textZh: '衡量一支队伍「跟不跟版本」。先找出每张图上全球选取率最高的 7 个英雄，'
         + '称为「版本英雄（Meta Agents）」。再看某队的一套阵容里，有几个是版本英雄。'
         + '90% 表示这套阵容 5 个里有 4.5 个是版本英雄，非常跟版本；'
         + '60% 表示只有 3 个跟版本，属于自己玩自己的。',
-    formula: 'Meta Fit = 阵容中的版本英雄数 ÷ 5',
+    textEn: 'How closely a team follows the meta. Take the seven most-picked agents on each map — '
+        + 'the meta agents — then count how many of them appear in a team’s composition. '
+        + '90% means 4.5 of the five agents are meta picks, i.e. very much in step; '
+        + '60% means only three are, so the team is playing its own game.',
+    formulaZh: 'Meta Fit = 阵容中的版本英雄数 ÷ 5',
+    formulaEn: 'Meta fit = meta agents in the composition ÷ 5',
   },
   {
     key: 'snipe',
     zh: '狙击首杀占比',
-    en: 'AWP First Bloods',
-    text: '这队拿到的首杀里，有多少是用狙击枪（Operator / Outlaw / Marshal）打出来的。'
+    en: 'AWP first bloods',
+    textZh: '这队拿到的首杀里，有多少是用狙击枪（Operator / Outlaw / Marshal）打出来的。'
         + '它是全部候选指标里最稳定的一列：同队回合随机拆两半重算 r≈0.91，'
         + '跨赛段（第一赛段 → 第二赛段）r≈0.81。',
-    formula: '狙击首杀占比 = 狙击枪首杀数 ÷ 本队首杀总数',
+    textEn: 'The share of a team’s first bloods taken with a sniper rifle '
+        + '(Operator / Outlaw / Marshal). It is the most stable of all the candidates we tested: '
+        + 'r≈0.91 when a team’s rounds are randomly split in half and recomputed, '
+        + 'and r≈0.81 across stages (Stage 1 → Stage 2).',
+    formulaZh: '狙击首杀占比 = 狙击枪首杀数 ÷ 本队首杀总数',
+    formulaEn: 'AWP first blood share = sniper first bloods ÷ total first bloods',
   },
   {
     key: 'fbconv',
     zh: '首杀→回合胜率',
-    en: 'First Blood Conversion',
-    text: '拿到首杀的队伍，最后赢下这一回合的比例。全样本基准是 71%。'
+    en: 'First blood conversion',
+    textZh: '拿到首杀的队伍，最后赢下这一回合的比例。全样本基准是 71%。'
         + '任何「某队首杀转化好」的说法，都必须拿 71% 当基准，而不是拿 50%。',
-    formula: '首杀→胜 = 首杀方赢下的回合 ÷ 有首杀的回合',
+    textEn: 'The share of rounds the team wins after taking the first blood. The league-wide '
+        + 'baseline is 71%. Any claim that a team converts first bloods well has to be measured '
+        + 'against 71%, not against 50%.',
+    formulaZh: '首杀→胜 = 首杀方赢下的回合 ÷ 有首杀的回合',
+    formulaEn: 'FB → win = rounds won by the first-blood side ÷ rounds with a first blood',
   },
   {
     key: 'fbrate',
     zh: '首杀率',
-    en: 'First Blood Rate',
-    text: '这支队伍拿到首杀的回合占它总回合的比例。反映打法风格（激进还是保守），'
+    en: 'First blood rate',
+    textZh: '这支队伍拿到首杀的回合占它总回合的比例。反映打法风格（激进还是保守），'
         + '不反映强弱。',
+    textEn: 'Rounds where the team took the first blood, as a share of its rounds. It reflects '
+        + 'style — aggressive or passive — not strength.',
   },
   {
     key: 'recovery',
     zh: '丢首杀→胜率',
-    en: 'Recovery Rate',
-    text: '丢掉首杀之后，还能把这回合翻回来的比例。'
+    en: 'Recovery rate',
+    textZh: '丢掉首杀之后，还能把这回合翻回来的比例。'
         + '这是比首杀率更能区分强弱的指标。',
+    textEn: 'The share of rounds the team still wins after conceding the first blood. '
+        + 'This separates strong teams from weak ones better than first-blood rate does.',
   },
   {
     key: 'gone',
     zh: '首杀未被补',
     en: 'Untraded FB%',
-    text: '这支队伍拿到首杀后，有多少比例没被对手补掉。'
+    textZh: '这支队伍拿到首杀后，有多少比例没被对手补掉。'
         + '越高说明队伍越会「打完就撤 / 有队友掩护」，而不是干完就走被人换掉。',
+    textEn: 'The share of a team’s first bloods that were not traded by the opponent. '
+        + 'Higher means the team leaves after the pick or has cover, rather than trading back '
+        + 'one for one.',
   },
   {
     key: 'geom',
     zh: '为什么中国赛区没有坐标',
-    en: 'Missing Geometry',
-    text: 'vlr.gg 上 VCT 中国赛区（第一 / 第二赛段）没有提供 2D 回放数据，'
+    en: 'Missing geometry',
+    textZh: 'vlr.gg 上 VCT 中国赛区（第一 / 第二赛段）没有提供 2D 回放数据，'
         + '比赛页面直接写着 “No 2D replay available for this match”。'
         + '同样在上海办的全球冠军赛 2026 有完整回放，本站已收录。'
         + '所以中国赛区仍有击杀、英雄、武器、时间、补枪、转化率数据，只缺位置坐标。',
+    textEn: 'vlr.gg does not provide 2D replays for the VCT China league (Stage 1 / Stage 2); '
+        + 'the match pages say “No 2D replay available for this match”. Champions Shanghai 2026, '
+        + 'played in the same city, has full replays and is included here. So for the China league '
+        + 'we still have kills, agents, weapons, timing, trades and conversion — only the '
+        + 'coordinates are missing.',
   },
 ];
 
 const GLOSS_MAP = Object.fromEntries(GLOSSARY.map(g => [g.key, g]));
 
+function glossText(g){ return pick(g.textZh, g.textEn); }
+function glossFormula(g){ return pick(g.formulaZh, g.formulaEn); }
+
 function initGlossary(){
   const box = document.getElementById('gloss');
-  box.innerHTML = '<h3>指标说明</h3>' + GLOSSARY.map(g => `
+  box.innerHTML = `<h3>${t('gl.title')}</h3>` + GLOSSARY.map(g => `
     <div class="gitem">
-      <b>${g.zh}</b><span class="en">${g.en}</span>
-      <p>${g.text}${g.formula ? `<span class="formula">${g.formula}</span>` : ''}</p>
+      <b>${esc(pick(g.zh, g.en))}</b><span class="en">${esc(g.en)}</span>
+      <p>${esc(glossText(g))}${glossFormula(g) ? `<span class="formula">${esc(glossFormula(g))}</span>` : ''}</p>
     </div>`).join('');
 
   const btn = document.getElementById('glossBtn');
@@ -645,8 +695,8 @@ function initGlossary(){
     if(!el) return;
     const g = GLOSS_MAP[el.dataset.key];
     if(!g) return;
-    tip.innerHTML = `<b>${g.zh}</b>${g.text}`
-      + (g.formula ? `<span class="formula">${g.formula}</span>` : '');
+    tip.innerHTML = `<b>${esc(pick(g.zh, g.en))}</b>${esc(glossText(g))}`
+      + (glossFormula(g) ? `<span class="formula">${esc(glossFormula(g))}</span>` : '');
     tip.classList.add('show');
     const r = el.getBoundingClientRect();
     const w = 340;
@@ -682,7 +732,7 @@ let lastAgg = null;                   // 最近一次聚合结果，排序时复
 let teamSeason = false;               // 队伍表默认跟着赛事走；整季是可选视角
 
 /* agent -> per-map first-blood counts, built once (used when an agent is
-   pinned, so the "谁在拿首杀" panel can show WHERE that agent gets them) */
+   pinned, so the t('ovw.whoTitle') panel can show WHERE that agent gets them) */
 let agentMapCounts = null;
 
 /* ================================================================== */
@@ -703,6 +753,30 @@ function teamCell(t, opts){
 
 function esc(x){ return String(x).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function fmt(n){ return n.toLocaleString('en-US'); }
+
+/* 专名：中文查 site_v3.json 的 zh 表，英文用原始英文名。
+   赛事另有一套「短名」，下拉框和工作台两边都要用。 */
+function prettify(k){
+  if(!k) return '';
+  return String(k).replace(/(^|[\s\/-])([a-z])/g, (m, a, b) => a + b.toUpperCase());
+}
+function evLabel(i){
+  const k = S.D.events[i];
+  return pick(S.Z.events[k] || k, k);
+}
+/* 参数可以是索引，也可以直接是赛事名——两个调用点习惯不同，统一在这里兼容。 */
+function evLabelShort(iOrName){
+  const k = typeof iOrName === 'number' ? S.D.events[iOrName] : iOrName;
+  return pick(S.Z.eventsShort[k] || S.Z.events[k] || k, k);
+}
+function mapLabel(i){
+  const k = S.D.maps[i];
+  return pick(S.Z.maps[k] || k, prettify(k));
+}
+function agentLabel(i){
+  const k = S.D.agents[i];
+  return pick(S.Z.agents[k] || k, prettify(k));
+}
 function fmtSec(s){
   if(s == null || s < 0) return '—';
   return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
@@ -741,6 +815,8 @@ function syncURL(){
   if(F.map   >= 0) q.set('map',   S.D.maps[F.map]);
   if(F.team  >= 0) q.set('team',  S.D.teams[F.team]);
   if(F.agent >= 0) q.set('agent', S.D.agents[F.agent]);
+  // lang 写进链接：分享出去时对方打开就是同一个语言
+  q.set('lang', I18N.lang());
   const qs = q.toString();
   history.replaceState(null, '', qs ? '?' + qs : location.pathname);
 }
@@ -764,9 +840,9 @@ function initShare(){
   btn.onclick = async () => {
     try{
       await navigator.clipboard.writeText(location.href);
-      toast('链接已复制，可以直接发给别人');
+      toast(t('toast.copied2'));
     }catch(e){
-      toast('浏览器不允许自动复制，请从地址栏复制');
+      toast(t('toast.nocopy2'));
     }
   };
 }
@@ -790,8 +866,8 @@ async function boot(){
   }
 
   document.getElementById('sub').textContent =
-    `${S.D.events.length} 个赛事 · ${S.D.maps.length} 张地图 · ${S.M.teams_shown} 支队伍`
-    + ` · ${fmt(S.M.rounds)} 回合 · 数据源 vlr.gg 2D 回放`;
+    t('ovw.sub1', {e: S.D.events.length, m: S.D.maps.length, t: S.M.teams_shown})
+    + t('ovw.sub2', {r: fmt(S.M.rounds)});
 
   // 赛事间对比表是固定基准，不随上面的筛选变化，所以先算好
   S.eventStats = buildEventStats();
@@ -822,8 +898,35 @@ async function boot(){
     ft.setAttribute('aria-expanded', String(open));
   };
   initShare();
+
+  /* 切语言：下拉框、术语卡、队伍表、地图面板全是 JS 拼的，整体重跑一遍。
+     顺序有讲究——先重建四个下拉（选项文案变了），再 initGlossary（释义换了），
+     最后 rebuild() 重画主面板。 */
+  window.addEventListener('langchange', () => {
+    // toast 的文字是写入 DOM 的，切语言后清掉，免得留一句旧语言的话在屏幕上
+    const tst = document.getElementById('toast');
+    if(tst){ tst.textContent = ''; tst.classList.remove('show'); }
+    document.getElementById('sub').textContent =
+      t('ovw.sub1', {e: S.D.events.length, m: S.D.maps.length, t: S.M.teams_shown})
+      + t('ovw.sub2', {r: fmt(S.M.rounds)});
+    buildEventSelect();
+    buildMapSelect();
+    buildTeamSelect();
+    buildAgentSelect();
+    initGlossary();
+    const es = document.getElementById('eventSelect');
+    if(es) es.onchange = e => { F.ev = +e.target.value; rebuild(); };
+    const ms = document.getElementById('mapSelect');
+    if(ms) ms.onchange = e => { F.map = +e.target.value; rebuild(); };
+    const as = document.getElementById('agentSelect');
+    if(as) as.onchange = e => { F.agent = +e.target.value; rebuild(); };
+    const sb = document.getElementById('teamScopeBtn');
+    if(sb) sb.textContent = teamSeason ? t('ovw.fullSeason') : t('ovw.thisEvent2');
+    rebuild();
+  });
+
   rebuild();
-  if(fromURL) toast('已按链接恢复筛选条件');
+  if(fromURL) toast(t('toast.restored2'));
 }
 
 /* 点表头排序：同键切换升降序，换键默认降序 */
@@ -832,7 +935,7 @@ function initTeamSort(){
   if(btn){
     btn.onclick = ()=>{
       teamSeason = !teamSeason;
-      btn.textContent = teamSeason ? '整季' : '本赛事';
+      btn.textContent = teamSeason ? t('ovw.fullSeason') : t('ovw.thisEvent2');
       if(lastAgg) renderTeams(lastAgg);
     };
   }
@@ -865,7 +968,7 @@ function buildEventStats(){
 }
 
 /* Precompute: agentIndex -> Map(mapIndex -> count) across the whole dataset.
-   Only used to answer "这个英雄在哪些图拿首杀" when an agent is pinned. */
+   Only used to answer t('ovw.agentMaps') when an agent is pinned. */
 function buildAgentMapCounts(){
   agentMapCounts = new Map();
   for(const r of S.raw.rounds){
@@ -891,7 +994,7 @@ function buildEventSelect(){
   const sel = document.getElementById('eventSelect');
   sel.innerHTML = S.D.events.map((e,i)=>{
     const hasGeo = (S.M.per_event?.[e]?.has_geometry) !== false;
-    return `<option value="${i}">${esc(S.Z.events[e] || e)}${hasGeo ? '' : '（无坐标）'}</option>`;
+    return t('sel.eventOpt', {i: i, name: esc(pick(S.Z.events[e] || e, e)), nogeo: hasGeo ? '' : t('sel.nogeo')});
   }).join('');
   sel.value = String(F.ev);
 }
@@ -910,8 +1013,8 @@ function buildMapSelect(){
   const sel = document.getElementById('mapSelect');
   const list = mapsInScope();
   if(F.map >= 0 && !list.includes(F.map)) F.map = -1;   // 换赛事后旧地图失效
-  sel.innerHTML = `<option value="-1">全部地图（${list.length} 张）</option>` +
-    list.map(m => `<option value="${m}">${esc(S.Z.maps[S.D.maps[m]] || S.D.maps[m])}</option>`).join('');
+  sel.innerHTML = t('sel.allMapsN', {n: list.length}) +
+    list.map(m => `<option value="${m}">${esc(mapLabel(m))}</option>`).join('');
   sel.value = String(F.map);
 }
 
@@ -938,8 +1041,8 @@ function buildAgentSelect(){
   const list = agentsInScope();
   // if the pinned agent fell out of scope, release it
   if(F.agent >= 0 && !list.includes(F.agent)) F.agent = -1;
-  sel.innerHTML = '<option value="-1">全部英雄</option>' +
-    list.map(a => `<option value="${a}">${esc(S.Z.agents[S.D.agents[a]] || S.D.agents[a])}</option>`).join('');
+  sel.innerHTML = t('sel.allAgents') +
+    list.map(a => `<option value="${a}">${esc(agentLabel(a))}</option>`).join('');
   sel.value = String(F.agent);
 }
 
@@ -988,14 +1091,15 @@ function buildTeamSelect(){
   sel.innerHTML = '';
   const all = document.createElement('option');
   all.value = '-1';
-  all.textContent = `全部队伍（${list.length} 支）`;
+  all.textContent = t('sel.allTeamsN', {n: list.length});
   sel.appendChild(all);
 
   // group by event when showing everything
-  for(const [t, n] of list){
+  /* 循环变量不能叫 t：会遮蔽全局翻译函数 t()。 */
+  for(const [teamId, n] of list){
     const o = document.createElement('option');
-    o.value = String(t);
-    o.textContent = `${S.D.teams[t]}  ·  ${n} 回合`;
+    o.value = String(teamId);
+    o.textContent = t('sel.teamOpt', {team: S.D.teams[teamId], n: n});
     sel.appendChild(o);
   }
 
@@ -1014,7 +1118,7 @@ function buildTeamSelect(){
   };
 
   document.getElementById('teamHint').textContent =
-    `仅显示 ${S.Z.eventsShort[S.D.events[F.ev]]} 参赛的 ${list.length} 支队伍`;
+    t('sel.onlyEvent', {n: list.length, ev: evLabelShort(F.ev)});
 }
 
 /* ================================================================== */
@@ -1061,9 +1165,9 @@ function updateFilterSummary(){
   const el = document.getElementById('ftoggleText');
   if(!el) return;
   el.textContent = [
-    S.Z.eventsShort[S.D.events[F.ev]] || S.D.events[F.ev],
-    F.map < 0 ? '全部地图' : (S.Z.maps[S.D.maps[F.map]] || S.D.maps[F.map]),
-    F.team < 0 ? '全部队伍' : S.D.teams[F.team],
+    evLabelShort(F.ev),
+    F.map < 0 ? t('sel.allMaps2') : mapLabel(F.map),
+    F.team < 0 ? t('sel.allTeams') : S.D.teams[F.team],
   ].join(' · ');
 }
 
@@ -1152,8 +1256,8 @@ function renderAll(){
   renderTeams(a);
 
   document.getElementById('foot').textContent =
-    `数据抓取自 vlr.gg 2D 回放 · ${S.D.events.length} 个赛事`
-    + ` · ${fmt(S.M.rounds)} 回合 · ${S.M.maps_played} 张地图`;
+    t('ovw.foot1', {n: S.D.events.length})
+    + t('ovw.foot2', {r: fmt(S.M.rounds), m: S.M.maps_played});
 }
 
 /* ---------------------------- map ---------------------------------- */
@@ -1169,7 +1273,7 @@ function renderMap(a){
     canvas.style.visibility = 'hidden';
     mt.classList.add('show');
     document.querySelector('.mapwrap').classList.add('agg');
-    title.textContent = '首杀 · 按地图拆开';
+    title.textContent = t('ovw.byMap');
     document.querySelector('.legend').style.display = 'none';
   }else{
     const key = S.D.maps[F.map];
@@ -1179,7 +1283,7 @@ function renderMap(a){
     document.querySelector('.mapwrap').classList.remove('agg');
     document.querySelector('.legend').style.display = '';
     img.src = 'maps/light/' + key.toLowerCase().replace(/ /g,'') + '.png';
-    title.textContent = `首杀位置分布 · ${S.Z.maps[key]}`;
+    title.textContent = t('ovw.mapTitle2', {map: mapLabel(key)});
   }
 
   const pts = [];
@@ -1194,8 +1298,8 @@ function renderMap(a){
 
   const geoOfView = view.reduce((s,r)=> s + (r[9] >= 0 ? 1 : 0), 0);
   document.getElementById('mapMeta').textContent = aggregate
-    ? `${S.Z.eventsShort[S.D.events[F.ev]]} · ${fmt(mapsInScope().length)} 张图 · ${fmt(a.n)} 回合`
-    : `${fmt(a.n)} 回合 · 本图 ${fmt(pts.length)} 次`;
+    ? t('ovw.mapMeta', {ev: evLabelShort(F.ev), m: fmt(mapsInScope().length), r: fmt(a.n)})
+    : t('ovw.mapMeta2', {r: fmt(a.n), n: fmt(pts.length)});
 
   const es = document.getElementById('emptyState');
   const showEmpty = !aggregate && pts.length === 0;
@@ -1203,36 +1307,36 @@ function renderMap(a){
   if(showEmpty){
     const cn = (S.M.per_event?.[S.D.events[F.ev]]?.has_geometry === false);
     es.innerHTML = cn
-      ? `<div><b>中国赛区没有坐标数据</b>
-         vlr.gg 上该赛区没有 2D 回放，无法绘制位置。<br>
-         但这一筛选下的 ${fmt(a.n)} 个回合仍然计入<br>
-         右侧的英雄、武器与转化率统计。</div>`
-      : `<div><b>这个组合没有可绘制的位置</b>
-         当前筛选在这张图上没有首杀。<br>
-         试试把「地图」切回「全部地图」，或换个队伍 / 英雄。</div>`;
+      ? `<div><b>${t('ovw.emptyCN.b')}</b>
+         ${t('ovw.emptyCN.l1')}<br>
+         ${t('ovw.emptyCN.l2', {n: fmt(a.n)})}<br>
+         ${t('ovw.emptyCN.l3')}</div>`
+      : `<div><b>${t('ovw.empty2.b')}</b>
+         ${t('ovw.empty2.l1')}<br>
+         ${t('ovw.empty2.l2')}</div>`;
   }
 
   const conv = a.n ? 100*a.won/a.n : null;
   document.getElementById('mapCards').innerHTML = `
     <div class="stat">
-      <h3>首杀后赢下回合</h3>
+      <h3>${t('ovw.statConv')}</h3>
       <div class="big red">${conv==null?'—':conv.toFixed(1)+'%'}</div>
-      <p>全样本基准 ${S.M.fb_to_win_pct.toFixed(1)}%</p>
+      <p>${t('ovw.statConvBase', {v: S.M.fb_to_win_pct.toFixed(1)})}</p>
     </div>
     <div class="stat">
-      <h3>首杀来自进攻方</h3>
+      <h3>${t('ovw.statAtk')}</h3>
       <div class="big cyan">${pct(a.atk, a.n)}%</div>
-      <p>进攻 ${fmt(a.atk)} · 防守 ${fmt(a.def)}</p>
+      <p>${t('ovw.statAtkSplit', {atk: fmt(a.atk), def: fmt(a.def)})}</p>
     </div>
     <div class="stat">
-      <h3>首杀中位时刻</h3>
+      <h3>${t('ovw.statPace')}</h3>
       <div class="big">${fmtSec(a.medianSec)}</div>
-      <p>回合开局到首次击杀</p>
+      <p>${t('ovw.statPaceNote')}</p>
     </div>
     <div class="stat">
-      <h3>坐标覆盖</h3>
+      <h3>${t('ovw.statGeo')}</h3>
       <div class="big">${pct(geoOfView, a.n)}%</div>
-      <p>${fmt(geoOfView)} / ${fmt(a.n)} 回合</p>
+      <p>${t('ovw.statGeoNote', {n: fmt(geoOfView), total: fmt(a.n)})}</p>
     </div>`;
 }
 
@@ -1255,13 +1359,17 @@ function renderMapTable(){
   document.getElementById('mapTable').innerHTML = `
     <table>
       <thead><tr>
-        <th>地图</th><th>回合</th><th>首杀→胜</th><th>被补率</th><th>中位时刻</th>
+        <th data-i18n="th.map">地图</th>
+        <th data-i18n="th.rounds">回合</th>
+        <th data-i18n="th.fbconv">首杀→胜</th>
+        <th data-i18n="th.tradedRate">被补枪率</th>
+        <th data-i18n="th.medianTime">中位时刻</th>
       </tr></thead>
       <tbody>${rows.map(([mp, m])=>{
         const conv = 100*m.won/m.n;
         const trPct = (m.tr+m.ut) ? 100*m.tr/(m.tr+m.ut) : null;
         return `<tr class="mtr" data-m="${mp}">
-          <td>${S.Z.maps[S.D.maps[mp]]}</td>
+          <td>${esc(mapLabel(mp))}</td>
           <td class="num">${fmt(m.n)}</td>
           <td class="num">${conv.toFixed(1)}%</td>
           <td class="num">${trPct==null?'—':trPct.toFixed(1)+'%'}</td>
@@ -1269,6 +1377,8 @@ function renderMapTable(){
         </tr>`;
       }).join('')}</tbody>
     </table>`;
+  // 这段 DOM 是 JS 拼的，切语言后要重新套一遍 data-i18n
+  I18N.applyStatic(document.getElementById('mapTable'));
 
   for(const tr of document.querySelectorAll('#mapTable .mtr')){
     tr.style.cursor = 'pointer';
@@ -1312,7 +1422,7 @@ function rowHTML(label, n, max, total, color, opts){
   opts = opts || {};
   const clickable = opts.pickable ? ' pickable' : '';
   const picked = opts.picked ? ' picked' : '';
-  const mark = opts.picked ? '<span class="pickmark">已选</span>' : '';
+  const mark = opts.picked ? t('ovw.picked') : '';
   const w = max ? 100*n/max : 0;
   // 比例画在单元格底色里，数字压在条上；不再「数字 + 一根装饰线」
   return `<tr class="${clickable}${picked}"${opts.data||''}>
@@ -1330,7 +1440,7 @@ function renderList(tbodyId, moreId, noteId, list, cfg){
   const total = list.reduce((s,[,n])=>s+n, 0);
 
   if(!list.length){
-    tb.innerHTML = `<tr><td colspan="3" class="empty">当前筛选下没有数据</td></tr>`;
+    tb.innerHTML = t('ovw.noData');
     more.hidden = true;
     if(noteId) document.getElementById(noteId).textContent = cfg.emptyNote || '';
     return;
@@ -1357,8 +1467,8 @@ function renderList(tbodyId, moreId, noteId, list, cfg){
   if(list.length > TOP_N){
     more.hidden = false;
     more.textContent = isOpen
-      ? `收起（只显示前 ${TOP_N} 名）`
-      : `展开全部 ${list.length} 项`;
+      ? t('ovw.collapse', {n: TOP_N})
+      : t('ovw.expand', {n: list.length});
     more.onclick = ()=>{ expanded[cfg.key] = !isOpen; recompute(); };
   }else{
     more.hidden = true;
@@ -1380,7 +1490,7 @@ function renderAgents(a){
   // Deliberately IGNORES the map filter, otherwise this panel collapses to a
   // single row the moment a map is chosen, which defeats its purpose.
   if(F.agent >= 0){
-    title.textContent = '这个英雄在哪拿首杀';
+    title.textContent = t('ovw.agentMaps2');
     const perMap = new Map();
     for(const r of S.raw.rounds){
       if(F.ev   >= 0 && r[0] !== F.ev) continue;
@@ -1390,35 +1500,35 @@ function renderAgents(a){
     }
     const list = [...perMap.entries()].sort((x,y)=> y[1]-x[1]);
     const sum = list.reduce((s,[,n])=>s+n, 0);
-    note.textContent = `${S.Z.agents[S.D.agents[F.agent]]} · 共 ${fmt(sum)} 次首杀`;
+    note.textContent = t('ovw.agentHead', {agent: agentLabel(F.agent), n: fmt(sum)});
 
     const tb = document.getElementById('agentRows');
     const more = document.getElementById('agentMore');
     more.hidden = true;
 
     if(!list.length){
-      tb.innerHTML = `<tr><td colspan="3" class="empty">当前筛选下没有数据</td></tr>`;
+      tb.innerHTML = t('ovw.noData');
       return;
     }
     const max = list[0][1];
     tb.innerHTML = list.map(([mp,n])=>
-      rowHTML(S.Z.maps[S.D.maps[mp]] + (F.map===mp?' ←':''),
+      rowHTML(mapLabel(mp) + (F.map===mp?' ←':''),
               n, max, sum, 'var(--red)',
               {picked:false})).join('');
     return;
   }
 
-  title.textContent = '谁在拿首杀 · 英雄';
+  title.textContent = t('ovw.agentTitle2');
   const list = [...a.agents.entries()].sort((x,y)=> y[1]-x[1]);
   renderList('agentRows', 'agentMore', 'agentPanelNote', list, {
     key: 'agents',
     color: 'var(--red)',
     emptyNote: '',
-    label: k => S.Z.agents[S.D.agents[k]] ?? S.D.agents[k],
+    label: k => agentLabel(k),
     // clicking an agent pins it
     onPick: k => { F.agent = (F.agent === k ? -1 : k); rebuild(); },
     isPicked: k => F.agent === k,
-    note: (shown, total) => `点击任意英雄查看其首杀位置 · 共 ${total} 个有记录`,
+    note: (shown, total) => t('ovw.clickAgent', {n: total}),
   });
 }
 
@@ -1429,8 +1539,9 @@ function renderCauses(a){
     key: 'weapons',
     color: 'var(--cyan)',
     emptyNote: '',
-    label: k => S.Z.causes[S.D.causes[k]] ?? S.D.causes[k],
-    note: (shown, total) => shown < total ? `前 ${shown} 名 / 共 ${total} 种` : `共 ${total} 种`,
+    // 武器/技能：中文查表，英文用原名的首字母大写（vandal -> Vandal）
+    label: k => pick(S.Z.causes[S.D.causes[k]] ?? S.D.causes[k], prettify(S.D.causes[k])),
+    note: (shown, total) => shown < total ? t('ovw.topShown', {shown: shown, total: total}) : t('ovw.allShown', {total: total}),
   });
 }
 
@@ -1438,7 +1549,7 @@ function renderEvents(a){
   const tb = document.getElementById('eventRows');
   const show = S.eventStats || [];
   if(!show.length){
-    tb.innerHTML = `<tr><td colspan="7" class="empty">没有数据</td></tr>`;
+    tb.innerHTML = t('ovw.noData2');
     return;
   }
   const cur = F.ev;
@@ -1447,7 +1558,7 @@ function renderEvents(a){
     const untradedWin = e.untraded ? 100*e.untradedWon/e.untraded : null;
     const on = ev === cur ? ' style="background:rgba(255,70,85,.07)"' : '';
     return `<tr${on}>
-      <td>${S.Z.eventsShort[S.D.events[ev]] ?? S.D.events[ev]}${ev===cur?' ·当前':''}</td>
+      <td>${esc(evLabelShort(ev))}${ev===cur?t('ovw.curTag'):''}</td>
       <td class="num">${fmt(e.n)}</td>
       <td class="num">${pct(e.atk, e.n)}%</td>
       <td class="num">${pct(e.won, e.n)}%</td>
@@ -1457,7 +1568,7 @@ function renderEvents(a){
     </tr>`;
   }).join('');
   document.getElementById('eventCompareNote').textContent =
-    '（' + S.D.events.length + ' 个赛事全样本，不随上方筛选变化）';
+    '（' + S.D.events.length + t('ovw.fixedBase');
 }
 
 function renderTeams(a){
@@ -1497,7 +1608,7 @@ function renderTeams(a){
   }
 
   if(!list.length){
-    tb.innerHTML = `<tr><td colspan="8" class="empty">当前筛选下没有队伍数据</td></tr>`;
+    tb.innerHTML = t('ovw.noTeams');
   document.getElementById('teamCompareNote').textContent = '';
     return;
   }
@@ -1576,14 +1687,14 @@ function renderTeams(a){
   }
 
   const scopeLabel = teamSeason
-    ? `整季 ${S.D.events.length} 个赛事`
-    : `${S.Z.eventsShort[S.D.events[F.ev]]} · `
-      + (F.map < 0 ? '全部地图' : S.Z.maps[S.D.maps[F.map]])
-      + (F.agent >= 0 ? ' · ' + S.Z.agents[S.D.agents[F.agent]] : '');
+    ? t('ovw.fullSeasonN', {n: S.D.events.length})
+    : `${evLabelShort(F.ev)} · `
+      + (F.map < 0 ? t('sel.allMaps2') : mapLabel(F.map))
+      + (F.agent >= 0 ? ' · ' + agentLabel(F.agent) : '');
   document.getElementById('teamCompareNote').textContent =
     F.team >= 0
-      ? `（只看这一支 · ${scopeLabel}）`
-      : `（${scopeLabel} · 显示 ${list.length} 支（≥${minN} 回合）；淡化 = 不足 ${thinN} 回合）`;
+      ? t('ovw.oneTeam', {scope: scopeLabel})
+      : t('ovw.manyTeams', {scope: scopeLabel, n: list.length, min: minN, thin: thinN});
 }
 
 boot();

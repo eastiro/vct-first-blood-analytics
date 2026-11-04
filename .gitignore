@@ -16,3 +16,6 @@ scripts/_scratch/
 # 用 scripts/04_crawl/30_crawl.py 从 vlr.gg 重抓即可；
 # 站点运行只需要 data/site_v3.json 与 data/site_v5.json（派生结果，已入库）。
 data/rounds*.jsonl
+
+# 临时截图与探针产物，不入库
+figures/_probe/
