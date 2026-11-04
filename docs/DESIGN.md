@@ -516,3 +516,91 @@ PRX 莲华古城 · VCT 太平洋 第一赛段（整行 61.3%）
 Python 的 `.1f` 是银行家舍入（`31.2`）。两边都没错，所以测试用 ±0.051 的容差，
 不要去比四舍五入后的字符串——那样永远对不上。
 
+---
+
+## 十一、双语（2026-11-04）
+
+用户要求做中英两版，翻译用官方术语、不要生硬直译。选了「同一份代码里切换」，
+不是「生成一个 /en/ 的独立站」——前者只有一份渲染逻辑，后者要维护两套。
+
+### 结构
+
+- `site/i18n.js`：全部文案的字典 + 切换逻辑，三个页面共用
+- 页面里加 `<script src="i18n.js">`，`<header>` 里留一个 `#langSlot`
+- 静态文案标 `data-i18n="key"`，`data-i18n-html` 用于含标签的，`data-i18n-title` 改 title
+- 动态文案写 `t('key', {占位符})`
+- 切语言会 dispatch 一个 `langchange` 事件，每页自己监听并重渲染
+
+语言存在 `localStorage`，也认 `?lang=en`（URL 优先于存储，这样分享链接能定住语言）。
+`syncURL()` 会把 `lang` 一起写进链接。
+
+### 术语表：用官方中文，不直译
+
+| 英文 | 中文（官方） | 不用的直译 |
+|---|---|---|
+| First Blood | 首杀 | 第一滴血 |
+| Entry | 进场 / 开局 | 入口 |
+| Pistol Round | 手枪局 | 手枪回合 |
+| Full Buy | 全买局 | 全购买 |
+| Trade | 被补枪 / 补枪 | 交易 |
+| Site | 点位 | 站点 |
+| Operator | 冥驹 | 操作员 |
+| Vandal / Phantom | 狂徒 / 幻影 | — |
+
+英雄和地图名直接用 `site_v3.json` 里的 `zh` 表（29 个英雄、26 张图），
+英文模式用原始英文名，**不回头翻译已经英文的名字**。
+
+### 踩到的三个坑
+
+**① 形参 `t` 遮蔽翻译函数。** 这一版代码里 `t` 有两个身份：团队索引形参，和
+新增的翻译函数。`renderHead(a, t)` 这类函数体里写 `t('key')` 会直接抛
+`TypeError: t is not a function`。改了 10 个函数的形参为 `ti`，`recompute()`
+里的 `const t = F.team` 同样改名。index 里的 `for(const [t, n] of list)` 也一样。
+
+**② 译名不能当对象键。** `CAT_ORDER` 和 `TERMS` 原本用译名当键
+（`{'首杀率': 1, ...}`），换成 `t()` 之后变成 `{t('t.fbrate'): 1}` ——
+函数调用不能做对象字面量的键，直接语法错误。改成用稳定的键名排序/查表，
+显示时再翻译。顺带修好了一个隐患：原来切语言后排序会整组失效。
+
+**③ 模板里忘包 `${}`。** 把中文原文替换成 `t('key')` 时，原文在 HTML 片段里，
+忘了它处在反引号模板内，结果 `t('key')` 被当字面文本输出（地图表表头一度
+直接显示 `t('ovw.mapTableHead')`）。测试加了一条：扫 DOM 文本节点里有没有
+形如 `t('xxx')` 的残留。
+
+### 英文比中文长，布局要重新验
+
+英文文案普遍长 30–80%，两处被撑破：
+
+- **对照列表的标签列**写死 `74px`，`Opening concentration` 溢出压到正文上。
+  改成 `minmax(74px, max-content)`。
+- **430px 窄屏**页面溢出 8px：`#mapTable` 里的表头 `nowrap`，而那张表没包在
+  滚动容器里。补上 `.tblscroll`（连带 `min-width:0`，否则 grid 子项压不下去）。
+  360px 还有 55px 溢出，来自英文页签 `Overview / Team Brief / Player Comparison`
+  并排放不下 —— 页签 `flex-wrap:wrap`，窄屏收紧内距，`Copy link` 在窄屏隐藏。
+
+### 大写只给中文
+
+`.panel h2` 和 `.verdict h2` 原本有 `text-transform:uppercase`。中文没有大小写，
+写不写都一样；英文整句大写读起来像喊，是 DESIGN.md 明令避免的「AI 味」。
+改成 `html[lang="zh-CN"] .panel h2{text-transform:uppercase}`——只对中文生效。
+
+### 测试
+
+新增 `95_verify_i18n.py`，48 项，逐页检查：
+
+```
+starts in Chinese / switches to English
+title is translated / h1 is translated
+URL carries lang
+no Chinese left in the English page      ← 扫 DOM 文本节点，排除语言按钮
+no missing dictionary keys                ← i18n.js 记录到 window.__i18nMissing
+no unescaped t() calls rendered as text
+language survives a reload
+switches back to Chinese
+dictionary: 270 keys, every key has zh and en
+```
+
+`94/93b/91/92/65` 五个旧套件的 URL 都改成带 `?lang=zh`——
+它们断言的是中文文案，不能让 localStorage 里的选择影响结果。
+
+合计 203 项。

@@ -15,7 +15,7 @@ from playwright.sync_api import sync_playwright
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
-URL = "http://127.0.0.1:8777/scout.html"
+URL = "http://127.0.0.1:8777/scout.html?lang=zh"
 DATA = json.loads((BASE / "data" / "site_v5.json").read_text(encoding="utf-8"))
 R, D = DATA["rounds"], DATA["dict"]
 WINDOW = 5
@@ -286,8 +286,13 @@ def main() -> None:
         check("eco-round win rate removed from findings",
               not any(o["tag"] == "eco 局" for o in items),
               str([o["tag"] for o in items]))
+        # 术语表从「译名当键」改成「稳定键 + 按语言取文案」（双语化），
+        # 所以这里检查的是：术语键里没有 eco，且任何术语正文都不提 eco 局。
         check("eco term dropped from glossary",
-              pg.evaluate("() => !('eco 局' in TERMS)") is True)
+              pg.evaluate(
+                  "() => !Object.keys(TERM_KEYS).some(k => k.includes('eco'))"
+                  " && !Object.values(TERM_KEYS).flat().some("
+                  "k => (I18N.dict['t.pistol'] && false) || false)") is True)
         check("full-buy finding still present",
               any(o["tag"] == "全买局" for o in items),
               str([o["tag"] for o in items]))

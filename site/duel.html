@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>选手对比 · 无畏契约 2026 首杀</title>
+<title data-i18n="duel.title">选手对比 · 无畏契约 2026 首杀</title>
 <link rel="stylesheet" href="fonts/fonts.css">
+<script src="i18n.js"></script>
 <style>
   :root{
     --bg:#EAE7E0; --panel:#FFFFFF; --panel2:#F5F2EC; --line:#DBD5C9; --line2:#C9C2B4;
@@ -90,6 +91,16 @@
   footer{padding:18px 28px; border-top:1px solid var(--line); color:var(--dim2);
          font-size:10px; background:#FFFFFF}
 
+  /* 语言切换：两个字母，选中态用墨黑，和页签同一套语言 */
+  .langsw{display:inline-flex; gap:0; border:1px solid var(--line); border-radius:4px;
+          overflow:hidden; background:var(--panel2)}
+  .langsw .lb{
+    background:none; border:0; font:inherit; font-size:11px; line-height:1;
+    padding:5px 9px; color:var(--dim2); cursor:pointer; letter-spacing:.02em;
+  }
+  .langsw .lb:hover{color:var(--fg)}
+  .langsw .lb.on{background:var(--fg); color:#fff; font-weight:600}
+
   @media (max-width:760px){
     header{padding:18px 16px 14px}
     main{padding:14px 16px 40px}
@@ -105,26 +116,27 @@
 
 <header>
   <div>
-    <h1>选手对比 <span>/</span> 无畏契约 2026</h1>
-    <div class="sub" id="sub">首杀尝试</div>
+    <h1><span data-i18n="duel.h1">选手对比</span> <span>/</span> <span data-i18n="site">无畏契约 2026</span></h1>
+    <div class="sub" id="sub" data-i18n="duel.sub">首杀尝试</div>
   </div>
   <nav class="tabs" role="tablist">
-    <a class="tab" href="index.html" role="tab" aria-selected="false">总览</a>
-    <a class="tab" href="scout.html" role="tab" aria-selected="false">队伍简报</a>
-    <a class="tab on" href="duel.html" role="tab" aria-selected="true">选手对比</a>
+    <a class="tab" href="index.html" role="tab" aria-selected="false" data-i18n="nav.overview">总览</a>
+    <a class="tab" href="scout.html" role="tab" aria-selected="false" data-i18n="nav.scout">队伍简报</a>
+    <a class="tab on" href="duel.html" role="tab" aria-selected="true" data-i18n="nav.duel">选手对比</a>
   </nav>
+  <div id="langSlot"></div>
 </header>
 
 <main>
   <div class="bar">
-    <label>赛事</label>
+    <label data-i18n="ctl.event">赛事</label>
     <select id="evSel"></select>
     <span class="hint" id="scope"></span>
   </div>
 
   <div class="panel">
     <div class="charthead">
-      <h2>首杀尝试</h2>
+      <h2 data-i18n="duel.chart">首杀尝试</h2>
     </div>
     <div class="duelwrap">
       <canvas id="duelCanvas" width="1200" height="760"></canvas>
@@ -136,13 +148,13 @@
       <table>
         <thead>
           <tr>
-            <th>选手</th>
-            <th>队伍</th>
-            <th>尝试</th>
-            <th>首杀</th>
-            <th>成功率</th>
-            <th>每百回合</th>
-            <th>队内占比</th>
+            <th data-i18n="duel.th.player">选手</th>
+            <th data-i18n="duel.th.team">队伍</th>
+            <th data-i18n="duel.th.tries">尝试</th>
+            <th data-i18n="duel.th.fb">首杀</th>
+            <th data-i18n="duel.th.rate">成功率</th>
+            <th data-i18n="duel.th.per100">每百回合</th>
+            <th data-i18n="duel.th.share">队内占比</th>
           </tr>
         </thead>
         <tbody id="duelRows"></tbody>
@@ -262,16 +274,17 @@ function draw(){
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cw, ch);
 
-  const evName = S.Z.events[S.D.events[state.ev]] || S.D.events[state.ev];
+  const rawEv = S.D.events[state.ev];
+  const evName = pick(S.Z.events[rawEv] || rawEv, rawEv);
 
   let pts = build(state.ev);
 
-  $('scope').textContent = `${evName} · 全部队伍 · ${pts.length} 人`;
+  $('scope').textContent = t('duel.scope', { ev: evName, n: pts.length });
 
   if(pts.length < 2){
     ctx.fillStyle = '#8B8780';
     ctx.font = '13px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText('这个赛事进入筛选的选手不足 2 人', cw/2, ch/2);
+    ctx.fillText(t('duel.empty'), cw/2, ch/2);
     $('caption').textContent = '';
     renderRows([]);
     chartPts = [];
@@ -323,7 +336,7 @@ function draw(){
   // 均值的标注：两条虚线都在图里，文字统一放到左上角。
   // 早先把「均值 50.2%」直接标在横线右端，窄屏时正好压住 ZmjJJK 那几个点，
   // 白底也救不回来（点比标签宽）。左上角是这十几张图里唯一稳定的空白区。
-  const mLabel = `- - 虚线 = 均值 · 横 ${mx.toFixed(1)} · 纵 ${my.toFixed(1)}%`;
+  const mLabel = t('duel.mean', { x: mx.toFixed(1), y: my.toFixed(1) });
   ctx.font = '10px system-ui'; ctx.textAlign = 'left';
   ctx.fillStyle = '#8B8780';
   ctx.fillText(mLabel, L, T - 9);
@@ -372,16 +385,16 @@ function draw(){
 
   // 轴标题
   ctx.fillStyle = '#4A463F'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
-  ctx.fillText('首杀尝试 / 每 100 回合', L + pw/2, ch - 18);
+  ctx.fillText(t('duel.axis.x'), L + pw/2, ch - 18);
   ctx.save(); ctx.translate(18, T + ph/2); ctx.rotate(-Math.PI/2);
-  ctx.fillText('首杀成功率', 0, 0); ctx.restore();
+  ctx.fillText(t('duel.axis.y'), 0, 0); ctx.restore();
 
   renderRows(pts);
 
-  $('caption').textContent =
-    `队内首杀占比 ≥${MIN_SHARE}% 且参与 ≥${MIN_TRIES} 次首杀尝试的选手`
-    + ` · 尝试次数 = 拿到的首杀 + 被别人首杀`
-    + ` · 虚线 = 这一屏 ${pts.length} 位选手的均值（横 ${mx.toFixed(1)}，纵 ${my.toFixed(1)}%）`;
+  $('caption').textContent = t('duel.caption', {
+    share: MIN_SHARE, tries: MIN_TRIES, n: pts.length,
+    x: mx.toFixed(1), y: my.toFixed(1),
+  });
 }
 
 /* 明细表：按尝试次数降序。
@@ -389,7 +402,7 @@ function draw(){
 function renderRows(pts){
   const tb = $('duelRows');
   if(!pts || !pts.length){
-    tb.innerHTML = '<tr><td colspan="7" class="dim">这个赛事进入筛选的选手不足 2 人</td></tr>';
+    tb.innerHTML = `<tr><td colspan="7" class="dim">${esc(t('duel.empty'))}</td></tr>`;
     return;
   }
   const sorted = [...pts].sort((a, b) => b.n - a.n);
@@ -414,7 +427,7 @@ function esc(s){
 function fillEvents(){
   const sel = $('evSel');
   sel.innerHTML = S.D.events.map((e, i) =>
-    `<option value="${i}">${S.Z.events[e] || e}</option>`).join('');
+    `<option value="${i}">${esc(pick(S.Z.events[e] || e, e))}</option>`).join('');
   sel.value = String(state.ev);
   sel.onchange = () => { state.ev = +sel.value; draw(); };
 }
@@ -424,6 +437,18 @@ window.addEventListener('resize', () => {
   if(resizeTimer) clearTimeout(resizeTimer);
   resizeTimer = setTimeout(draw, 160);
 });
+
+/* 切语言时重画：图里的文字是 canvas 画的，不会跟着 CSS 变；
+   #sub / #foot 是 boot 时写死的，也得一起重写。 */
+window.addEventListener('langchange', () => { renderChrome(); fillEvents(); draw(); });
+
+function renderChrome(){
+  if(!S.D) return;
+  const nEv = S.D.events.length;
+  const nRd = S.M.rounds.toLocaleString('en-US');
+  $('sub').textContent = t('duel.sub2', { n: nEv, r: nRd });
+  $('foot').textContent = t('duel.foot', { n: nEv, r: nRd, m: S.M.maps_played });
+}
 
 /* ---------------- boot ---------------- */
 async function boot(){
@@ -435,12 +460,7 @@ async function boot(){
   const ci = S.D.events.indexOf('Champions Shanghai 2026');
   state.ev = ci >= 0 ? ci : 0;
 
-  $('sub').textContent =
-    `${S.D.events.length} 个赛事 · ${S.M.rounds.toLocaleString('en-US')} 回合 · 数据源 vlr.gg 2D 回放`;
-  $('foot').textContent =
-    `数据抓取自 vlr.gg 2D 回放 · ${S.D.events.length} 个赛事`
-    + ` · ${S.M.rounds.toLocaleString('en-US')} 回合 · ${S.M.maps_played} 张地图`;
-
+  renderChrome();
   fillEvents();
   draw();
 }
