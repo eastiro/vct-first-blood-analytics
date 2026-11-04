@@ -65,7 +65,7 @@ data/rounds_all.jsonl        32,786 回合   站点构建的唯一输入
 ## 一、怎么看
 
 ```bash
-cd "D:\好玩的项目\vct-first-blood-analytics\site"
+cd "D:\好玩的项目\val-ana\vct-first-blood-analytics\site"
 python -m http.server 8777 --bind 127.0.0.1
 # 打开 http://127.0.0.1:8777
 ```
@@ -101,7 +101,7 @@ python -m http.server 8777 --bind 127.0.0.1
 ## 二、目录结构
 
 ```
-D:\好玩的项目\vct-first-blood-analytics\
+D:\好玩的项目\val-ana\vct-first-blood-analytics\
 ├── site\
 │   ├── index.html          ← 唯一要改的文件
 │   ├── data\
@@ -282,7 +282,7 @@ Get-Content ... | Set-Content ...
 改完跑这两个，都是 Playwright：
 
 ```bash
-cd "D:\好玩的项目\vct-first-blood-analytics"
+cd "D:\好玩的项目\val-ana\vct-first-blood-analytics"
 python 35_download_fonts.py    # 拉 Inter / JetBrains Mono 的 latin 子集到 site/fonts/
 python 65_ui_regress.py        # 43 项：UI 交互 + 队标 + 下拉联动 + 链接恢复 + 排序动画
 python 92_verify_champions.py  # 17 项：冠军赛数据 + 术语表 + 15 个赛事下拉项

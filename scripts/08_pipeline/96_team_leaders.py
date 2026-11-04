@@ -8,7 +8,7 @@ import statistics as st
 from collections import defaultdict
 from pathlib import Path
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 d = json.loads((BASE / "data" / "site_v3.json").read_text(encoding="utf-8"))
 R, D = d["rounds"], d["dict"]
 TEAMS = D["teams"]

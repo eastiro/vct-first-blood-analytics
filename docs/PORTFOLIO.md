@@ -189,7 +189,7 @@ Northeastern 的 Roux Institute 用 Omnic 的比赛数据做过四个独立分�
 ## 七、怎么跑
 
 ```bash
-cd "D:\好玩的项目\vct-first-blood-analytics"
+cd "D:\好玩的项目\val-ana\vct-first-blood-analytics"
 
 # 重建数据（约 20 秒）
 python 93_site_data_v5.py

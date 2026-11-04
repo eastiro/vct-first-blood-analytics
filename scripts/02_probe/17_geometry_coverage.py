@@ -31,7 +31,7 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 OUT = BASE / "_cache" / "geometry_coverage.json"
 
 EVENTS = {

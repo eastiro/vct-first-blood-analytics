@@ -4,7 +4,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 OUT = BASE / "figures" / "_ref4"
 OUT.mkdir(parents=True, exist_ok=True)
 

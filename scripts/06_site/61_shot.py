@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-OUT = Path(r"D:\好玩的项目\vct-first-blood-analytics\figures\site_shot.png")
+OUT = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics\figures\site_shot.png")
 URL = "http://127.0.0.1:8777/"
 
 

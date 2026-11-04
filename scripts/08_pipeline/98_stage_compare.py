@@ -21,7 +21,7 @@ from pathlib import Path
 if not sys.stdout.isatty() and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 d = json.loads((BASE / "data" / "site_v3.json").read_text(encoding="utf-8"))
 R, D = d["rounds"], d["dict"]
 EV = D["events"]

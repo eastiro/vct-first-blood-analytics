@@ -18,7 +18,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import httpx  # noqa: E402
 from selectolax.lexbor import LexborHTMLParser  # noqa: E402
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 FAILS = BASE / "_cache" / "crawl_failures.jsonl"
 
 HEADERS = {

@@ -37,7 +37,7 @@ from selectolax.lexbor import LexborHTMLParser  # noqa: E402
 from vlrdevapi._series.replay.models import ReplayEventType  # noqa: E402
 from vlrdevapi._series.replay.parser import parse_replay_data  # noqa: E402
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 # 默认沿用原路径；用 env 可以指向别的清单/输出，方便增量抓取
 MANIFEST = Path(os.environ.get("VLR_MANIFEST", BASE / "_cache" / "manifest.json"))
 OUTDIR = BASE / "data"
