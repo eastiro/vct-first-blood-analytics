@@ -11,7 +11,7 @@ from pathlib import Path
 
 import httpx
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 OUT = BASE / "site" / "fonts"
 OUT.mkdir(parents=True, exist_ok=True)
 

@@ -20,7 +20,7 @@ from urllib.parse import quote
 import httpx
 from PIL import Image
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 OUT_JSON = BASE / "_cache" / "teams_meta.json"
 LOGO_DIR = BASE / "site" / "logos"
 LOGO_DIR.mkdir(parents=True, exist_ok=True)

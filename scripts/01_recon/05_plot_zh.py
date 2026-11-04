@@ -19,7 +19,7 @@ import numpy as np
 from matplotlib import font_manager
 from PIL import Image
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 MAP = BASE / "_cache" / "maps" / "vlr_ascent.png"
 FB = BASE / "data" / "ascent_first_bloods.json"
 OUTDIR = BASE / "figures"

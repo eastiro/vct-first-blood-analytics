@@ -22,7 +22,7 @@ import importlib  # noqa: E402
 
 crawl = importlib.import_module("30_crawl")
 
-MANIFEST = Path(r"D:\好玩的项目\vct-first-blood-analytics\_cache\manifest.json")
+MANIFEST = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics\_cache\manifest.json")
 
 
 def main() -> None:

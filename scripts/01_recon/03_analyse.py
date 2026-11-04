@@ -13,7 +13,7 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
-DATA = Path(r"D:\好玩的项目\vct-first-blood-analytics\data\ascent_rounds.jsonl")
+DATA = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics\data\ascent_rounds.jsonl")
 
 
 def load() -> list[dict]:

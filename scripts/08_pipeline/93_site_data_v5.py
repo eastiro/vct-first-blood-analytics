@@ -46,7 +46,7 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-BASE = Path(r"D:\好玩的项目\vct-first-blood-analytics")
+BASE = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics")
 SRC = BASE / "data" / "rounds_all.jsonl"
 OUT = BASE / "data" / "site_v5.json"
 ZH = json.loads((BASE / "_cache" / "zh_names.json").read_text(encoding="utf-8"))

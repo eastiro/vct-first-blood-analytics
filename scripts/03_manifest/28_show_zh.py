@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-p = Path(r"D:\好玩的项目\vct-first-blood-analytics\_cache\zh_names.json")
+p = Path(r"D:\好玩的项目\val-ana\vct-first-blood-analytics\_cache\zh_names.json")
 d = json.loads(p.read_text(encoding="utf-8"))
 ab, w, ag = d["abilities"], d["weapons"], d["agents"]
 
