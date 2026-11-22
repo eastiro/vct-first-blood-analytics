@@ -17,5 +17,8 @@ scripts/_scratch/
 # 站点运行只需要 data/site_v3.json 与 data/site_v5.json（派生结果，已入库）。
 data/rounds*.jsonl
 
-# 临时截图与探针产物，不入库
+# 临时截图与探针产物，不入库。
+# 探针脚本习惯把文件直接丢在 figures/ 下、以 _ 开头（_probe_*.png、_api_*.png），
+# 所以连文件一起忽略，不只是 _probe/ 这个目录。
 figures/_probe/
+figures/_*.png
